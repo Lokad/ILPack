@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lokad.ILPack", "Lokad.ILPack\src\Lokad.ILPack.csproj", "{7E7480A4-D10F-4489-B235-9FF58DD1B554}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lokad.ILPack.Tests", "Lokad.ILPack\test\Lokad.ILPack.Tests\Lokad.ILPack.Tests.csproj", "{8647DF26-57C1-465C-8E21-E44617D8EA60}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7E7480A4-D10F-4489-B235-9FF58DD1B554}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E7480A4-D10F-4489-B235-9FF58DD1B554}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E7480A4-D10F-4489-B235-9FF58DD1B554}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E7480A4-D10F-4489-B235-9FF58DD1B554}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8647DF26-57C1-465C-8E21-E44617D8EA60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8647DF26-57C1-465C-8E21-E44617D8EA60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8647DF26-57C1-465C-8E21-E44617D8EA60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8647DF26-57C1-465C-8E21-E44617D8EA60}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A7A07076-50CC-434F-ACAE-6E87A4733F67}
+	EndGlobalSection
+EndGlobal

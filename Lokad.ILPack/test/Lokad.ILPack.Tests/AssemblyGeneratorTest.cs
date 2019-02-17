@@ -4,10 +4,10 @@ using Xunit;
 
 namespace Lokad.ILPack.Tests
 {
-    public class assembly_generator
+    public class AssemblyGeneratorTest
     {
         [Fact]
-        public void from_emission()
+        public void FromEmission()
         {
             var asm = SampleFactorialFromEmission.EmitAssembly(10);
             using (var generator = new AssemblyGenerator(asm))

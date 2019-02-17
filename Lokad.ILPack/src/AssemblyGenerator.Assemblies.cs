@@ -8,11 +8,11 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        // Saved assembly references handles
-        private Dictionary<string, AssemblyReferenceHandle> _assemblyReferenceHandles =
-            new Dictionary<string, AssemblyReferenceHandle>();
+        private readonly byte[] _coreLibToken = {0x7c, 0xec, 0x85, 0xd7, 0xbe, 0xa7, 0x79, 0x8e};
 
-        private readonly byte[] _coreLibToken = new byte[] { 0x7c, 0xec, 0x85, 0xd7, 0xbe, 0xa7, 0x79, 0x8e };
+        // Saved assembly references handles
+        private readonly Dictionary<string, AssemblyReferenceHandle> _assemblyReferenceHandles =
+            new Dictionary<string, AssemblyReferenceHandle>();
 
         private AssemblyReferenceHandle GetCoreLibAssembly()
         {
@@ -22,7 +22,9 @@ namespace Lokad.ILPack
         private AssemblyReferenceHandle GetReferencedAssemblyForType(Type type)
         {
             if (type.Name == "System.RuntimeType")
+            {
                 return GetCoreLibAssembly();
+            }
 
             var asm = type.Assembly.GetName();
 
@@ -31,11 +33,15 @@ namespace Lokad.ILPack
             var fullName = asm.FullName;
 
             if (token.SequenceEqual(_coreLibToken))
+            {
                 return GetCoreLibAssembly();
+            }
 
             var uniqueName = asm.ToString();
             if (_assemblyReferenceHandles.ContainsKey(uniqueName))
+            {
                 return _assemblyReferenceHandles[uniqueName];
+            }
 
             throw new Exception($"Referenced Assembly not found! ({asm.FullName})");
         }
@@ -46,7 +52,9 @@ namespace Lokad.ILPack
             {
                 var uniqueName = asm.ToString();
                 if (_assemblyReferenceHandles.ContainsKey(uniqueName))
+                {
                     continue;
+                }
 
                 var token = asm.GetPublicKeyToken();
                 var key = asm.GetPublicKey();

@@ -7,7 +7,6 @@ namespace Lokad.ILPack
     {
         public void CreateModules(Module[] moduleInfo)
         {
-
             foreach (var module in moduleInfo)
             {
                 var moduleHandle = _metadataBuilder.AddModule(

@@ -6,7 +6,7 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        BindingFlags AllFields =
+        private readonly BindingFlags AllFields =
             BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
             BindingFlags.DeclaredOnly | BindingFlags.CreateInstance |
             BindingFlags.Instance;
@@ -15,15 +15,17 @@ namespace Lokad.ILPack
         {
             var type = fieldInfo.FieldType;
             return GetBlob(
-                BuildSignature(x => 
+                BuildSignature(x =>
                     x.FieldSignature()
-                .FromSystemType(type, this)));
+                        .FromSystemType(type, this)));
         }
 
         private FieldDefinitionHandle CreateFields(FieldInfo[] fields)
         {
             if (fields.Length == 0)
+            {
                 return default(FieldDefinitionHandle);
+            }
 
             var handles = new FieldDefinitionHandle[fields.Length];
             for (var i = 0; i < fields.Length; i++)

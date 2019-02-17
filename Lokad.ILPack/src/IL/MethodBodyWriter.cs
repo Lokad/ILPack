@@ -7,7 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace Lokad.ILPack.IL
 {
-    static class MethodBodyWriter
+    internal static class MethodBodyWriter
     {
         public static void Write(
             BlobBuilder writer,

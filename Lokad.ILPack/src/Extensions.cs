@@ -11,40 +11,90 @@ namespace Lokad.ILPack
         {
             // What is PrimitiveTypeCode.TypedReference? It's not used for now
 
-            if (type == typeof(Boolean))
+            if (type == typeof(bool))
+            {
                 return PrimitiveTypeCode.Boolean;
-            else if (type == typeof(Byte))
+            }
+
+            if (type == typeof(byte))
+            {
                 return PrimitiveTypeCode.Byte;
-            else if (type == typeof(Char))
+            }
+
+            if (type == typeof(char))
+            {
                 return PrimitiveTypeCode.Char;
-            else if (type == typeof(Double))
+            }
+
+            if (type == typeof(double))
+            {
                 return PrimitiveTypeCode.Double;
-            else if (type == typeof(Int16))
+            }
+
+            if (type == typeof(short))
+            {
                 return PrimitiveTypeCode.Int16;
-            else if (type == typeof(Int32))
+            }
+
+            if (type == typeof(int))
+            {
                 return PrimitiveTypeCode.Int32;
-            else if (type == typeof(Int64))
+            }
+
+            if (type == typeof(long))
+            {
                 return PrimitiveTypeCode.Int64;
-            else if (type == typeof(IntPtr))
+            }
+
+            if (type == typeof(IntPtr))
+            {
                 return PrimitiveTypeCode.IntPtr;
-            else if (type == typeof(Object))
+            }
+
+            if (type == typeof(object))
+            {
                 return PrimitiveTypeCode.Object; // this strange, because Object is not primitive type
-            else if (type == typeof(SByte))
+            }
+
+            if (type == typeof(sbyte))
+            {
                 return PrimitiveTypeCode.SByte;
-            else if (type == typeof(Single))
+            }
+
+            if (type == typeof(float))
+            {
                 return PrimitiveTypeCode.Single;
-            else if (type == typeof(String))
+            }
+
+            if (type == typeof(string))
+            {
                 return PrimitiveTypeCode.String; // this strange, because String is not primitive type
-            else if (type == typeof(UInt16))
+            }
+
+            if (type == typeof(ushort))
+            {
                 return PrimitiveTypeCode.UInt16;
-            else if (type == typeof(UInt32))
+            }
+
+            if (type == typeof(uint))
+            {
                 return PrimitiveTypeCode.UInt32;
-            else if (type == typeof(UInt64))
+            }
+
+            if (type == typeof(ulong))
+            {
                 return PrimitiveTypeCode.UInt64;
-            else if (type == typeof(UIntPtr))
+            }
+
+            if (type == typeof(UIntPtr))
+            {
                 return PrimitiveTypeCode.UIntPtr;
-            else if (type == typeof(void))
+            }
+
+            if (type == typeof(void))
+            {
                 return PrimitiveTypeCode.Void;
+            }
 
             throw new ArgumentException($"Type {type.Name} is unknown");
         }
@@ -73,17 +123,18 @@ namespace Lokad.ILPack
             {
                 typeEncoder.PrimitiveType(GetPrimitiveTypeCode(type));
             }
-            else if (type == typeof(String))
+            else if (type == typeof(string))
             {
                 typeEncoder.String();
             }
-            else if (type == typeof(Object))
+            else if (type == typeof(object))
             {
                 typeEncoder.Object();
             }
             else if (type == typeof(void))
             {
-                throw new ArgumentException("Void type is not allowed in SignatureTypeEncoder. Please, use FromSystemType from ReturnTypeEncoder.");
+                throw new ArgumentException(
+                    "Void type is not allowed in SignatureTypeEncoder. Please, use FromSystemType from ReturnTypeEncoder.");
                 //typeEncoder.VoidPointer();
             }
             else if (type.IsArray)
@@ -104,7 +155,6 @@ namespace Lokad.ILPack
             }
             else
             {
-
                 var typeHandler = generator.GetOrCreateType(type);
                 typeEncoder.Type(typeHandler, type.IsValueType);
             }

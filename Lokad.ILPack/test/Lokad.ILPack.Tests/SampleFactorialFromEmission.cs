@@ -10,8 +10,7 @@ namespace Lokad.ILPack.Tests
         public static Assembly EmitAssembly(int theValue)
         {
             // create assembly name
-            var assemblyName = new AssemblyName();
-            assemblyName.Name = "FactorialAssembly";
+            var assemblyName = new AssemblyName {Name = "FactorialAssembly"};
 
             // create assembly with one module
             var newAssembly =
@@ -29,7 +28,7 @@ namespace Lokad.ILPack.Tests
             // the name of the method, and the method attributes.
 
             var paramTypes = new Type[0];
-            var returnType = typeof(Int32);
+            var returnType = typeof(int);
             var simpleMethod = myType.DefineMethod("myfactorial",
                 MethodAttributes.Public | MethodAttributes.Virtual,
                 returnType,
@@ -48,7 +47,7 @@ namespace Lokad.ILPack.Tests
             // stack.
             generator.Emit(OpCodes.Ldc_I4, 1);
 
-            for (int i = 1; i <= theValue; ++i)
+            for (var i = 1; i <= theValue; ++i)
             {
                 generator.Emit(OpCodes.Ldc_I4, i);
                 generator.Emit(OpCodes.Mul);

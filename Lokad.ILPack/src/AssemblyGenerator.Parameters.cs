@@ -8,8 +8,10 @@ namespace Lokad.ILPack
     {
         public ParameterHandle CreateParameters(ParameterInfo[] parameters)
         {
-            if(parameters.Length == 0)
+            if (parameters.Length == 0)
+            {
                 return default(ParameterHandle);
+            }
 
             var handles = new ParameterHandle[parameters.Length];
             for (var i = 0; i < parameters.Length; i++)
@@ -23,9 +25,9 @@ namespace Lokad.ILPack
                 }
 
                 parameterDef = _metadataBuilder.AddParameter(
-                    parameter.Attributes, 
+                    parameter.Attributes,
                     GetString(parameter.Name),
-                    sequenceNumber: i);
+                    i);
 
                 _parameterHandles.Add(parameter, parameterDef);
 

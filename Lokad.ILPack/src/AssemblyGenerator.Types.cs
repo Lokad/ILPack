@@ -21,7 +21,9 @@ namespace Lokad.ILPack
         internal EntityHandle CreateReferencedType(Type type)
         {
             if (_typeHandles.ContainsKey(type.GUID))
+            {
                 return _typeHandles[type.GUID];
+            }
 
             var scope = GetResolutionScopeForType(type);
             var refType = _metadataBuilder.AddTypeReference(
@@ -47,12 +49,16 @@ namespace Lokad.ILPack
         internal EntityHandle GetOrCreateType(Type type)
         {
             if (_typeHandles.ContainsKey(type.GUID))
+            {
                 return _typeHandles[type.GUID];
+            }
 
             var baseType = default(EntityHandle);
 
             if (IsReferencedType(type))
+            {
                 return CreateReferencedType(type);
+            }
 
             if (type.BaseType != null)
             {

@@ -6,8 +6,8 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        BindingFlags AllProperties = 
-            BindingFlags.NonPublic | BindingFlags.Public | 
+        private readonly BindingFlags AllProperties =
+            BindingFlags.NonPublic | BindingFlags.Public |
             BindingFlags.Instance | BindingFlags.Static;
 
         private BlobHandle GetPropertySignature(PropertyInfo propertyInfo)
@@ -18,29 +18,32 @@ namespace Lokad.ILPack
 
             var blob = BuildSignature(x => x.PropertySignature()
                 .Parameters(
-                countParameters,
-                r => r.FromSystemType(retType, this),
-                p => {
-                    foreach (var par in parameters)
+                    countParameters,
+                    r => r.FromSystemType(retType, this),
+                    p =>
                     {
-                        var parEncoder = p.AddParameter();
-                        parEncoder.Type().FromSystemType(par.ParameterType, this);
-                    }
-                }));
+                        foreach (var par in parameters)
+                        {
+                            var parEncoder = p.AddParameter();
+                            parEncoder.Type().FromSystemType(par.ParameterType, this);
+                        }
+                    }));
             return GetBlob(blob);
         }
 
         public PropertyDefinitionHandle CreatePropertiesForType(PropertyInfo[] properties)
         {
             if (properties.Length == 0)
+            {
                 return default(PropertyDefinitionHandle);
+            }
 
             var handles = new PropertyDefinitionHandle[properties.Length];
-            for(var i = 0; i < properties.Length; i++)
+            for (var i = 0; i < properties.Length; i++)
             {
                 var property = properties[i];
 
-                if(_propertyHandles.TryGetValue(property, out var propertyDef))
+                if (_propertyHandles.TryGetValue(property, out var propertyDef))
                 {
                     handles[i] = propertyDef;
                     continue;
@@ -59,8 +62,8 @@ namespace Lokad.ILPack
                 if (getMethod != null)
                 {
                     _metadataBuilder.AddMethodSemantics(
-                        propertyDef, 
-                        MethodSemanticsAttributes.Getter, 
+                        propertyDef,
+                        MethodSemanticsAttributes.Getter,
                         GetOrCreateMethod(getMethod));
                 }
 
@@ -73,7 +76,7 @@ namespace Lokad.ILPack
                         GetOrCreateMethod(setMethod));
                 }
             }
-            
+
             return handles.First();
         }
     }

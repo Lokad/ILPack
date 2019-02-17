@@ -7,8 +7,8 @@ namespace Lokad.ILPack.IL
 {
     public static class OpCodeExtensions
     {
-        static readonly OpCode[] OneByteOpCodes;
-        static readonly OpCode[] TwoBytesOpCodes;
+        private static readonly OpCode[] OneByteOpCodes;
+        private static readonly OpCode[] TwoBytesOpCodes;
 
         static OpCodeExtensions()
         {
@@ -19,7 +19,7 @@ namespace Lokad.ILPack.IL
 
             for (var i = 0; i < fields.Length; i++)
             {
-                var opcode = (OpCode)fields[i].GetValue(null);
+                var opcode = (OpCode) fields[i].GetValue(null);
                 if (opcode.OpCodeType == OpCodeType.Nternal)
                 {
                     continue;
@@ -36,7 +36,7 @@ namespace Lokad.ILPack.IL
             }
         }
 
-        static FieldInfo[] GetOpCodeFields()
+        private static FieldInfo[] GetOpCodeFields()
         {
             return typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static);
         }
@@ -51,18 +51,18 @@ namespace Lokad.ILPack.IL
         {
             if (op.Size == 1)
             {
-                writer((byte)op.Value);
+                writer((byte) op.Value);
             }
             else // Size == 2
             {
                 writer(0xfe);
-                writer((byte)(op.Value & 0xff));
+                writer((byte) (op.Value & 0xff));
             }
         }
 
         public static ILOpCode ToILOpCode(this OpCode op)
         {
-            return (ILOpCode)op.Value;
+            return (ILOpCode) op.Value;
         }
     }
 }

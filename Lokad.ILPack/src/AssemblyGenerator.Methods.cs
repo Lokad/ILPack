@@ -7,7 +7,7 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        BindingFlags AllMethods =
+        private readonly BindingFlags AllMethods =
             BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
             BindingFlags.DeclaredOnly | BindingFlags.CreateInstance |
             BindingFlags.Instance;
@@ -19,7 +19,7 @@ namespace Lokad.ILPack
             var countParameters = parameters.Length;
 
             var blob = BuildSignature(x => x.MethodSignature(
-                    convention: ConvertCallingConvention(methodInfo.CallingConvention),
+                    ConvertCallingConvention(methodInfo.CallingConvention),
                     isInstanceMethod: !methodInfo.IsStatic)
                 .Parameters(
                     countParameters,
@@ -38,7 +38,9 @@ namespace Lokad.ILPack
         private MethodDefinitionHandle GetMethodDefinitionHandle(MethodInfo methodInfo)
         {
             if (methodInfo == null)
+            {
                 return default(MethodDefinitionHandle);
+            }
 
             return _methodsHandles[methodInfo];
         }
@@ -46,7 +48,9 @@ namespace Lokad.ILPack
         private MethodDefinitionHandle GetOrCreateMethod(MethodInfo methodInfo)
         {
             if (_methodsHandles.ContainsKey(methodInfo))
+            {
                 return _methodsHandles[methodInfo];
+            }
 
             var offset = _ilBuilder.Count; // take an offset
             var body = methodInfo.GetMethodBody();
@@ -108,7 +112,9 @@ namespace Lokad.ILPack
         private MethodDefinitionHandle CreateMethods(MethodInfo[] methods)
         {
             if (methods.Length == 0)
+            {
                 return default(MethodDefinitionHandle);
+            }
 
             var handles = new MethodDefinitionHandle[methods.Length];
             for (var i = 0; i < methods.Length; i++)

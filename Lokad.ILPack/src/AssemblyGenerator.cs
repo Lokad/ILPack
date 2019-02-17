@@ -10,20 +10,20 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator : IDisposable
     {
-
-        private DebugDirectoryBuilder _debugDirectoryBuilder;
-        private MemoryStream _peStream;
-        private BlobBuilder _ilBuilder;
-        private MetadataBuilder _metadataBuilder;
-        private Assembly _currentAssembly;
-
-        private readonly Dictionary<Guid, EntityHandle> _typeHandles;
-        private readonly Dictionary<ConstructorInfo, MemberReferenceHandle> _ctorRefHandles;
         private readonly Dictionary<ConstructorInfo, MethodDefinitionHandle> _ctorDefHandles;
+        private readonly Dictionary<ConstructorInfo, MemberReferenceHandle> _ctorRefHandles;
         private readonly Dictionary<FieldInfo, FieldDefinitionHandle> _fieldHandles;
         private readonly Dictionary<MethodInfo, MethodDefinitionHandle> _methodsHandles;
-        private readonly Dictionary<PropertyInfo, PropertyDefinitionHandle> _propertyHandles;
         private readonly Dictionary<ParameterInfo, ParameterHandle> _parameterHandles;
+        private readonly Dictionary<PropertyInfo, PropertyDefinitionHandle> _propertyHandles;
+
+        private readonly Dictionary<Guid, EntityHandle> _typeHandles;
+        private readonly Assembly _currentAssembly;
+
+        private readonly DebugDirectoryBuilder _debugDirectoryBuilder;
+        private readonly BlobBuilder _ilBuilder;
+        private readonly MetadataBuilder _metadataBuilder;
+        private readonly MemoryStream _peStream;
 
         public AssemblyGenerator(Assembly assembly)
         {
@@ -42,10 +42,15 @@ namespace Lokad.ILPack
             _parameterHandles = new Dictionary<ParameterInfo, ParameterHandle>();
         }
 
+        public void Dispose()
+        {
+            _peStream.Close();
+        }
+
         public byte[] GenerateAssemblyBytes()
         {
             var name = _currentAssembly.GetName();
-        
+
             var assemblyHandle = _metadataBuilder.AddAssembly(
                 GetString(name.Name),
                 name.Version,
@@ -82,11 +87,6 @@ namespace Lokad.ILPack
         {
             var bytes = GenerateAssemblyBytes();
             File.WriteAllBytes(path, bytes);
-        }
-
-        public void Dispose()
-        {
-            _peStream.Close();
         }
     }
 }

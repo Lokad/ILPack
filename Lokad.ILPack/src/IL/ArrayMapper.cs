@@ -14,8 +14,7 @@ namespace Lokad.ILPack.IL
 
         public int Add(T val)
         {
-            int idx;
-            if (_dic.TryGetValue(val, out idx))
+            if (_dic.TryGetValue(val, out var idx))
             {
                 return idx;
             }

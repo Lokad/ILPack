@@ -17,18 +17,17 @@ namespace Lokad.ILPack
                 case AssemblyNameFlags.None:
                     return 0; // Possible wrong
                 default:
-                    return (AssemblyFlags)flags;
+                    return (AssemblyFlags) flags;
             }
         }
 
         private AssemblyHashAlgorithm _assemblyHashAlgorithmConvert(CfgAssemblyHashAlgorithm alg)
         {
-            return (AssemblyHashAlgorithm)alg;
+            return (AssemblyHashAlgorithm) alg;
         }
 
         private SignatureCallingConvention ConvertCallingConvention(CallingConventions callingConvention)
         {
-
             // TODO: incorrect / draft implementation
             // See https://stackoverflow.com/questions/54632913/how-to-convert-callingconventions-into-signaturecallingconvention
 
@@ -50,7 +49,9 @@ namespace Lokad.ILPack
             //    result |= SignatureCallingConvention.StdCall;
 
             if (callingConvention.HasFlag(CallingConventions.VarArgs))
+            {
                 result |= SignatureCallingConvention.VarArgs;
+            }
 
             return result;
 
@@ -98,14 +99,16 @@ namespace Lokad.ILPack
         {
             return _metadataBuilder.GetOrAddBlob(bytes);
         }
-        
+
         private BlobHandle GetCustomAttributeValueFromString(string str)
         {
             if (str == null)
+            {
                 return default(BlobHandle);
+            }
 
             var builder = new BlobBuilder();
-            builder.WriteBytes(new byte[] { 0x01, 0x00 }); // "prolog"
+            builder.WriteBytes(new byte[] {0x01, 0x00}); // "prolog"
             builder.WriteUTF8(str);
 
             return GetBlob(builder);

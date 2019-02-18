@@ -1,22 +1,44 @@
 ﻿using System.IO;
 using System.Reflection;
+using System.Reflection.Emit;
 using Xunit;
 
 namespace Lokad.ILPack.Tests
 {
     public class AssemblyGeneratorTest
     {
-        [Fact]
-        public void FromEmission()
+        private static void SerializeAndVerify(Assembly asm, string fileName)
         {
-            var asm = SampleFactorialFromEmission.EmitAssembly(10);
+            var current = Directory.GetCurrentDirectory();
+            var path = Path.Combine(current, fileName);
+
             using (var generator = new AssemblyGenerator(asm))
             {
-                generator.GenerateAssembly("sample_factorial.dll");
+                generator.GenerateAssembly(path);
             }
 
-            var current = Directory.GetCurrentDirectory();
-            Assembly.LoadFile(Path.Combine(current, "sample_factorial.dll"));
+            // Unfortunately, until .NET Core 3.0 we cannot unload assemblies.
+            Assembly.LoadFile(path);
+        }
+
+        [Fact]
+        public void TestBareMinimum()
+        {
+            // create assembly name
+            var assemblyName = new AssemblyName {Name = "FactorialAssembly"};
+
+            // create assembly with one module
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MFactorial");
+
+            SerializeAndVerify(newAssembly, "BareMinimum.dll");
+        }
+
+        [Fact]
+        public void TestFactorial()
+        {
+            var asm = SampleFactorialFromEmission.EmitAssembly(10);
+            SerializeAndVerify(asm, "SampleFactorial.dll");
         }
     }
 }

@@ -12,18 +12,17 @@ namespace Lokad.ILPack
     {
         private readonly Dictionary<ConstructorInfo, MethodDefinitionHandle> _ctorDefHandles;
         private readonly Dictionary<ConstructorInfo, MemberReferenceHandle> _ctorRefHandles;
+        private readonly Assembly _currentAssembly;
+        private readonly DebugDirectoryBuilder _debugDirectoryBuilder;
         private readonly Dictionary<FieldInfo, FieldDefinitionHandle> _fieldHandles;
+        private readonly BlobBuilder _ilBuilder;
+        private readonly MetadataBuilder _metadataBuilder;
         private readonly Dictionary<MethodInfo, MethodDefinitionHandle> _methodsHandles;
         private readonly Dictionary<ParameterInfo, ParameterHandle> _parameterHandles;
+        private readonly MemoryStream _peStream;
         private readonly Dictionary<PropertyInfo, PropertyDefinitionHandle> _propertyHandles;
 
         private readonly Dictionary<Guid, EntityHandle> _typeHandles;
-        private readonly Assembly _currentAssembly;
-
-        private readonly DebugDirectoryBuilder _debugDirectoryBuilder;
-        private readonly BlobBuilder _ilBuilder;
-        private readonly MetadataBuilder _metadataBuilder;
-        private readonly MemoryStream _peStream;
 
         public AssemblyGenerator(Assembly assembly)
         {
@@ -68,7 +67,12 @@ namespace Lokad.ILPack
             var entryPoint = GetMethodDefinitionHandle(_currentAssembly.EntryPoint);
 
             var metadataRootBuilder = new MetadataRootBuilder(_metadataBuilder);
-            var header = PEHeaderBuilder.CreateLibraryHeader();
+
+            // Without Characteristics.ExecutableImage flag, .NET runtime refuses
+            // to load an assembly even it's a DLL. PEHeaderBuilder.CreateLibraryHeader
+            // does not set this flag. So, we set it explicitly.
+            var header = new PEHeaderBuilder(imageCharacteristics: Characteristics.ExecutableImage |
+                                                                   (entryPoint.IsNil ? Characteristics.Dll : 0));
 
             var peBuilder = new ManagedPEBuilder(
                 header,

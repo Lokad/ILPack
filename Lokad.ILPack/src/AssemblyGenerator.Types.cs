@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Lokad.ILPack
 {
@@ -87,8 +88,8 @@ namespace Lokad.ILPack
                 GetString(type.Namespace),
                 GetString(type.Name),
                 baseType,
-                fields,
-                methods);
+                fields.IsNil ? MetadataTokens.FieldDefinitionHandle(1) : fields,
+                methods.IsNil ? MetadataTokens.MethodDefinitionHandle(1) : methods);
 
             _typeHandles[type.GUID] = def;
 

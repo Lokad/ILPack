@@ -88,16 +88,11 @@ namespace Lokad.ILPack
             var body = constructorInfo.GetMethodBody();
             if (body != null)
             {
-                // TODO: BUG [vermorel] incorrect 
-                //_ilBuilder.WriteBytes(body.GetILAsByteArray());
+                var methodBodyWriter = new MethodBodyStreamWriter(_ilBuilder, GetString, _typeHandles, _ctorRefHandles,
+                    _fieldHandles, _methodsHandles);
 
-                var il = constructorInfo.GetInstructions();
-                MethodBodyWriter.Write(_ilBuilder, il,
-                    GetString,
-                    _typeHandles,
-                    _ctorRefHandles,
-                    _fieldHandles,
-                    _methodsHandles);
+                // bodyOffset can be aligned during serialization. So, override the correct offset.
+                bodyOffset = methodBodyWriter.AddMethodBody(constructorInfo);
             }
 
             var ctorDef = _metadataBuilder.AddMethodDefinition(

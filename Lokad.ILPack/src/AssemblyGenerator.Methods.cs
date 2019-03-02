@@ -52,17 +52,11 @@ namespace Lokad.ILPack
             // If body exists, we write it in IL body stream
             if (body != null)
             {
-                // TODO: [vermorel] BUG, this is NOT going to work
-                //var methodBody = body.GetILAsByteArray();
-                //_ilBuilder.WriteBytes(methodBody);
+                var methodBodyWriter = new MethodBodyStreamWriter(_ilBuilder, GetString, _typeHandles, _ctorRefHandles,
+                    _fieldHandles, _methodsHandles);
 
-                var il = methodInfo.GetInstructions();
-                MethodBodyWriter.Write(_ilBuilder, il,
-                    GetString,
-                    _typeHandles,
-                    _ctorRefHandles,
-                    _fieldHandles,
-                    _methodsHandles);
+                // offset can be aligned during serialization. So, override the correct offset.
+                offset = methodBodyWriter.AddMethodBody(methodInfo);
             }
 
             var signature = GetMethodSignature(methodInfo);

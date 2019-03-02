@@ -37,12 +37,7 @@ namespace Lokad.ILPack
 
         private MethodDefinitionHandle GetMethodDefinitionHandle(MethodInfo methodInfo)
         {
-            if (methodInfo == null)
-            {
-                return default(MethodDefinitionHandle);
-            }
-
-            return _methodsHandles[methodInfo];
+            return methodInfo != null ? _methodsHandles[methodInfo] : default(MethodDefinitionHandle);
         }
 
         private MethodDefinitionHandle GetOrCreateMethod(MethodInfo methodInfo)

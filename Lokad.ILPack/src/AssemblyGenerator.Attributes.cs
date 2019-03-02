@@ -20,7 +20,7 @@ namespace Lokad.ILPack
                 GetOrCreateType(type); // create type
 
                 var args = attr.ConstructorArguments;
-                var text = string.Join(",", args.Select(x => { return $"\"{x.Value}"; }));
+                var text = string.Join(",", args.Select(x => $"\"{x.Value}"));
 
                 /*
                 var namedArgs = attr.NamedArguments;

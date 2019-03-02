@@ -8,11 +8,11 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        private readonly byte[] _coreLibToken = {0x7c, 0xec, 0x85, 0xd7, 0xbe, 0xa7, 0x79, 0x8e};
-
         // Saved assembly references handles
         private readonly Dictionary<string, AssemblyReferenceHandle> _assemblyReferenceHandles =
             new Dictionary<string, AssemblyReferenceHandle>();
+
+        private byte[] _mscorlibToken;
 
         private AssemblyReferenceHandle GetCoreLibAssembly()
         {
@@ -32,7 +32,7 @@ namespace Lokad.ILPack
             var key = asm.GetPublicKey();
             var fullName = asm.FullName;
 
-            if (token.SequenceEqual(_coreLibToken))
+            if (token.SequenceEqual(_mscorlibToken))
             {
                 return GetCoreLibAssembly();
             }
@@ -46,31 +46,40 @@ namespace Lokad.ILPack
             throw new Exception($"Referenced Assembly not found! ({asm.FullName})");
         }
 
+        private void AddReferencedAssembly(string referenceName, AssemblyName assemblyName)
+        {
+            var uniqueName = assemblyName.ToString();
+            if (_assemblyReferenceHandles.ContainsKey(uniqueName))
+            {
+                return;
+            }
+
+            var token = assemblyName.GetPublicKeyToken();
+            var key = assemblyName.GetPublicKey();
+            var hashOrToken = token ?? key;
+            var handle = _metadataBuilder.AddAssemblyReference(
+                GetString(referenceName),
+                assemblyName.Version,
+                GetString(assemblyName.CultureName),
+                GetBlob(hashOrToken),
+                _assemblyNameFlagsConvert(assemblyName.Flags),
+                default(BlobHandle)); // Null is allowed
+
+            _assemblyReferenceHandles.Add(uniqueName, handle);
+        }
+
         private void CreateReferencedAssemblies(AssemblyName[] assemblies)
         {
+            // Add "mscorlib" first by its explicit name.
+            // Otherwise, it will be referenced as "System.Private.CoreLib"
+            // Also, derive mscorlib public key token at runtime to support future changes.
+            var mscorlib = typeof(object).GetTypeInfo().Assembly.GetName();
+            _mscorlibToken = mscorlib.GetPublicKeyToken();
+            AddReferencedAssembly("mscorlib", mscorlib);
+
             foreach (var asm in assemblies)
             {
-                var uniqueName = asm.ToString();
-                if (_assemblyReferenceHandles.ContainsKey(uniqueName))
-                {
-                    continue;
-                }
-
-                var token = asm.GetPublicKeyToken();
-                var key = asm.GetPublicKey();
-
-                var hashOrToken = token == null ? GetBlob(key) : GetBlob(token);
-
-
-                var handle = _metadataBuilder.AddAssemblyReference(
-                    GetString(asm.Name),
-                    asm.Version,
-                    GetString(asm.CultureName),
-                    hashOrToken,
-                    _assemblyNameFlagsConvert(asm.Flags),
-                    default(BlobHandle)); // Null is allowed
-
-                _assemblyReferenceHandles.Add(uniqueName, handle);
+                AddReferencedAssembly(asm.ToString(), asm);
             }
         }
     }

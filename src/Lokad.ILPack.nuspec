@@ -11,9 +11,16 @@
     <releaseNotes>None</releaseNotes>
     <copyright>Copyright Lokad 2019</copyright>
     <tags>Assembly Serialization netcore</tags>
+    <!--
     <dependencies>
         <group>
         </group>
     </dependencies>
+    -->
   </metadata>
+  <files>
+    <!-- Slashes as folder separator don't work here, no idea why :-|  -->
+    <file src="bin\Release\netstandard2.0\*.*" target="lib\netstandard2.0\" />
+    <file src="bin\Release\netcoreapp2.1\*.*" target="lib\netcoreapp2.1\" />
+  </files>
 </package>

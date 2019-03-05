@@ -11,12 +11,11 @@
     <releaseNotes>None</releaseNotes>
     <copyright>Copyright Lokad 2019</copyright>
     <tags>Assembly Serialization netcore</tags>
-    <!--
     <dependencies>
         <group>
+          <dependency id="System.Reflection.Metadata" version="1.6.0" />
         </group>
     </dependencies>
-    -->
   </metadata>
   <files>
     <!-- Slashes as folder separator don't work here, no idea why :-|  -->

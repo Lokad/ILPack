@@ -5,13 +5,15 @@ but has been lost with .NET Core, hence, it is re-implemented here.
 
 Usage:
 
-    var assembly = Assembly.GetAssembly(t);
-    var generator = new AssemblyGenerator(assembly);
+```cs
+var assembly = Assembly.GetAssembly(t);
+var generator = new AssemblyGenerator(assembly);
 
-    // for ad-hoc serialization
-    var bytes = generator.GenerateAssemblyBytes();
+// for ad-hoc serialization
+var bytes = generator.GenerateAssemblyBytes();
 
-    // direct serialization to disk
-    generator.GenerateAssembly("/path/to/file");
+// direct serialization to disk
+generator.GenerateAssembly("/path/to/file");
+```
 
 Based on an open source initial implementation at: https://github.com/Dolfik1/AssemblyGenerator

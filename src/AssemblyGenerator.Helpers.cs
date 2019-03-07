@@ -8,20 +8,59 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        private AssemblyFlags _assemblyNameFlagsConvert(AssemblyNameFlags flags)
+        private AssemblyFlags ConvertAssemblyNameFlags(AssemblyNameFlags flags)
         {
-            switch (flags)
+            var result = (AssemblyFlags) 0;
+
+            if (flags.HasFlag(AssemblyNameFlags.PublicKey))
             {
-                // we not support only AssemblyNameFlags.None flag
-                // also i'm not sure about AssemblyNameFlags.EnableJITcompileOptimizer flag
-                case AssemblyNameFlags.None:
-                    return 0; // Possible wrong
-                default:
-                    return (AssemblyFlags) flags;
+                result |= AssemblyFlags.PublicKey;
             }
+
+            if (flags.HasFlag(AssemblyNameFlags.Retargetable))
+            {
+                result |= AssemblyFlags.Retargetable;
+            }
+
+            // No, it's not a typo. Microsoft decided to put "exact opposite of the meaning" for this flag.
+            if (flags.HasFlag(AssemblyNameFlags.EnableJITcompileOptimizer))
+            {
+                result |= AssemblyFlags.DisableJitCompileOptimizer;
+            }
+
+            if (flags.HasFlag(AssemblyNameFlags.EnableJITcompileTracking))
+            {
+                result |= AssemblyFlags.EnableJitCompileTracking;
+            }
+
+            return result;
         }
 
-        private AssemblyHashAlgorithm _assemblyHashAlgorithmConvert(CfgAssemblyHashAlgorithm alg)
+        private AssemblyFlags ConvertGeneratedAssemblyNameFlags(AssemblyName asmName)
+        {
+            var result = ConvertAssemblyNameFlags(asmName.Flags);
+
+            // If there is no public key, unset PublicKey flag.
+            if (result.HasFlag(AssemblyFlags.PublicKey) && asmName.GetPublicKey().Length == 0)
+            {
+                result &= ~AssemblyFlags.PublicKey;
+            }
+
+            return result;
+        }
+
+        private AssemblyFlags ConvertReferencedAssemblyNameFlags(AssemblyNameFlags flags)
+        {
+            var result = ConvertAssemblyNameFlags(flags);
+
+            // TODO: [osman] Referenced runtime assemblies don't have PublicKey flag.
+            // How should we handle an assembly which doesn't have a strong name?
+            result &= ~AssemblyFlags.PublicKey;
+
+            return result;
+        }
+
+        private AssemblyHashAlgorithm ConvertAssemblyHashAlgorithm(CfgAssemblyHashAlgorithm alg)
         {
             return (AssemblyHashAlgorithm) alg;
         }

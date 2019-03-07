@@ -56,13 +56,14 @@ namespace Lokad.ILPack
 
             var name = _currentAssembly.GetName();
 
+            var assemblyPublicKey = name.GetPublicKey();
             var assemblyHandle = _metadataBuilder.AddAssembly(
                 GetString(name.Name),
                 name.Version,
                 GetString(name.CultureName),
-                GetBlob(name.GetPublicKey()),
-                _assemblyNameFlagsConvert(name.Flags),
-                _assemblyHashAlgorithmConvert(name.HashAlgorithm));
+                assemblyPublicKey.Length > 0 ? GetBlob(name.GetPublicKey()) : default(BlobHandle),
+                ConvertGeneratedAssemblyNameFlags(name),
+                ConvertAssemblyHashAlgorithm(name.HashAlgorithm));
 
             // Add "<Module>" type definition *before* any type definition.
             //

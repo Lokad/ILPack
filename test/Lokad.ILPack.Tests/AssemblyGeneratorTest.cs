@@ -7,7 +7,7 @@ namespace Lokad.ILPack.Tests
 {
     public class AssemblyGeneratorTest
     {
-        private static void SerializeAndVerify(Assembly asm, string fileName)
+        private static string SerializeAssembly(Assembly asm, string fileName)
         {
             var current = Directory.GetCurrentDirectory();
             var path = Path.Combine(current, fileName);
@@ -17,23 +17,18 @@ namespace Lokad.ILPack.Tests
                 generator.GenerateAssembly(path);
             }
 
-            // Unfortunately, until .NET Core 3.0 we cannot unload assemblies.
-            Assembly.LoadFile(path);
+            return path;
         }
 
-        private void VerifyPE(string fileName, Stream peStream)
+        private static string SerializeAndVerifyAssembly(Assembly asm, string fileName)
         {
-            var current = Directory.GetCurrentDirectory();
-            var path = Path.Combine(current, fileName);
-
-            using (var file = File.Create(path))
-            {
-                peStream.Position = 0;
-                peStream.CopyTo(file);
-            }
+            var path = SerializeAssembly(asm, fileName);
 
             // Unfortunately, until .NET Core 3.0 we cannot unload assemblies.
-            Assembly.LoadFile(path);
+            var asmFromDisk = Assembly.LoadFile(path);
+            var types = asmFromDisk.GetTypes(); // force to access metadata
+
+            return path;
         }
 
         [Fact]
@@ -46,14 +41,14 @@ namespace Lokad.ILPack.Tests
             var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             var newModule = newAssembly.DefineDynamicModule("MFactorial");
 
-            SerializeAndVerify(newAssembly, "BareMinimum.dll");
+            SerializeAndVerifyAssembly(newAssembly, "BareMinimum.dll");
         }
 
         [Fact]
         public void TestFactorial()
         {
             var asm = SampleFactorialFromEmission.EmitAssembly(10);
-            SerializeAndVerify(asm, "SampleFactorial.dll");
+            SerializeAndVerifyAssembly(asm, "SampleFactorial.dll");
         }
 
         [Fact]
@@ -70,7 +65,7 @@ namespace Lokad.ILPack.Tests
             var myType = newModule.DefineType("Namespace.CFactorial", TypeAttributes.Public);
             myType.CreateType();
 
-            SerializeAndVerify(newAssembly, "TypeSerialization.dll");
+            SerializeAndVerifyAssembly(newAssembly, "TypeSerialization.dll");
         }
     }
 }

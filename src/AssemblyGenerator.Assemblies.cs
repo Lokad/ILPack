@@ -62,7 +62,7 @@ namespace Lokad.ILPack
                 assemblyName.Version,
                 GetString(assemblyName.CultureName),
                 GetBlob(hashOrToken),
-                _assemblyNameFlagsConvert(assemblyName.Flags),
+                ConvertReferencedAssemblyNameFlags(assemblyName.Flags),
                 default(BlobHandle)); // Null is allowed
 
             _assemblyReferenceHandles.Add(uniqueName, handle);

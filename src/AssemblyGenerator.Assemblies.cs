@@ -8,6 +8,8 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
+        private const string SystemRuntimeAssemblyName = "System.Runtime";
+
         // Saved assembly references handles
         private readonly Dictionary<string, AssemblyReferenceHandle> _assemblyReferenceHandles =
             new Dictionary<string, AssemblyReferenceHandle>();
@@ -29,9 +31,6 @@ namespace Lokad.ILPack
             var asm = type.Assembly.GetName();
 
             var token = asm.GetPublicKeyToken();
-            var key = asm.GetPublicKey();
-            var fullName = asm.FullName;
-
             if (token.SequenceEqual(_mscorlibToken))
             {
                 return GetCoreLibAssembly();
@@ -55,6 +54,11 @@ namespace Lokad.ILPack
             }
 
             var token = assemblyName.GetPublicKeyToken();
+            if (token != null && _mscorlibToken != null && token.SequenceEqual(_mscorlibToken))
+            {
+                return;
+            }
+
             var key = assemblyName.GetPublicKey();
             var hashOrToken = token ?? key;
             var handle = _metadataBuilder.AddAssemblyReference(
@@ -70,12 +74,18 @@ namespace Lokad.ILPack
 
         private void CreateReferencedAssemblies(AssemblyName[] assemblies)
         {
-            // Add "mscorlib" first by its explicit name.
-            // Otherwise, it will be referenced as "System.Private.CoreLib"
-            // Also, derive mscorlib public key token at runtime to support future changes.
+            // Dynamically generated assemblies reference "System.Private.CoreLib" assembly first.
+            // "System.Private.CoreLib" public key token is same as "mscorlib".
+            // Since, .NET Core is fundamentally different from .NET Framework,
+            // we don't reference "mscorlib" first. Instead, we'll reference "System.Runtime" assembly
+            // which we extract it's full assembly name at runtime. Also, we'll provide a way to
+            // map all "mscorlib" and "System.Private.CoreLib" references to "System.Runtime".
+            var systemRuntime = Assembly.Load(SystemRuntimeAssemblyName).GetName();
+            AddReferencedAssembly(SystemRuntimeAssemblyName, systemRuntime);
+
+            // Since AddReferencedAssembly checks for mapping, we set _mscorlibToken after "System.Runtime"
             var mscorlib = typeof(object).GetTypeInfo().Assembly.GetName();
             _mscorlibToken = mscorlib.GetPublicKeyToken();
-            AddReferencedAssembly("mscorlib", mscorlib);
 
             foreach (var asm in assemblies)
             {

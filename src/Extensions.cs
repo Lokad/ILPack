@@ -151,7 +151,22 @@ namespace Lokad.ILPack
             }
             else if (type.IsGenericType)
             {
-                throw new ArgumentException("Generic types not supported for now!");
+                var genericTypeDef = type.GetGenericTypeDefinition();
+                var typeHandler = generator.GetOrCreateType(genericTypeDef);
+                var genericArguments = type.GetGenericArguments();
+
+                var inst = typeEncoder.GenericInstantiation(typeHandler, genericArguments.Length, false);
+                foreach (var ga in genericArguments)
+                {
+                    if (ga.IsGenericParameter)
+                    {
+                        inst.AddArgument().GenericTypeParameter(ga.GenericParameterPosition);
+                    }
+                    else
+                    {
+                        inst.AddArgument().FromSystemType(ga, generator);
+                    }
+                }
             }
             else
             {

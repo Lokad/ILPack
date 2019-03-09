@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
@@ -76,12 +77,11 @@ namespace Lokad.ILPack
                 }
             }
 
+            var fields = CreateFields(type.GetFields(AllFields));
             var propsHandle = CreatePropertiesForType(type.GetProperties(AllProperties));
             var methods = CreateMethods(type.GetMethods(AllMethods));
 
             CreateConstructors(type.GetConstructors());
-
-            var fields = CreateFields(type.GetFields(AllFields));
 
             var def = _metadataBuilder.AddTypeDefinition(
                 type.Attributes,
@@ -90,6 +90,31 @@ namespace Lokad.ILPack
                 baseType,
                 fields.IsNil ? MetadataTokens.FieldDefinitionHandle(1) : fields,
                 methods.IsNil ? MetadataTokens.MethodDefinitionHandle(1) : methods);
+
+            // Handle generics type
+            if (type.IsGenericType)
+            {
+                if (type.IsGenericTypeDefinition)
+                {
+                    var genericType = type.GetGenericTypeDefinition();
+                    var typeInfo = genericType.GetTypeInfo();
+
+                    for (var i = 0; i < typeInfo.GenericTypeParameters.Length; ++i)
+                    {
+                        var parm = typeInfo.GenericTypeParameters[i];
+                        var attr = parm.GenericParameterAttributes;
+
+                        var genericParameterHandle =
+                            _metadataBuilder.AddGenericParameter(def, attr, GetString(parm.Name), i);
+
+                        foreach (var constraint in parm.GetGenericParameterConstraints())
+                        {
+                            _metadataBuilder.AddGenericParameterConstraint(genericParameterHandle,
+                                GetOrCreateType(constraint));
+                        }
+                    }
+                }
+            }
 
             _typeHandles[type.GUID] = def;
 

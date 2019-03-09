@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
         private const string SystemRuntimeAssemblyName = "System.Runtime";
+        private const string MscorlibAssemblyName = "mscorlib";
 
         // Saved assembly references handles
         private readonly Dictionary<string, AssemblyReferenceHandle> _assemblyReferenceHandles =
             new Dictionary<string, AssemblyReferenceHandle>();
 
-        private byte[] _mscorlibToken;
+        private byte[] _coreLibToken;
 
         private AssemblyReferenceHandle GetCoreLibAssembly()
         {
@@ -31,7 +33,7 @@ namespace Lokad.ILPack
             var asm = type.Assembly.GetName();
 
             var token = asm.GetPublicKeyToken();
-            if (token.SequenceEqual(_mscorlibToken))
+            if (token.SequenceEqual(_coreLibToken))
             {
                 return GetCoreLibAssembly();
             }
@@ -54,7 +56,7 @@ namespace Lokad.ILPack
             }
 
             var token = assemblyName.GetPublicKeyToken();
-            if (token != null && _mscorlibToken != null && token.SequenceEqual(_mscorlibToken))
+            if (token != null && _coreLibToken != null && token.SequenceEqual(_coreLibToken))
             {
                 return;
             }
@@ -72,20 +74,39 @@ namespace Lokad.ILPack
             _assemblyReferenceHandles.Add(uniqueName, handle);
         }
 
+        private static bool IsDotNetCore()
+        {
+            var desc = RuntimeInformation.FrameworkDescription;
+            if (string.IsNullOrEmpty(desc))
+            {
+                return false;
+            }
+
+            return desc.StartsWith(".NET Core ");
+        }
+
         private void CreateReferencedAssemblies(AssemblyName[] assemblies)
         {
-            // Dynamically generated assemblies reference "System.Private.CoreLib" assembly first.
-            // "System.Private.CoreLib" public key token is same as "mscorlib".
-            // Since, .NET Core is fundamentally different from .NET Framework,
-            // we don't reference "mscorlib" first. Instead, we'll reference "System.Runtime" assembly
-            // which we extract it's full assembly name at runtime. Also, we'll provide a way to
-            // map all "mscorlib" and "System.Private.CoreLib" references to "System.Runtime".
-            var systemRuntime = Assembly.Load(SystemRuntimeAssemblyName).GetName();
-            AddReferencedAssembly(SystemRuntimeAssemblyName, systemRuntime);
+            // We reference different core library assembly for .NET Core and .NET Framework.
+            // We reference "System.Runtime" for .NET Core and "mscorlib" for .NET Framework.
+            // We also define a mapping, so that "System.Private.CoreLib" which is added as first
+            // assembly for dynamically generated assemblies in .NET Core maps to "System.Runtime".
 
-            // Since AddReferencedAssembly checks for mapping, we set _mscorlibToken after "System.Runtime"
-            var mscorlib = typeof(object).GetTypeInfo().Assembly.GetName();
-            _mscorlibToken = mscorlib.GetPublicKeyToken();
+            if (IsDotNetCore())
+            {
+                var systemRuntime = Assembly.Load(SystemRuntimeAssemblyName).GetName();
+                AddReferencedAssembly(SystemRuntimeAssemblyName, systemRuntime);
+            }
+            else
+            {
+                var mscorlib = Assembly.Load("mscorlib").GetName();
+                AddReferencedAssembly(MscorlibAssemblyName, mscorlib);
+            }
+
+            // Since AddReferencedAssembly checks for mapping,
+            // we set _corLibToken after "mscorlib"/"System.Runtime"
+            var coreLib = typeof(object).GetTypeInfo().Assembly.GetName();
+            _coreLibToken = coreLib.GetPublicKeyToken();
 
             foreach (var asm in assemblies)
             {

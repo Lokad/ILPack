@@ -112,6 +112,41 @@ namespace Lokad.ILPack.Tests
         }
 
         [Fact]
+        public void TestFieldAccessSerialization()
+        {
+            // Define assembly and module
+            var assemblyName = new AssemblyName {Name = "MyAssembly"};
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MyModule");
+
+            // Define following class for field access test
+            //
+            // namespace Namespace {
+            //   public class MyClass {
+            //     private bool _flag;
+            //
+            //     public void Test() {
+            //       _flag = true;
+            //     }
+            //   }
+            // }
+            //
+            var myType = newModule.DefineType("Namespace.MyClass", TypeAttributes.Public);
+            var myField = myType.DefineField("_flag", typeof(bool), FieldAttributes.Private);
+            var myMethod = myType.DefineMethod("Test", MethodAttributes.Public);
+
+            var generator = myMethod.GetILGenerator();
+            generator.Emit(OpCodes.Ldarg_0);
+            generator.Emit(OpCodes.Ldc_I4_1);
+            generator.Emit(OpCodes.Stfld, myField);
+            generator.Emit(OpCodes.Ret);
+
+            myType.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "TestFieldAccess.dll");
+        }
+
+        [Fact]
         public void TestGenericsType()
         {
             var path = SerializeGenericsLibrary("GenericsSerialization.dll");

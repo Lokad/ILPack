@@ -7,13 +7,13 @@ Usage:
 
 ```cs
 var assembly = Assembly.GetAssembly(t);
-var generator = new AssemblyGenerator(assembly);
+var generator = new AssemblyGenerator();
 
 // for ad-hoc serialization
-var bytes = generator.GenerateAssemblyBytes();
+var bytes = generator.GenerateAssemblyBytes(assembly);
 
 // direct serialization to disk
-generator.GenerateAssembly("/path/to/file");
+generator.GenerateAssembly(assembly, "/path/to/file");
 ```
 
 Based on an open source initial implementation at: https://github.com/Dolfik1/AssemblyGenerator

@@ -15,10 +15,8 @@ namespace Lokad.ILPack.Tests
             var current = Directory.GetCurrentDirectory();
             var path = Path.Combine(current, fileName);
 
-            using (var generator = new AssemblyGenerator(asm))
-            {
-                generator.GenerateAssembly(path);
-            }
+            var generator = new AssemblyGenerator();
+            generator.GenerateAssembly(asm, path);
 
             return path;
         }

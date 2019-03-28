@@ -8,29 +8,27 @@ using System.Reflection.PortableExecutable;
 
 namespace Lokad.ILPack
 {
-    public partial class AssemblyGenerator : IDisposable
+    public partial class AssemblyGenerator
     {
-        private readonly Dictionary<ConstructorInfo, MethodDefinitionHandle> _ctorDefHandles;
-        private readonly Dictionary<ConstructorInfo, MemberReferenceHandle> _ctorRefHandles;
-        private readonly Assembly _currentAssembly;
-        private readonly DebugDirectoryBuilder _debugDirectoryBuilder;
-        private readonly Dictionary<FieldInfo, FieldDefinitionHandle> _fieldHandles;
-        private readonly BlobBuilder _ilBuilder;
-        private readonly MetadataBuilder _metadataBuilder;
-        private readonly Dictionary<MethodInfo, MethodDefinitionHandle> _methodsHandles;
-        private readonly Dictionary<ParameterInfo, ParameterHandle> _parameterHandles;
-        private readonly MemoryStream _peStream;
-        private readonly Dictionary<PropertyInfo, PropertyDefinitionHandle> _propertyHandles;
+        private Dictionary<string, AssemblyReferenceHandle> _assemblyReferenceHandles;
+        private Dictionary<ConstructorInfo, MethodDefinitionHandle> _ctorDefHandles;
+        private Dictionary<ConstructorInfo, MemberReferenceHandle> _ctorRefHandles;
+        private Assembly _currentAssembly;
+        private DebugDirectoryBuilder _debugDirectoryBuilder;
+        private Dictionary<FieldInfo, FieldDefinitionHandle> _fieldHandles;
+        private BlobBuilder _ilBuilder;
+        private MetadataBuilder _metadataBuilder;
+        private Dictionary<MethodInfo, MethodDefinitionHandle> _methodsHandles;
+        private Dictionary<ParameterInfo, ParameterHandle> _parameterHandles;
+        private Dictionary<PropertyInfo, PropertyDefinitionHandle> _propertyHandles;
+        private Dictionary<Guid, EntityHandle> _typeHandles;
 
-        private readonly Dictionary<Guid, EntityHandle> _typeHandles;
-
-        public AssemblyGenerator(Assembly assembly)
+        private void Initialize(Assembly assembly)
         {
+            _currentAssembly = assembly;
             _debugDirectoryBuilder = new DebugDirectoryBuilder();
-            _peStream = new MemoryStream();
             _ilBuilder = new BlobBuilder();
             _metadataBuilder = new MetadataBuilder();
-            _currentAssembly = assembly;
 
             _typeHandles = new Dictionary<Guid, EntityHandle>();
             _ctorRefHandles = new Dictionary<ConstructorInfo, MemberReferenceHandle>();
@@ -39,15 +37,13 @@ namespace Lokad.ILPack
             _methodsHandles = new Dictionary<MethodInfo, MethodDefinitionHandle>();
             _propertyHandles = new Dictionary<PropertyInfo, PropertyDefinitionHandle>();
             _parameterHandles = new Dictionary<ParameterInfo, ParameterHandle>();
+            _assemblyReferenceHandles = new Dictionary<string, AssemblyReferenceHandle>();
         }
 
-        public void Dispose()
+        public byte[] GenerateAssemblyBytes(Assembly assembly)
         {
-            _peStream.Close();
-        }
+            Initialize(assembly);
 
-        public byte[] GenerateAssemblyBytes()
-        {
             if (_currentAssembly.EntryPoint != null)
             {
                 // See "<Module>" type definition below.
@@ -111,9 +107,9 @@ namespace Lokad.ILPack
             return peImageBuilder.ToArray();
         }
 
-        public void GenerateAssembly(string path)
+        public void GenerateAssembly(Assembly assembly, string path)
         {
-            var bytes = GenerateAssemblyBytes();
+            var bytes = GenerateAssemblyBytes(assembly);
             File.WriteAllBytes(path, bytes);
         }
     }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -11,10 +10,6 @@ namespace Lokad.ILPack
     {
         private const string SystemRuntimeAssemblyName = "System.Runtime";
         private const string MscorlibAssemblyName = "mscorlib";
-
-        // Saved assembly references handles
-        private readonly Dictionary<string, AssemblyReferenceHandle> _assemblyReferenceHandles =
-            new Dictionary<string, AssemblyReferenceHandle>();
 
         private byte[] _coreLibToken;
 

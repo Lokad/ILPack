@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
 {
@@ -102,7 +103,7 @@ namespace Lokad.ILPack
         internal static void FromSystemType(
             this ReturnTypeEncoder typeEncoder,
             Type type,
-            AssemblyGenerator generator)
+            IAssemblyMetadata metadata)
         {
             if (type == typeof(void))
             {
@@ -110,14 +111,12 @@ namespace Lokad.ILPack
             }
             else
             {
-                typeEncoder.Type().FromSystemType(type, generator);
+                typeEncoder.Type().FromSystemType(type, metadata);
             }
         }
 
-        internal static void FromSystemType(
-            this SignatureTypeEncoder typeEncoder,
-            Type type,
-            AssemblyGenerator generator)
+        internal static void FromSystemType(this SignatureTypeEncoder typeEncoder, Type type,
+            IAssemblyMetadata metadata)
         {
             if (type.IsPrimitive)
             {
@@ -143,7 +142,7 @@ namespace Lokad.ILPack
                 var rank = type.GetArrayRank();
 
                 typeEncoder.Array(
-                    x => x.FromSystemType(elementType, generator),
+                    x => x.FromSystemType(elementType, metadata),
                     x => x.Shape(
                         type.GetArrayRank(),
                         ImmutableArray.Create<int>(),
@@ -152,7 +151,7 @@ namespace Lokad.ILPack
             else if (type.IsGenericType)
             {
                 var genericTypeDef = type.GetGenericTypeDefinition();
-                var typeHandler = generator.GetOrCreateType(genericTypeDef);
+                var typeHandler = metadata.GetTypeHandle(genericTypeDef);
                 var genericArguments = type.GetGenericArguments();
 
                 var inst = typeEncoder.GenericInstantiation(typeHandler, genericArguments.Length, false);
@@ -164,13 +163,13 @@ namespace Lokad.ILPack
                     }
                     else
                     {
-                        inst.AddArgument().FromSystemType(ga, generator);
+                        inst.AddArgument().FromSystemType(ga, metadata);
                     }
                 }
             }
             else
             {
-                var typeHandler = generator.GetOrCreateType(type);
+                var typeHandler = metadata.GetTypeHandle(type);
                 typeEncoder.Type(typeHandler, type.IsValueType);
             }
         }

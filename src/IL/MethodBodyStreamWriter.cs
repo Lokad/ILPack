@@ -1,35 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack.IL
 {
     internal class MethodBodyStreamWriter
     {
-        private readonly BlobBuilder _builder;
-        private readonly IReadOnlyDictionary<ConstructorInfo, MemberReferenceHandle> _ctorRefHandles;
-        private readonly IReadOnlyDictionary<FieldInfo, FieldDefinitionHandle> _fieldHandles;
-        private readonly IReadOnlyDictionary<MethodInfo, MethodDefinitionHandle> _methodHandles;
-        private readonly Func<string, StringHandle> _stringAccessor;
-        private readonly IReadOnlyDictionary<Guid, EntityHandle> _typeHandles;
+        private readonly IAssemblyMetadata _metadata;
 
-        public MethodBodyStreamWriter(BlobBuilder builder,
-            Func<string, StringHandle> stringAccessor,
-            IReadOnlyDictionary<Guid, EntityHandle> typeHandles,
-            IReadOnlyDictionary<ConstructorInfo, MemberReferenceHandle> ctorRefHandles,
-            IReadOnlyDictionary<FieldInfo, FieldDefinitionHandle> fieldHandles,
-            IReadOnlyDictionary<MethodInfo, MethodDefinitionHandle> methodHandles)
+        public MethodBodyStreamWriter(IAssemblyMetadata metadata)
         {
-            _builder = builder;
-            _stringAccessor = stringAccessor;
-            _typeHandles = typeHandles;
-            _ctorRefHandles = ctorRefHandles;
-            _fieldHandles = fieldHandles;
-            _methodHandles = methodHandles;
+            _metadata = metadata;
         }
 
         public int AddMethodBody(MethodBase methodBase)
@@ -37,7 +21,7 @@ namespace Lokad.ILPack.IL
             var body = methodBase.GetMethodBody();
             if (body == null)
             {
-                return _builder.Count;
+                return _metadata.ILBuilder.Count;
             }
 
             var instructions = methodBase.GetInstructions();
@@ -51,8 +35,7 @@ namespace Lokad.ILPack.IL
             var offset = SerializeHeader(codeSize, maxStack, exceptionRegionCount, attributes, localVariablesSignature,
                 hasDynamicStackAllocation);
 
-            MethodBodyWriter.Write(_builder, instructions, _stringAccessor, _typeHandles, _ctorRefHandles,
-                _fieldHandles, _methodHandles);
+            MethodBodyWriter.Write(_metadata, instructions);
             return offset;
         }
 
@@ -77,14 +60,14 @@ namespace Lokad.ILPack.IL
             int offset;
             if (isTiny)
             {
-                offset = _builder.Count;
-                _builder.WriteByte((byte) ((codeSize << 2) | TinyFormat));
+                offset = _metadata.ILBuilder.Count;
+                _metadata.ILBuilder.WriteByte((byte) ((codeSize << 2) | TinyFormat));
             }
             else
             {
-                _builder.Align(4);
+                _metadata.ILBuilder.Align(4);
 
-                offset = _builder.Count;
+                offset = _metadata.ILBuilder.Count;
 
                 ushort flags = (3 << 12) | FatFormat;
                 if (exceptionRegionCount > 0)
@@ -97,10 +80,10 @@ namespace Lokad.ILPack.IL
                     flags |= InitLocals;
                 }
 
-                _builder.WriteUInt16((ushort) ((int) attributes | flags));
-                _builder.WriteUInt16((ushort) maxStack);
-                _builder.WriteInt32(codeSize);
-                _builder.WriteInt32(
+                _metadata.ILBuilder.WriteUInt16((ushort) ((int) attributes | flags));
+                _metadata.ILBuilder.WriteUInt16((ushort) maxStack);
+                _metadata.ILBuilder.WriteInt32(codeSize);
+                _metadata.ILBuilder.WriteInt32(
                     localVariablesSignature.IsNil ? 0 : MetadataTokens.GetToken(localVariablesSignature));
             }
 

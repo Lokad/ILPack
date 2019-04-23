@@ -1,56 +1,40 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Metadata;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        private readonly BindingFlags AllFields =
-            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
-            BindingFlags.DeclaredOnly | BindingFlags.CreateInstance |
-            BindingFlags.Instance;
+        private const BindingFlags AllFields = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
+                                               BindingFlags.DeclaredOnly | BindingFlags.CreateInstance |
+                                               BindingFlags.Instance;
 
-        private BlobHandle GetFieldSignature(FieldInfo fieldInfo)
+        private void CreateField(FieldInfo field)
         {
-            var type = fieldInfo.FieldType;
-            return GetBlob(
-                BuildSignature(x =>
-                    x.FieldSignature()
-                        .FromSystemType(type, this)));
+            if (!_metadata.TryGetFieldDefinition(field, out var metadata))
+            {
+                ThrowMetadataIsNotReserved("Field", field);
+            }
+
+            EnsureMetadataWasNotEmitted(metadata, field);
+
+            var handle = _metadata.Builder.AddFieldDefinition(
+                field.Attributes,
+                _metadata.GetOrAddString(field.Name),
+                _metadata.GetFieldSignature(field));
+
+            VerifyEmittedHandle(metadata, handle);
+            metadata.MarkAsEmitted();
+
+            CreateCustomAttributes(handle, field.GetCustomAttributesData());
         }
 
-        private FieldDefinitionHandle CreateFields(FieldInfo[] fields)
+        private void CreateFields(IEnumerable<FieldInfo> fields)
         {
-            if (fields.Length == 0)
+            foreach (var field in fields)
             {
-                return default(FieldDefinitionHandle);
+                CreateField(field);
             }
-
-            var handles = new FieldDefinitionHandle[fields.Length];
-            for (var i = 0; i < fields.Length; i++)
-            {
-                var field = fields[i];
-
-                if (_fieldHandles.TryGetValue(field, out var fieldDef))
-                {
-                    handles[i] = fieldDef;
-                    continue;
-                }
-
-                fieldDef = _metadataBuilder.AddFieldDefinition(
-                    field.Attributes,
-                    GetString(field.Name),
-                    GetFieldSignature(field));
-
-                _fieldHandles.Add(field, fieldDef);
-
-                handles[i] = fieldDef;
-
-                CreateCustomAttributes(fieldDef, field.GetCustomAttributesData());
-            }
-
-            return handles.First();
         }
     }
 }

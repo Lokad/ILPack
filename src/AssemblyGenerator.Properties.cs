@@ -1,6 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
 {
@@ -16,68 +17,71 @@ namespace Lokad.ILPack
             var countParameters = parameters.Length;
             var retType = propertyInfo.PropertyType;
 
-            var blob = BuildSignature(x => x.PropertySignature()
+            var blob = MetadataHelper.BuildSignature(x => x.PropertySignature()
                 .Parameters(
                     countParameters,
-                    r => r.FromSystemType(retType, this),
+                    r => r.FromSystemType(retType, _metadata),
                     p =>
                     {
                         foreach (var par in parameters)
                         {
                             var parEncoder = p.AddParameter();
-                            parEncoder.Type().FromSystemType(par.ParameterType, this);
+                            parEncoder.Type().FromSystemType(par.ParameterType, _metadata);
                         }
                     }));
-            return GetBlob(blob);
+            return _metadata.GetOrAddBlob(blob);
         }
 
-        public PropertyDefinitionHandle CreatePropertiesForType(PropertyInfo[] properties)
+        private void CreateProperty(PropertyInfo property)
         {
-            if (properties.Length == 0)
+            if (!_metadata.TryGetPropertyMetadata(property, out var metadata))
             {
-                return default(PropertyDefinitionHandle);
+                ThrowMetadataIsNotReserved("Property", property);
             }
 
-            var handles = new PropertyDefinitionHandle[properties.Length];
-            for (var i = 0; i < properties.Length; i++)
+            EnsureMetadataWasNotEmitted(metadata, property);
+
+            var propertyHandle = _metadata.Builder.AddProperty(
+                property.Attributes,
+                _metadata.GetOrAddString(property.Name),
+                GetPropertySignature(property));
+
+            VerifyEmittedHandle(metadata, propertyHandle);
+            metadata.MarkAsEmitted();
+
+            if (property.GetMethod != null)
             {
-                var property = properties[i];
-
-                if (_propertyHandles.TryGetValue(property, out var propertyDef))
+                if (!_metadata.TryGetMethodDefinition(property.GetMethod, out var getMethodMetadata))
                 {
-                    handles[i] = propertyDef;
-                    continue;
+                    ThrowMetadataIsNotReserved("Property getter method", property);
                 }
 
-                propertyDef = _metadataBuilder.AddProperty(
-                    property.Attributes,
-                    GetString(property.Name),
-                    GetPropertySignature(property));
-
-                _propertyHandles.Add(property, propertyDef);
-
-                handles[i] = propertyDef;
-
-                var getMethod = property.GetGetMethod(true);
-                if (getMethod != null)
-                {
-                    _metadataBuilder.AddMethodSemantics(
-                        propertyDef,
-                        MethodSemanticsAttributes.Getter,
-                        GetOrCreateMethod(getMethod));
-                }
-
-                var setMethod = property.GetSetMethod(true);
-                if (setMethod != null)
-                {
-                    _metadataBuilder.AddMethodSemantics(
-                        propertyDef,
-                        MethodSemanticsAttributes.Setter,
-                        GetOrCreateMethod(setMethod));
-                }
+                _metadata.Builder.AddMethodSemantics(
+                    propertyHandle,
+                    MethodSemanticsAttributes.Getter,
+                    getMethodMetadata.Handle);
             }
 
-            return handles.First();
+            if (property.SetMethod != null)
+            {
+                if (!_metadata.TryGetMethodDefinition(property.SetMethod, out var setMethodMetadata))
+                {
+                    ThrowMetadataIsNotReserved("Property setter method", property);
+                }
+
+                _metadata.Builder.AddMethodSemantics(
+                    propertyHandle,
+                    MethodSemanticsAttributes.Setter,
+                    setMethodMetadata.Handle);
+            }
+        }
+
+        private void CreatePropertiesForType(IEnumerable<PropertyInfo> properties)
+        {
+            foreach (var property in properties)
+            {
+                CreateProperty(property);
+            }
         }
     }
 }

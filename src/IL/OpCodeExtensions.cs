@@ -17,9 +17,9 @@ namespace Lokad.ILPack.IL
 
             var fields = GetOpCodeFields();
 
-            for (var i = 0; i < fields.Length; i++)
+            foreach (var t in fields)
             {
-                var opcode = (OpCode) fields[i].GetValue(null);
+                var opcode = (OpCode) t.GetValue(null);
                 if (opcode.OpCodeType == OpCodeType.Nternal)
                 {
                     continue;

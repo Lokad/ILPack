@@ -4,9 +4,9 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
-namespace Lokad.ILPack
+namespace Lokad.ILPack.Metadata
 {
-    public partial class AssemblyGenerator
+    internal partial class AssemblyMetadata
     {
         private const string SystemRuntimeAssemblyName = "System.Runtime";
         private const string MscorlibAssemblyName = "mscorlib";
@@ -15,7 +15,7 @@ namespace Lokad.ILPack
 
         private AssemblyReferenceHandle GetCoreLibAssembly()
         {
-            return _assemblyReferenceHandles.First().Value;
+            return _assemblyRefHandles.First().Value;
         }
 
         private AssemblyReferenceHandle GetReferencedAssemblyForType(Type type)
@@ -34,9 +34,9 @@ namespace Lokad.ILPack
             }
 
             var uniqueName = asm.ToString();
-            if (_assemblyReferenceHandles.ContainsKey(uniqueName))
+            if (_assemblyRefHandles.ContainsKey(uniqueName))
             {
-                return _assemblyReferenceHandles[uniqueName];
+                return _assemblyRefHandles[uniqueName];
             }
 
             throw new Exception($"Referenced Assembly not found! ({asm.FullName})");
@@ -45,7 +45,7 @@ namespace Lokad.ILPack
         private void AddReferencedAssembly(string referenceName, AssemblyName assemblyName)
         {
             var uniqueName = assemblyName.ToString();
-            if (_assemblyReferenceHandles.ContainsKey(uniqueName))
+            if (_assemblyRefHandles.ContainsKey(uniqueName))
             {
                 return;
             }
@@ -58,15 +58,15 @@ namespace Lokad.ILPack
 
             var key = assemblyName.GetPublicKey();
             var hashOrToken = token ?? key;
-            var handle = _metadataBuilder.AddAssemblyReference(
-                GetString(referenceName),
+            var handle = Builder.AddAssemblyReference(
+                GetOrAddString(referenceName),
                 assemblyName.Version,
-                GetString(assemblyName.CultureName),
-                GetBlob(hashOrToken),
-                ConvertReferencedAssemblyNameFlags(assemblyName.Flags),
-                default(BlobHandle)); // Null is allowed
+                GetOrAddString(assemblyName.CultureName),
+                Builder.GetOrAddBlob(hashOrToken),
+                MetadataHelper.ConvertReferencedAssemblyNameFlags(assemblyName.Flags),
+                default); // Null is allowed
 
-            _assemblyReferenceHandles.Add(uniqueName, handle);
+            _assemblyRefHandles.Add(uniqueName, handle);
         }
 
         private static bool IsDotNetCore()

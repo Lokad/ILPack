@@ -1,95 +1,146 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        private void CreateTypes(Type[] types)
+        private IEnumerable<Type> GetBaseTypes(Type type)
         {
+            foreach (var inf in type.GetInterfaces())
+            {
+                if (_metadata.IsReferencedType(inf))
+                {
+                    continue;
+                }
+
+                yield return inf;
+
+                foreach (var innerInf in GetBaseTypes(inf))
+                {
+                    yield return innerInf;
+                }
+            }
+
+            var baseType = type.BaseType;
+            if (baseType != null)
+            {
+                while (!_metadata.IsReferencedType(baseType))
+                {
+                    yield return baseType;
+                    baseType = baseType.BaseType;
+                }
+            }
+        }
+
+        private void CreateTypes(IEnumerable<Type> types)
+        {
+            // Sort types by base types.
+            var sortedTypes = types.TopologicalSort(GetBaseTypes).ToList();
+
+            // First, reserve metadata for all types            
+            ReserveTypes(sortedTypes);
+
+            // Then, emit metadata
+            foreach (var type in sortedTypes)
+            {
+                CreateFields(type.GetFields(AllFields));
+                CreatePropertiesForType(type.GetProperties(AllProperties));
+                CreateConstructors(type.GetConstructors(AllMethods));
+                CreateMethods(type.GetMethods(AllMethods));
+
+                if (!_metadata.TryGetTypeDefinition(type, out var metadata))
+                {
+                    throw new InvalidOperationException($"Type definition metadata cannot be found: {type}");
+                }
+
+                metadata.MarkAsEmitted();
+            }
+        }
+
+        private void ReserveTypes(IEnumerable<Type> types)
+        {
+            var offset = new TypeDefinitionMetadataOffset
+            {
+                FieldIndex = _metadata.Builder.GetRowCount(TableIndex.Field),
+                PropertyIndex = _metadata.Builder.GetRowCount(TableIndex.PropertyMap),
+                MethodIndex = _metadata.Builder.GetRowCount(TableIndex.MethodDef)
+            };
+
             foreach (var type in types)
             {
-                GetOrCreateType(type);
+                var nextOffset = ReserveTypeDefinition(type, offset);
+                offset = nextOffset;
             }
         }
 
-        private EntityHandle GetResolutionScopeForType(Type type)
+        private TypeDefinitionMetadataOffset ReserveTypeDefinition(Type type, TypeDefinitionMetadataOffset offset)
         {
-            return GetReferencedAssemblyForType(type);
-        }
+            var baseTypeHandle = type.BaseType != null ? _metadata.GetTypeHandle(type.BaseType) : default;
 
-        internal EntityHandle CreateReferencedType(Type type)
-        {
-            if (_typeHandles.ContainsKey(type.GUID))
+            var fieldRowCount = offset.FieldIndex;
+            var propertyRowCount = offset.PropertyIndex;
+            var methodRowCount = offset.MethodIndex;
+
+            foreach (var field in type.GetFields(AllFields))
             {
-                return _typeHandles[type.GUID];
+                var handle = MetadataTokens.FieldDefinitionHandle(fieldRowCount + 1);
+                _metadata.ReserveFieldDefinition(field, handle);
+                ++fieldRowCount;
             }
 
-            var scope = GetResolutionScopeForType(type);
-            var refType = _metadataBuilder.AddTypeReference(
-                scope,
-                GetString(type.Namespace),
-                GetString(type.Name));
-
-            _typeHandles.Add(type.GUID, refType);
-
-            CreateConstructorForReferencedType(type);
-            CreateCustomAttributes(refType, type.GetCustomAttributesData());
-
-            return refType;
-        }
-
-        internal bool IsReferencedType(Type type)
-        {
-            // todo, also maybe in Module, ModuleRef, AssemblyRef and TypeRef
-            // ECMA-335 page 273-274
-            return type.Assembly != _currentAssembly;
-        }
-
-        internal EntityHandle GetOrCreateType(Type type)
-        {
-            if (_typeHandles.ContainsKey(type.GUID))
+            foreach (var property in type.GetProperties(AllProperties))
             {
-                return _typeHandles[type.GUID];
-            }
+                var propertyHandle = MetadataTokens.PropertyDefinitionHandle(propertyRowCount + 1);
+                MethodDefinitionHandle getMethodHandle = default;
+                MethodDefinitionHandle setMethodHandle = default;
 
-            var baseType = default(EntityHandle);
-
-            if (IsReferencedType(type))
-            {
-                return CreateReferencedType(type);
-            }
-
-            if (type.BaseType != null)
-            {
-                var bsType = type.BaseType;
-                if (bsType.Assembly != _currentAssembly)
+                if (property.GetMethod != null)
                 {
-                    var bsTypeRef = CreateReferencedType(bsType);
-                    _typeHandles[bsType.GUID] = bsTypeRef;
-                    baseType = bsTypeRef;
+                    getMethodHandle = MetadataTokens.MethodDefinitionHandle(methodRowCount + 1);
+                    ++methodRowCount;
                 }
-                else
+
+                if (property.SetMethod != null)
                 {
-                    baseType = GetOrCreateType(bsType);
+                    setMethodHandle = MetadataTokens.MethodDefinitionHandle(methodRowCount + 1);
+                    ++methodRowCount;
                 }
+
+                _metadata.ReservePropertyDefinition(property, propertyHandle, getMethodHandle, setMethodHandle);
+                ++propertyRowCount;
             }
 
-            var fields = CreateFields(type.GetFields(AllFields));
-            var propsHandle = CreatePropertiesForType(type.GetProperties(AllProperties));
-            var methods = CreateMethods(type.GetMethods(AllMethods));
+            foreach (var ctor in type.GetConstructors(AllMethods))
+            {
+                var handle = MetadataTokens.MethodDefinitionHandle(methodRowCount + 1);
+                _metadata.ReserveConstructorDefinition(ctor, handle);
+                ++methodRowCount;
+            }
 
-            CreateConstructors(type.GetConstructors());
+            foreach (var method in type.GetMethods(AllMethods))
+            {
+                var handle = MetadataTokens.MethodDefinitionHandle(methodRowCount + 1);
+                _metadata.ReserveMethodDefinition(method, handle);
+                ++methodRowCount;
+            }
 
-            var def = _metadataBuilder.AddTypeDefinition(
+            var typeHandle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
-                GetString(type.Namespace),
-                GetString(type.Name),
-                baseType,
-                fields.IsNil ? MetadataTokens.FieldDefinitionHandle(1) : fields,
-                methods.IsNil ? MetadataTokens.MethodDefinitionHandle(1) : methods);
+                _metadata.GetOrAddString(type.Namespace),
+                _metadata.GetOrAddString(type.Name),
+                baseTypeHandle,
+                MetadataTokens.FieldDefinitionHandle(offset.FieldIndex + 1),
+                MetadataTokens.MethodDefinitionHandle(offset.MethodIndex + 1));
+
+            // Add immediately to support self referencing generics
+            _metadata.ReserveTypeDefinition(type, typeHandle, offset.FieldIndex, offset.PropertyIndex,
+                offset.MethodIndex);
 
             // Handle generics type
             if (type.IsGenericType)
@@ -105,27 +156,24 @@ namespace Lokad.ILPack
                         var attr = parm.GenericParameterAttributes;
 
                         var genericParameterHandle =
-                            _metadataBuilder.AddGenericParameter(def, attr, GetString(parm.Name), i);
+                            _metadata.Builder.AddGenericParameter(typeHandle, attr, _metadata.GetOrAddString(parm.Name),
+                                i);
 
                         foreach (var constraint in parm.GetGenericParameterConstraints())
                         {
-                            _metadataBuilder.AddGenericParameterConstraint(genericParameterHandle,
-                                GetOrCreateType(constraint));
+                            _metadata.Builder.AddGenericParameterConstraint(genericParameterHandle,
+                                _metadata.GetTypeHandle(constraint));
                         }
                     }
                 }
             }
 
-            _typeHandles[type.GUID] = def;
-
-            if (propsHandle != default(PropertyDefinitionHandle))
+            return new TypeDefinitionMetadataOffset
             {
-                _metadataBuilder.AddPropertyMap(def, propsHandle);
-            }
-
-            CreateCustomAttributes(def, type.GetCustomAttributesData());
-
-            return def;
+                FieldIndex = fieldRowCount,
+                PropertyIndex = propertyRowCount,
+                MethodIndex = methodRowCount
+            };
         }
     }
 }

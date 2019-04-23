@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 
@@ -12,35 +11,34 @@ namespace Lokad.ILPack
         public void CreateCustomAttributes(EntityHandle parent, IEnumerable<CustomAttributeData> attributes)
         {
             // TODO: implement support for custom attributes
-            return;
 
-            foreach (var attr in attributes)
-            {
-                var type = attr.AttributeType;
-                GetOrCreateType(type); // create type
+            //foreach (var attr in attributes)
+            //{
+            //    var type = attr.AttributeType;
+            //    GetTypeHandle(type); // create type
 
-                var args = attr.ConstructorArguments;
-                var text = string.Join(",", args.Select(x => $"\"{x.Value}"));
+            //    var args = attr.ConstructorArguments;
+            //    var text = string.Join(",", args.Select(x => $"\"{x.Value}"));
 
-                /*
-                var namedArgs = attr.NamedArguments;
-                var namedText = string.Join(", ", namedArgs
-                    .Where(x => !string.IsNullOrEmpty(x.TypedValue.Value.ToString()))
-                    .Select(x =>
-                {
-                    return $"{x.MemberName}=\"{x.TypedValue.Value}\"";
-                }));
+            //    /*
+            //    var namedArgs = attr.NamedArguments;
+            //    var namedText = string.Join(", ", namedArgs
+            //        .Where(x => !string.IsNullOrEmpty(x.TypedValue.Value.ToString()))
+            //        .Select(x =>
+            //    {
+            //        return $"{x.MemberName}=\"{x.TypedValue.Value}\"";
+            //    }));
 
-                if (!string.IsNullOrEmpty(namedText))
-                    text += $", {namedText}";
-                */
-                var ctor = GetTypeConstructor(type);
-                if (ctor != null)
-                {
-                    //Console.WriteLine(text);
-                    _metadataBuilder.AddCustomAttribute(parent, ctor.Value, GetCustomAttributeValueFromString(text));
-                }
-            }
+            //    if (!string.IsNullOrEmpty(namedText))
+            //        text += $", {namedText}";
+            //    */
+            //    var ctor = GetTypeConstructor(type);
+            //    if (ctor != null)
+            //    {
+            //        //Console.WriteLine(text);
+            //        _metadata.Builder.AddCustomAttribute(parent, ctor.Value, GetCustomAttributeValueFromString(text));
+            //    }
+            //}
         }
     }
 }

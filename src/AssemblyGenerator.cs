@@ -1,63 +1,42 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        private Dictionary<string, AssemblyReferenceHandle> _assemblyReferenceHandles;
-        private Dictionary<ConstructorInfo, MethodDefinitionHandle> _ctorDefHandles;
-        private Dictionary<ConstructorInfo, MemberReferenceHandle> _ctorRefHandles;
-        private Assembly _currentAssembly;
         private DebugDirectoryBuilder _debugDirectoryBuilder;
-        private Dictionary<FieldInfo, FieldDefinitionHandle> _fieldHandles;
-        private BlobBuilder _ilBuilder;
-        private MetadataBuilder _metadataBuilder;
-        private Dictionary<MethodInfo, MethodDefinitionHandle> _methodsHandles;
-        private Dictionary<ParameterInfo, ParameterHandle> _parameterHandles;
-        private Dictionary<PropertyInfo, PropertyDefinitionHandle> _propertyHandles;
-        private Dictionary<Guid, EntityHandle> _typeHandles;
+        private AssemblyMetadata _metadata;
 
         private void Initialize(Assembly assembly)
         {
-            _currentAssembly = assembly;
+            _metadata = new AssemblyMetadata(assembly);
             _debugDirectoryBuilder = new DebugDirectoryBuilder();
-            _ilBuilder = new BlobBuilder();
-            _metadataBuilder = new MetadataBuilder();
-
-            _typeHandles = new Dictionary<Guid, EntityHandle>();
-            _ctorRefHandles = new Dictionary<ConstructorInfo, MemberReferenceHandle>();
-            _ctorDefHandles = new Dictionary<ConstructorInfo, MethodDefinitionHandle>();
-            _fieldHandles = new Dictionary<FieldInfo, FieldDefinitionHandle>();
-            _methodsHandles = new Dictionary<MethodInfo, MethodDefinitionHandle>();
-            _propertyHandles = new Dictionary<PropertyInfo, PropertyDefinitionHandle>();
-            _parameterHandles = new Dictionary<ParameterInfo, ParameterHandle>();
-            _assemblyReferenceHandles = new Dictionary<string, AssemblyReferenceHandle>();
         }
 
         public byte[] GenerateAssemblyBytes(Assembly assembly)
         {
             Initialize(assembly);
 
-            if (_currentAssembly.EntryPoint != null)
+            if (_metadata.SourceAssembly.EntryPoint != null)
             {
                 // See "<Module>" type definition below.
                 throw new NotSupportedException("Entry point is not supported.");
             }
 
-            var name = _currentAssembly.GetName();
+            var name = _metadata.SourceAssembly.GetName();
 
             var assemblyPublicKey = name.GetPublicKey();
-            var assemblyHandle = _metadataBuilder.AddAssembly(
-                GetString(name.Name),
+            var assemblyHandle = _metadata.Builder.AddAssembly(
+                _metadata.GetOrAddString(name.Name),
                 name.Version,
-                GetString(name.CultureName),
-                assemblyPublicKey.Length > 0 ? GetBlob(name.GetPublicKey()) : default(BlobHandle),
+                _metadata.GetOrAddString(name.CultureName),
+                assemblyPublicKey.Length > 0 ? _metadata.GetOrAddBlob(name.GetPublicKey()) : default,
                 ConvertGeneratedAssemblyNameFlags(name),
                 ConvertAssemblyHashAlgorithm(name.HashAlgorithm));
 
@@ -70,23 +49,24 @@ namespace Lokad.ILPack
             // But, in order to work above code, we need to serialize
             // entry point *without* serializing any type definition.
             // This is not needed for libraries since they don't have any entry point.
-            _metadataBuilder.AddTypeDefinition(
-                default(TypeAttributes),
-                default(StringHandle),
-                GetString("<Module>"),
-                default(EntityHandle),
+            _metadata.Builder.AddTypeDefinition(
+                default,
+                default,
+                _metadata.GetOrAddString("<Module>"),
+                default,
                 MetadataTokens.FieldDefinitionHandle(1),
                 MetadataTokens.MethodDefinitionHandle(1));
 
-            CreateReferencedAssemblies(_currentAssembly.GetReferencedAssemblies());
-            CreateCustomAttributes(assemblyHandle, _currentAssembly.GetCustomAttributesData());
+            CreateModules(_metadata.SourceAssembly.GetModules());
 
-            CreateModules(_currentAssembly.GetModules());
-            CreateTypes(_currentAssembly.GetTypes());
+            MethodDefinitionHandle entryPoint = default;
+            if (_metadata.SourceAssembly.EntryPoint != null &&
+                _metadata.TryGetMethodDefinition(_metadata.SourceAssembly.EntryPoint, out var entryPointMetadata))
+            {
+                entryPoint = entryPointMetadata.Handle;
+            }
 
-            var entryPoint = GetMethodDefinitionHandle(_currentAssembly.EntryPoint);
-
-            var metadataRootBuilder = new MetadataRootBuilder(_metadataBuilder);
+            var metadataRootBuilder = new MetadataRootBuilder(_metadata.Builder);
 
             // Without Characteristics.ExecutableImage flag, .NET runtime refuses
             // to load an assembly even it's a DLL. PEHeaderBuilder.CreateLibraryHeader
@@ -97,7 +77,7 @@ namespace Lokad.ILPack
             var peBuilder = new ManagedPEBuilder(
                 header,
                 metadataRootBuilder,
-                _ilBuilder,
+                _metadata.ILBuilder,
                 debugDirectoryBuilder: _debugDirectoryBuilder,
                 entryPoint: entryPoint);
 

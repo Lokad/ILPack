@@ -1,81 +1,52 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Metadata;
 using Lokad.ILPack.IL;
+using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        private readonly BindingFlags AllMethods =
-            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
-            BindingFlags.DeclaredOnly | BindingFlags.CreateInstance |
-            BindingFlags.Instance;
+        private const BindingFlags AllMethods = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
+                                                BindingFlags.DeclaredOnly | BindingFlags.CreateInstance |
+                                                BindingFlags.Instance;
 
-        private BlobHandle GetMethodSignature(MethodInfo methodInfo)
+        private void CreateMethod(MethodInfo method)
         {
-            var retType = methodInfo.ReturnType;
-            var parameters = methodInfo.GetParameters();
-            var countParameters = parameters.Length;
-
-            var blob = BuildSignature(x => x.MethodSignature(
-                    ConvertCallingConvention(methodInfo.CallingConvention),
-                    isInstanceMethod: !methodInfo.IsStatic)
-                .Parameters(
-                    countParameters,
-                    r => r.FromSystemType(retType, this),
-                    p =>
-                    {
-                        foreach (var par in parameters)
-                        {
-                            var parEncoder = p.AddParameter();
-                            parEncoder.Type().FromSystemType(par.ParameterType, this);
-                        }
-                    }));
-            return GetBlob(blob);
-        }
-
-        private MethodDefinitionHandle GetMethodDefinitionHandle(MethodInfo methodInfo)
-        {
-            return methodInfo != null ? _methodsHandles[methodInfo] : default(MethodDefinitionHandle);
-        }
-
-        private MethodDefinitionHandle GetOrCreateMethod(MethodInfo methodInfo)
-        {
-            if (_methodsHandles.ContainsKey(methodInfo))
+            if (!_metadata.TryGetMethodDefinition(method, out var metadata))
             {
-                return _methodsHandles[methodInfo];
+                ThrowMetadataIsNotReserved("Method", method);
             }
 
-            var offset = _ilBuilder.Count; // take an offset
-            var body = methodInfo.GetMethodBody();
+            EnsureMetadataWasNotEmitted(metadata, method);
+
+            var offset = _metadata.ILBuilder.Count; // take an offset
+            var body = method.GetMethodBody();
             // If body exists, we write it in IL body stream
             if (body != null)
             {
-                var methodBodyWriter = new MethodBodyStreamWriter(_ilBuilder, GetString, _typeHandles, _ctorRefHandles,
-                    _fieldHandles, _methodsHandles);
+                var methodBodyWriter = new MethodBodyStreamWriter(_metadata);
 
                 // offset can be aligned during serialization. So, override the correct offset.
-                offset = methodBodyWriter.AddMethodBody(methodInfo);
+                offset = methodBodyWriter.AddMethodBody(method);
             }
 
-            var signature = GetMethodSignature(methodInfo);
-            var parameters = CreateParameters(methodInfo.GetParameters());
+            var signature = _metadata.GetMethodSignature(method);
+            var parameters = CreateParameters(method.GetParameters());
 
-            var handle = _metadataBuilder.AddMethodDefinition(
-                methodInfo.Attributes,
-                methodInfo.MethodImplementationFlags,
-                GetString(methodInfo.Name),
+            var handle = _metadata.Builder.AddMethodDefinition(
+                method.Attributes,
+                method.MethodImplementationFlags,
+                _metadata.GetOrAddString(method.Name),
                 signature,
                 offset,
                 parameters);
 
-
             if (body != null && body.LocalVariables.Count > 0)
             {
-                _metadataBuilder.AddStandaloneSignature
-                (GetBlob(
-                    BuildSignature(x =>
+                _metadata.Builder.AddStandaloneSignature
+                (_metadata.GetOrAddBlob(
+                    MetadataHelper.BuildSignature(x =>
                     {
                         var sig = x.LocalVariableSignature(body.LocalVariables.Count);
                         foreach (var vrb in body.LocalVariables)
@@ -83,36 +54,23 @@ namespace Lokad.ILPack
                             sig.AddVariable().Type(
                                     vrb.LocalType.IsByRef,
                                     vrb.IsPinned)
-                                .FromSystemType(vrb.LocalType, this);
+                                .FromSystemType(vrb.LocalType, _metadata);
                         }
                     })));
             }
 
-            /*
-             FieldList and MethodList described in ECMA 335, page 270
-             */
+            VerifyEmittedHandle(metadata, handle);
+            metadata.MarkAsEmitted();
 
-            _methodsHandles.Add(methodInfo, handle);
-
-            CreateCustomAttributes(handle, methodInfo.GetCustomAttributesData());
-            return handle;
+            CreateCustomAttributes(handle, method.GetCustomAttributesData());
         }
 
-        private MethodDefinitionHandle CreateMethods(MethodInfo[] methods)
+        private void CreateMethods(IEnumerable<MethodInfo> methods)
         {
-            if (methods.Length == 0)
+            foreach (var method in methods)
             {
-                return default(MethodDefinitionHandle);
+                CreateMethod(method);
             }
-
-            var handles = new MethodDefinitionHandle[methods.Length];
-            for (var i = 0; i < methods.Length; i++)
-            {
-                var method = methods[i];
-                handles[i] = GetOrCreateMethod(method);
-            }
-
-            return handles.First();
         }
     }
 }

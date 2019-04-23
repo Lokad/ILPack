@@ -1,20 +1,20 @@
-﻿using System.Reflection;
-using System.Reflection.Metadata;
+﻿using System.Collections.Generic;
+using System.Reflection;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        public void CreateModules(Module[] moduleInfo)
+        public void CreateModules(IEnumerable<Module> moduleInfo)
         {
             foreach (var module in moduleInfo)
             {
-                var moduleHandle = _metadataBuilder.AddModule(
+                var moduleHandle = _metadata.Builder.AddModule(
                     0, // reserved in ECMA
-                    GetString(module.Name),
-                    GetGuid(module.ModuleVersionId),
-                    default(GuidHandle), // reserved in ECMA
-                    default(GuidHandle)); // reserved in ECMA
+                    _metadata.GetOrAddString(module.Name),
+                    _metadata.GetOrAddGuid(module.ModuleVersionId),
+                    default, // reserved in ECMA
+                    default); // reserved in ECMA
 
                 CreateCustomAttributes(moduleHandle, module.GetCustomAttributesData());
                 CreateFields(module.GetFields());

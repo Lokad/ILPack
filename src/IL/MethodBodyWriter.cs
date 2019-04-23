@@ -2,21 +2,14 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack.IL
 {
     internal static class MethodBodyWriter
     {
-        public static void Write(
-            BlobBuilder writer,
-            IReadOnlyList<Instruction> il,
-            Func<string, StringHandle> getString,
-            IReadOnlyDictionary<Guid, EntityHandle> typeHandles,
-            IReadOnlyDictionary<ConstructorInfo, MemberReferenceHandle> ctorRefHandles,
-            IReadOnlyDictionary<FieldInfo, FieldDefinitionHandle> fieldHandles,
-            IReadOnlyDictionary<MethodInfo, MethodDefinitionHandle> methodHandles)
+        public static void Write(IAssemblyMetadata metadata, IReadOnlyList<Instruction> il)
         {
             var targetOffsets = new ArrayMapper<int>();
             //var offsetIndex = new Dictionary<int, int>();
@@ -27,7 +20,7 @@ namespace Lokad.ILPack.IL
 
                 var opCode = il[i].OpCode;
 
-                opCode.WriteOpCode(writer.WriteByte);
+                opCode.WriteOpCode(metadata.ILBuilder.WriteByte);
 
                 switch (opCode.OperandType)
                 {
@@ -36,11 +29,11 @@ namespace Lokad.ILPack.IL
 
                     case OperandType.InlineSwitch:
                         var branches = (int[]) il[i].Operand;
-                        writer.WriteInt32(branches.Length);
+                        metadata.ILBuilder.WriteInt32(branches.Length);
                         for (var k = 0; k < branches.Length; k++)
                         {
                             var branchOffset = branches[k];
-                            writer.WriteInt32(targetOffsets.Add(
+                            metadata.ILBuilder.WriteInt32(targetOffsets.Add(
                                 branchOffset + il[i].Offset + opCode.Size + 4 * (branches.Length + 1)));
                         }
 
@@ -49,49 +42,51 @@ namespace Lokad.ILPack.IL
                     case OperandType.ShortInlineBrTarget:
                         var offset8 = (sbyte) il[i].Operand;
                         // offset convention in IL: zero is at next instruction
-                        writer.WriteSByte((sbyte) targetOffsets.Add(offset8 + il[i].Offset + opCode.Size + 1));
+                        metadata.ILBuilder.WriteSByte(
+                            (sbyte) targetOffsets.Add(offset8 + il[i].Offset + opCode.Size + 1));
                         break;
 
                     case OperandType.InlineBrTarget:
                         var offset32 = (int) il[i].Operand;
                         // offset convention in IL: zero is at next instruction
-                        writer.WriteInt32(targetOffsets.Add(offset32 + il[i].Offset + opCode.Size + 4));
+                        metadata.ILBuilder.WriteInt32(targetOffsets.Add(offset32 + il[i].Offset + opCode.Size + 4));
                         break;
 
                     case OperandType.ShortInlineI:
                         if (opCode == OpCodes.Ldc_I4_S)
                         {
-                            writer.WriteSByte((sbyte) il[i].Operand);
+                            metadata.ILBuilder.WriteSByte((sbyte) il[i].Operand);
                         }
                         else
                         {
-                            writer.WriteByte((byte) il[i].Operand);
+                            metadata.ILBuilder.WriteByte((byte) il[i].Operand);
                         }
 
                         break;
 
                     case OperandType.InlineI:
-                        writer.WriteInt32((int) il[i].Operand);
+                        metadata.ILBuilder.WriteInt32((int) il[i].Operand);
                         break;
 
                     case OperandType.ShortInlineR:
-                        writer.WriteSingle((float) il[i].Operand);
+                        metadata.ILBuilder.WriteSingle((float) il[i].Operand);
                         break;
 
                     case OperandType.InlineR:
-                        writer.WriteDouble((double) il[i].Operand);
+                        metadata.ILBuilder.WriteDouble((double) il[i].Operand);
                         break;
 
                     case OperandType.InlineI8:
-                        writer.WriteInt64((long) il[i].Operand);
+                        metadata.ILBuilder.WriteInt64((long) il[i].Operand);
                         break;
 
                     case OperandType.InlineSig:
-                        writer.WriteBytes((byte[]) il[i].Operand);
+                        metadata.ILBuilder.WriteBytes((byte[]) il[i].Operand);
                         break;
 
                     case OperandType.InlineString:
-                        writer.WriteInt32(MetadataTokens.GetToken(getString((string) il[i].Operand)));
+                        metadata.ILBuilder.WriteInt32(
+                            MetadataTokens.GetToken(metadata.GetOrAddUserString((string) il[i].Operand)));
                         break;
 
                     case OperandType.InlineType:
@@ -101,19 +96,22 @@ namespace Lokad.ILPack.IL
                         switch (il[i].Operand)
                         {
                             case Type type:
-                                writer.WriteInt32(MetadataTokens.GetToken(typeHandles[type.GUID]));
+                                metadata.ILBuilder.WriteInt32(MetadataTokens.GetToken(metadata.GetTypeHandle(type)));
                                 break;
 
                             case ConstructorInfo constructorInfo:
-                                writer.WriteInt32(MetadataTokens.GetToken(ctorRefHandles[constructorInfo]));
+                                metadata.ILBuilder.WriteInt32(
+                                    MetadataTokens.GetToken(metadata.GetConstructorHandle(constructorInfo)));
                                 break;
 
                             case FieldInfo fieldInfo:
-                                writer.WriteInt32(MetadataTokens.GetToken(fieldHandles[fieldInfo]));
+                                metadata.ILBuilder.WriteInt32(
+                                    MetadataTokens.GetToken(metadata.GetFieldHandle(fieldInfo)));
                                 break;
 
                             case MethodInfo methodInfo:
-                                writer.WriteInt32(MetadataTokens.GetToken(methodHandles[methodInfo]));
+                                metadata.ILBuilder.WriteInt32(
+                                    MetadataTokens.GetToken(metadata.GetMethodHandle(methodInfo)));
                                 break;
 
                             default:
@@ -128,11 +126,11 @@ namespace Lokad.ILPack.IL
 
                         if (bLocalVariableInfo != null)
                         {
-                            writer.WriteByte((byte) bLocalVariableInfo.LocalIndex);
+                            metadata.ILBuilder.WriteByte((byte) bLocalVariableInfo.LocalIndex);
                         }
                         else if (bParameterInfo != null)
                         {
-                            writer.WriteByte((byte) bParameterInfo.Position);
+                            metadata.ILBuilder.WriteByte((byte) bParameterInfo.Position);
                         }
                         else
                         {
@@ -147,11 +145,11 @@ namespace Lokad.ILPack.IL
 
                         if (sLocalVariableInfo != null)
                         {
-                            writer.WriteUInt16((ushort) sLocalVariableInfo.LocalIndex);
+                            metadata.ILBuilder.WriteUInt16((ushort) sLocalVariableInfo.LocalIndex);
                         }
                         else if (sParameterInfo != null)
                         {
-                            writer.WriteUInt16((ushort) sParameterInfo.Position);
+                            metadata.ILBuilder.WriteUInt16((ushort) sParameterInfo.Position);
                         }
                         else
                         {

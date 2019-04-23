@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -103,6 +104,43 @@ namespace Lokad.ILPack.Tests
         }
 
         [Fact]
+        public void TestBasicInheritance()
+        {
+            // Define assembly and module
+            var assemblyName = new AssemblyName {Name = "MyAssembly"};
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MyModule");
+
+            // Define following dependent types:
+            //
+            // namespace Namespace {
+            //   public class Animal {}
+            //   public class Cat : Animal {}
+            //   public class Dog : Animal {}
+            //   public class Purrfect : Cat {}
+            //   public class Furdinand : Dog {}
+            // }
+            //
+
+            var animalTypeBuilder = newModule.DefineType("Namespace.Animal", TypeAttributes.Public);
+            var animalType = animalTypeBuilder.CreateType();
+
+            var catTypeBuilder = newModule.DefineType("Namespace.Cat", TypeAttributes.Public, animalType);
+            var catType = catTypeBuilder.CreateType();
+
+            var dogTypeBuilder = newModule.DefineType("Namespace.Dog", TypeAttributes.Public, animalType);
+            var dogType = dogTypeBuilder.CreateType();
+
+            var purrfectTypeBuilder = newModule.DefineType("Namespace.Purrfect", TypeAttributes.Public, catType);
+            purrfectTypeBuilder.CreateType();
+
+            var furdinandTypeBuilder = newModule.DefineType("Namespace.Furdinand", TypeAttributes.Public, dogType);
+            furdinandTypeBuilder.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "TestBasicInheritance.dll");
+        }
+
+        [Fact]
         public void TestFactorial()
         {
             var asm = SampleFactorialFromEmission.EmitAssembly(10);
@@ -149,6 +187,87 @@ namespace Lokad.ILPack.Tests
         {
             var path = SerializeGenericsLibrary("GenericsSerialization.dll");
             VerifyAssembly(path);
+        }
+
+        [Fact]
+        public void TestMethodReferencingSerialization()
+        {
+            // Define assembly and module
+            var assemblyName = new AssemblyName {Name = "MyAssembly"};
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MyModule");
+
+            // Define following code to test method referencing from external assembly.
+            //
+            // namespace Namespace {
+            //   public class Greeter {
+            //     public void Greet() {
+            //       Console.WriteLine("Hello, World!");
+            //     }
+            //   }
+            // }
+            //
+
+            var myType = newModule.DefineType("Namespace.Greeter", TypeAttributes.Public);
+
+            var myMethod = myType.DefineMethod("Greet", MethodAttributes.Public);
+            var generator = myMethod.GetILGenerator();
+
+            generator.Emit(OpCodes.Ldstr, "Hello, World!");
+            generator.Emit(OpCodes.Call, typeof(Console).GetMethod(nameof(Console.WriteLine), new[] {typeof(string)}));
+            generator.Emit(OpCodes.Ret);
+
+            myType.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "MethodReferencingSerialization.dll");
+        }
+
+        [Fact]
+        public void TestSelfReferencingSerialization()
+        {
+            // Define assembly and module
+            var assemblyName = new AssemblyName {Name = "MyAssembly"};
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MyModule");
+
+            // Define following singleton pattern to test self referencing.
+            //
+            // namespace Namespace {
+            //   public class MyClass {
+            //     private static MyClass _instance;
+            //
+            //     public static MyClass GetInstance() {
+            //       if (_instance == null) {
+            //         _instance = new MyClass();
+            //       }
+            //       return _instance;
+            //     }
+            //   }
+            // }
+            //
+
+            var myType = newModule.DefineType("Namespace.MyClass", TypeAttributes.Public);
+            var myField = myType.DefineField("_instance", myType, FieldAttributes.Private | FieldAttributes.Static);
+            var ctor = myType.DefineDefaultConstructor(MethodAttributes.Private);
+
+            var myMethod = myType.DefineMethod("GetInstance", MethodAttributes.Public | MethodAttributes.Static);
+            var generator = myMethod.GetILGenerator();
+            var isInitializedLabel = generator.DefineLabel();
+
+            generator.Emit(OpCodes.Ldsfld, myField);
+            generator.Emit(OpCodes.Brtrue_S, isInitializedLabel);
+
+            generator.Emit(OpCodes.Newobj, ctor);
+            generator.Emit(OpCodes.Stsfld, myField);
+
+            // isInitialized:
+            generator.MarkLabel(isInitializedLabel);
+            generator.Emit(OpCodes.Ldsfld, myField);
+            generator.Emit(OpCodes.Ret);
+
+            myType.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "SelfReferencingSerialization.dll");
         }
 
         [Fact]

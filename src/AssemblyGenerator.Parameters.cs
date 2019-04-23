@@ -1,42 +1,46 @@
-﻿using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Reflection.Metadata;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        public ParameterHandle CreateParameters(ParameterInfo[] parameters)
+        private ParameterHandle CreateParameters(ParameterInfo[] parameters)
         {
             if (parameters.Length == 0)
             {
-                return default(ParameterHandle);
+                return default;
             }
 
-            var handles = new ParameterHandle[parameters.Length];
+            ParameterHandle? firstHandle = null;
             for (var i = 0; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
 
-                if (_parameterHandles.TryGetValue(parameter, out var parameterDef))
+                if (_metadata.TryGetParameterHandle(parameter, out var parameterDef))
                 {
-                    handles[i] = parameterDef;
+                    if (firstHandle == null)
+                    {
+                        firstHandle = parameterDef;
+                    }
+
                     continue;
                 }
 
-                parameterDef = _metadataBuilder.AddParameter(
-                    parameter.Attributes,
-                    GetString(parameter.Name),
-                    i);
+                parameterDef =
+                    _metadata.Builder.AddParameter(parameter.Attributes, _metadata.GetOrAddString(parameter.Name), i);
 
-                _parameterHandles.Add(parameter, parameterDef);
+                _metadata.AddParameterHandle(parameter, parameterDef);
 
-                handles[i] = parameterDef;
+                if (firstHandle == null)
+                {
+                    firstHandle = parameterDef;
+                }
 
                 CreateCustomAttributes(parameterDef, parameter.GetCustomAttributesData());
             }
 
-            return handles.First();
+            return firstHandle ?? default;
         }
     }
 }

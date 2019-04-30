@@ -5,6 +5,14 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
+        /// <summary>
+        ///     Creates parameter metadata of a method parameters.
+        /// </summary>
+        /// <param name="parameters">Method parameters</param>
+        /// <returns>
+        ///     Metadata handle of first parameter if number of parameters is greater than zero,
+        ///     null metadata otherwise.
+        /// </returns>
         private ParameterHandle CreateParameters(ParameterInfo[] parameters)
         {
             if (parameters.Length == 0)

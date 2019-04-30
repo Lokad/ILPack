@@ -11,6 +11,7 @@ namespace Lokad.ILPack
         public void CreateCustomAttributes(EntityHandle parent, IEnumerable<CustomAttributeData> attributes)
         {
             // TODO: implement support for custom attributes
+            // Following code is reported that it does not work. It's commented out for future reference.
 
             //foreach (var attr in attributes)
             //{

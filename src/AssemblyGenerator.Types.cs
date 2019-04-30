@@ -10,6 +10,12 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
+        /// <summary>
+        ///     Gets all interfaces and base types of a given type including all of its parents.
+        ///     Referenced types from external assemblies are excluded.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns>All interfaces and base types of given type and its parents recursively.</returns>
         private IEnumerable<Type> GetBaseTypes(Type type)
         {
             foreach (var inf in type.GetInterfaces())
@@ -97,6 +103,8 @@ namespace Lokad.ILPack
             foreach (var property in type.GetProperties(AllProperties))
             {
                 var propertyHandle = MetadataTokens.PropertyDefinitionHandle(propertyRowCount + 1);
+                ++propertyRowCount;
+
                 MethodDefinitionHandle getMethodHandle = default;
                 MethodDefinitionHandle setMethodHandle = default;
 
@@ -113,7 +121,6 @@ namespace Lokad.ILPack
                 }
 
                 _metadata.ReservePropertyDefinition(property, propertyHandle, getMethodHandle, setMethodHandle);
-                ++propertyRowCount;
             }
 
             foreach (var ctor in type.GetConstructors(AllMethods))

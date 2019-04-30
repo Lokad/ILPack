@@ -223,6 +223,44 @@ namespace Lokad.ILPack.Tests
         }
 
         [Fact]
+        public void TestNullStrings()
+        {
+            // Define assembly and module
+            var assemblyName = new AssemblyName {Name = "MyAssembly"};
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MyModule");
+
+            // Define following type to test null strings (no namespace) and anonymous types
+            //
+            // public class MyClass {
+            //   public object MyMethod() {
+            //     return new {
+            //     };
+            //   }
+            // }
+            //
+
+            // Define anonymous type (technically, it's compiler generated type with no namespace in .NET world)
+            var anonymousType = newModule.DefineType("<>f__AnonymousType0", TypeAttributes.NotPublic);
+            var anonymousTypeCtor = anonymousType.DefineDefaultConstructor(MethodAttributes.Public);
+
+            // Define a type with no namespace
+            var myType = newModule.DefineType("MyClass", TypeAttributes.Public);
+
+            // Define a method to just return a new instance of anonymous type.
+            var myMethod = myType.DefineMethod("MyMethod", MethodAttributes.Public, typeof(object), new Type[0]);
+            var generator = myMethod.GetILGenerator();
+
+            generator.Emit(OpCodes.Newobj, anonymousTypeCtor);
+            generator.Emit(OpCodes.Ret);
+
+            anonymousType.CreateType();
+            myType.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "NullStringsSerialization.dll");
+        }
+
+        [Fact]
         public void TestSelfReferencingSerialization()
         {
             // Define assembly and module
@@ -250,7 +288,8 @@ namespace Lokad.ILPack.Tests
             var myField = myType.DefineField("_instance", myType, FieldAttributes.Private | FieldAttributes.Static);
             var ctor = myType.DefineDefaultConstructor(MethodAttributes.Private);
 
-            var myMethod = myType.DefineMethod("GetInstance", MethodAttributes.Public | MethodAttributes.Static);
+            var myMethod = myType.DefineMethod("GetInstance", MethodAttributes.Public | MethodAttributes.Static, myType,
+                new Type[0]);
             var generator = myMethod.GetILGenerator();
             var isInitializedLabel = generator.DefineLabel();
 

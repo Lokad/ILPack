@@ -47,17 +47,17 @@ namespace Lokad.ILPack.Metadata
 
         public UserStringHandle GetOrAddUserString(string value)
         {
-            return Builder.GetOrAddUserString(value);
+            return value != null ? Builder.GetOrAddUserString(value) : default;
         }
 
         public BlobHandle GetOrAddBlob(byte[] value)
         {
-            return Builder.GetOrAddBlob(value);
+            return value != null ? Builder.GetOrAddBlob(value) : default;
         }
 
         public BlobHandle GetOrAddBlob(BlobBuilder value)
         {
-            return Builder.GetOrAddBlob(value);
+            return value != null ? Builder.GetOrAddBlob(value) : default;
         }
 
         public GuidHandle GetOrAddGuid(Guid value)
@@ -67,7 +67,7 @@ namespace Lokad.ILPack.Metadata
 
         public StringHandle GetOrAddString(string value)
         {
-            return Builder.GetOrAddString(value);
+            return value != null ? Builder.GetOrAddString(value) : default;
         }
     }
 }

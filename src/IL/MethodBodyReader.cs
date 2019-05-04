@@ -128,6 +128,7 @@ namespace Lokad.ILPack.IL
                 case OperandType.InlineTok:
                     instruction.Operand = _module.ResolveMember(_il.ReadInt32(), _typeArguments, _methodArguments);
                     break;
+
                 case OperandType.InlineType:
                     instruction.Operand = _module.ResolveType(_il.ReadInt32(), _typeArguments, _methodArguments);
                     break;

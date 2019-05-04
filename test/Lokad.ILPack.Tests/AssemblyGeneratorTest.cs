@@ -325,5 +325,44 @@ namespace Lokad.ILPack.Tests
 
             SerializeAndVerifyAssembly(newAssembly, "TypeSerialization.dll");
         }
+
+        [Fact]
+        public void TestInlineConstructorReference()
+        {
+            // Define assembly and module
+            var assemblyName = new AssemblyName { Name = "MyAssembly" };
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MyModule");
+
+            // Define following class to test inline constructor reference.
+            // Notice that System.Net.Http.HttpClient type which is a referenced type isn't referenced
+            // at anywhere except method body. So, during serialization of IL instructions,
+            // first we need to resolve referenced type, then its constructor reference.
+            //
+            // public class MyClass
+            // {
+            //   public IDisposable MyMethod()
+            //   {
+            //     return new System.Net.Http.HttpClient();
+            //   }
+            // }
+            //
+            var httpClientType = typeof(System.Net.Http.HttpClient);
+            var httpClientTypeCtor = httpClientType.GetConstructor(new Type[0]);
+
+            // Define a type with no namespace
+            var myType = newModule.DefineType("MyClass", TypeAttributes.Public);
+
+            // Define a method to just return a new instance of anonymous type.
+            var myMethod = myType.DefineMethod("MyMethod", MethodAttributes.Public, typeof(IDisposable), new Type[0]);
+            var generator = myMethod.GetILGenerator();
+
+            generator.Emit(OpCodes.Newobj, httpClientTypeCtor);
+            generator.Emit(OpCodes.Ret);
+
+            myType.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "InlineConstructorReference.dll");
+        }
     }
 }

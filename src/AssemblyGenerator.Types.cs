@@ -102,25 +102,11 @@ namespace Lokad.ILPack
 
             foreach (var property in type.GetProperties(AllProperties))
             {
+                // We don't need to handle backing field. Because, it's handled as a regular field.
+                // Also, we don't need to handle getter or setter. Because, they are handled as regular methods.
                 var propertyHandle = MetadataTokens.PropertyDefinitionHandle(propertyRowCount + 1);
+                _metadata.ReservePropertyDefinition(property, propertyHandle);
                 ++propertyRowCount;
-
-                MethodDefinitionHandle getMethodHandle = default;
-                MethodDefinitionHandle setMethodHandle = default;
-
-                if (property.GetMethod != null)
-                {
-                    getMethodHandle = MetadataTokens.MethodDefinitionHandle(methodRowCount + 1);
-                    ++methodRowCount;
-                }
-
-                if (property.SetMethod != null)
-                {
-                    setMethodHandle = MetadataTokens.MethodDefinitionHandle(methodRowCount + 1);
-                    ++methodRowCount;
-                }
-
-                _metadata.ReservePropertyDefinition(property, propertyHandle, getMethodHandle, setMethodHandle);
             }
 
             foreach (var ctor in type.GetConstructors(AllMethods))

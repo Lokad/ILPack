@@ -6,10 +6,9 @@ namespace Lokad.ILPack.Metadata
     internal partial class AssemblyMetadata
     {
         public PropertyDefinitionMetadata ReservePropertyDefinition(PropertyInfo property,
-            PropertyDefinitionHandle propertyHandle, MethodDefinitionHandle getMethodHandle,
-            MethodDefinitionHandle setMethodHandle)
+            PropertyDefinitionHandle propertyHandle)
         {
-            var metadata = new PropertyDefinitionMetadata(property, propertyHandle, getMethodHandle, setMethodHandle);
+            var metadata = new PropertyDefinitionMetadata(property, propertyHandle);
             _propertyHandles.Add(property, metadata);
             return metadata;
         }

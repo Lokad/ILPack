@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
@@ -34,6 +35,56 @@ namespace Lokad.ILPack.Tests
             var path = SerializeAssembly(asm, fileName);
             VerifyAssembly(path);
             return path;
+        }
+
+        private static PropertyBuilder CreateProperty(TypeBuilder typeBuilder, Type propertyType, string propertyName,
+            bool hasGetter, bool hasSetter)
+        {
+            if (!hasGetter && !hasSetter)
+            {
+                throw new ArgumentException("A property should have at least a getter or setter.");
+            }
+
+            // Define backing field
+            var backingFieldName = $"<${propertyName}>k__BackingField";
+            var backingField = typeBuilder.DefineField(backingFieldName, propertyType, FieldAttributes.Private);
+
+            // Define property
+            var propertyBuilder =
+                typeBuilder.DefineProperty(propertyName, PropertyAttributes.HasDefault, propertyType, null);
+
+            if (hasGetter)
+            {
+                // Define get method
+                var propertyGetterName = $"get_${propertyName}";
+                var propertyGetter = typeBuilder.DefineMethod(propertyGetterName, MethodAttributes.Public, propertyType,
+                    Type.EmptyTypes);
+
+                var il = propertyGetter.GetILGenerator();
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldfld, backingField);
+                il.Emit(OpCodes.Ret);
+
+                propertyBuilder.SetGetMethod(propertyGetter);
+            }
+
+            if (hasSetter)
+            {
+                // Define set method
+                var propertySetterName = $"set_${propertyName}";
+                var propertySetter = typeBuilder.DefineMethod(propertySetterName, MethodAttributes.Public, propertyType,
+                    Type.EmptyTypes);
+
+                var il = propertySetter.GetILGenerator();
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Stfld, backingField);
+                il.Emit(OpCodes.Ret);
+
+                propertyBuilder.SetSetMethod(propertySetter);
+            }
+
+            return propertyBuilder;
         }
 
         private string SerializeGenericsLibrary(string fileName)
@@ -190,6 +241,47 @@ namespace Lokad.ILPack.Tests
         }
 
         [Fact]
+        public void TestInlineConstructorReference()
+        {
+            // Define assembly and module
+            var assemblyName = new AssemblyName {Name = "MyAssembly"};
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MyModule");
+
+            // Define following class to test inline constructor reference.
+            // Notice that System.Net.Http.HttpClient type which is a referenced type isn't referenced
+            // at anywhere except method body. So, during serialization of IL instructions,
+            // first we need to resolve referenced type, then its constructor reference.
+            //
+            // public class MyClass
+            // {
+            //   public IDisposable MyMethod()
+            //   {
+            //     return new System.Net.Http.HttpClient();
+            //   }
+            // }
+            //
+            var httpClientType = typeof(HttpClient);
+            var httpClientTypeCtor = httpClientType.GetConstructor(Type.EmptyTypes);
+
+            // Define a type with no namespace
+            var myType = newModule.DefineType("MyClass", TypeAttributes.Public);
+
+            // Define a method which returns a new instance of HttpClient as IDisposable type.
+            // So, we can mask type reference until relevant instruction is processed.
+            var myMethod =
+                myType.DefineMethod("MyMethod", MethodAttributes.Public, typeof(IDisposable), Type.EmptyTypes);
+            var generator = myMethod.GetILGenerator();
+
+            generator.Emit(OpCodes.Newobj, httpClientTypeCtor);
+            generator.Emit(OpCodes.Ret);
+
+            myType.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "InlineConstructorReference.dll");
+        }
+
+        [Fact]
         public void TestMethodReferencingSerialization()
         {
             // Define assembly and module
@@ -248,7 +340,7 @@ namespace Lokad.ILPack.Tests
             var myType = newModule.DefineType("MyClass", TypeAttributes.Public);
 
             // Define a method to just return a new instance of anonymous type.
-            var myMethod = myType.DefineMethod("MyMethod", MethodAttributes.Public, typeof(object), new Type[0]);
+            var myMethod = myType.DefineMethod("MyMethod", MethodAttributes.Public, typeof(object), Type.EmptyTypes);
             var generator = myMethod.GetILGenerator();
 
             generator.Emit(OpCodes.Newobj, anonymousTypeCtor);
@@ -258,6 +350,52 @@ namespace Lokad.ILPack.Tests
             myType.CreateType();
 
             SerializeAndVerifyAssembly(newAssembly, "NullStringsSerialization.dll");
+        }
+
+        [Fact]
+        public void TestPropertySerialization()
+        {
+            // Define assembly and module
+            var assemblyName = new AssemblyName {Name = "MyAssembly"};
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MyModule");
+
+            // Define following class to test inline constructor reference.
+            // Notice that System.Net.Http.HttpClient type which is a referenced type isn't referenced
+            // at anywhere except method body. So, during serialization of IL instructions,
+            // first we need to resolve referenced type, then its constructor reference.
+            //
+            // public class Vector
+            // {
+            //   public float X { get; set; }
+            //   public float Y { get; set; }
+            //   public float Sum() {
+            //     return X + Y;
+            //   }
+            // }
+            //
+
+            // Define a type with no namespace
+            var vectorType = newModule.DefineType("Vector", TypeAttributes.Public);
+
+            // Define properties
+            var xProperty = CreateProperty(vectorType, typeof(float), "X", true, true);
+            var yProperty = CreateProperty(vectorType, typeof(float), "Y", true, true);
+
+            // Define a method which returns sum of components.
+            var sumMethod = vectorType.DefineMethod("Sum", MethodAttributes.Public, typeof(float), Type.EmptyTypes);
+            var generator = sumMethod.GetILGenerator();
+
+            generator.Emit(OpCodes.Ldarg_0);
+            generator.Emit(OpCodes.Call, xProperty.GetGetMethod());
+            generator.Emit(OpCodes.Ldarg_0);
+            generator.Emit(OpCodes.Call, yProperty.GetGetMethod());
+            generator.Emit(OpCodes.Add);
+            generator.Emit(OpCodes.Ret);
+
+            vectorType.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "PropertySerialization.dll");
         }
 
         [Fact]
@@ -289,7 +427,7 @@ namespace Lokad.ILPack.Tests
             var ctor = myType.DefineDefaultConstructor(MethodAttributes.Private);
 
             var myMethod = myType.DefineMethod("GetInstance", MethodAttributes.Public | MethodAttributes.Static, myType,
-                new Type[0]);
+                Type.EmptyTypes);
             var generator = myMethod.GetILGenerator();
             var isInitializedLabel = generator.DefineLabel();
 
@@ -324,45 +462,6 @@ namespace Lokad.ILPack.Tests
             myType.CreateType();
 
             SerializeAndVerifyAssembly(newAssembly, "TypeSerialization.dll");
-        }
-
-        [Fact]
-        public void TestInlineConstructorReference()
-        {
-            // Define assembly and module
-            var assemblyName = new AssemblyName { Name = "MyAssembly" };
-            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
-            var newModule = newAssembly.DefineDynamicModule("MyModule");
-
-            // Define following class to test inline constructor reference.
-            // Notice that System.Net.Http.HttpClient type which is a referenced type isn't referenced
-            // at anywhere except method body. So, during serialization of IL instructions,
-            // first we need to resolve referenced type, then its constructor reference.
-            //
-            // public class MyClass
-            // {
-            //   public IDisposable MyMethod()
-            //   {
-            //     return new System.Net.Http.HttpClient();
-            //   }
-            // }
-            //
-            var httpClientType = typeof(System.Net.Http.HttpClient);
-            var httpClientTypeCtor = httpClientType.GetConstructor(new Type[0]);
-
-            // Define a type with no namespace
-            var myType = newModule.DefineType("MyClass", TypeAttributes.Public);
-
-            // Define a method to just return a new instance of anonymous type.
-            var myMethod = myType.DefineMethod("MyMethod", MethodAttributes.Public, typeof(IDisposable), new Type[0]);
-            var generator = myMethod.GetILGenerator();
-
-            generator.Emit(OpCodes.Newobj, httpClientTypeCtor);
-            generator.Emit(OpCodes.Ret);
-
-            myType.CreateType();
-
-            SerializeAndVerifyAssembly(newAssembly, "InlineConstructorReference.dll");
         }
     }
 }

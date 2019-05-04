@@ -32,16 +32,10 @@ namespace Lokad.ILPack.Metadata
 
     internal class PropertyDefinitionMetadata : DefinitionMetadata<PropertyInfo, PropertyDefinitionHandle>
     {
-        public PropertyDefinitionMetadata(PropertyInfo property, PropertyDefinitionHandle propertyHandle,
-            MethodDefinitionHandle getMethodHandle, MethodDefinitionHandle setMethodHandle) : base(property,
-            propertyHandle)
+        public PropertyDefinitionMetadata(PropertyInfo property, PropertyDefinitionHandle propertyHandle) : base(
+            property, propertyHandle)
         {
-            GetMethodHandle = getMethodHandle;
-            SetMethodHandle = setMethodHandle;
         }
-
-        public MethodDefinitionHandle GetMethodHandle { get; }
-        public MethodDefinitionHandle SetMethodHandle { get; }
     }
 
     internal class MethodBaseDefinitionMetadata : DefinitionMetadata<MethodBase, MethodDefinitionHandle>

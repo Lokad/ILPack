@@ -13,9 +13,15 @@ namespace Lokad.ILPack.Metadata
                 return metadata.Handle;
             }
 
-            if (_ctorRefHandles.TryGetValue(ctor, out var handle))
+            if (IsReferencedType(ctor.DeclaringType))
             {
-                return handle;
+                // Make sure type reference and all public constructors are resolved
+                ResolveTypeReference(ctor.DeclaringType);
+
+                if (_ctorRefHandles.TryGetValue(ctor, out var handle))
+                {
+                    return handle;
+                }
             }
 
             throw new InvalidOperationException($"Constructor cannot be found: {ctor}");

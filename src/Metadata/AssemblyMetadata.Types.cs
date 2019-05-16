@@ -17,7 +17,7 @@ namespace Lokad.ILPack.Metadata
                 return ResolveTypeReference(type);
             }
 
-            throw new InvalidOperationException($"Type cannot be found: {type}");
+            throw new ArgumentException($"Type cannot be found: {MetadataHelper.GetFriendlyName(type)}", nameof(type));
         }
 
         public bool IsReferencedType(Type type)
@@ -36,7 +36,8 @@ namespace Lokad.ILPack.Metadata
         {
             if (!IsReferencedType(type))
             {
-                throw new ArgumentException("Reference type is expected.", nameof(type));
+                throw new ArgumentException($"Reference type is expected: {MetadataHelper.GetFriendlyName(type)}",
+                    nameof(type));
             }
 
             if (_typeRefHandles.TryGetValue(type.GUID, out var typeRef))

@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 
 namespace Lokad.ILPack.Metadata
 {
@@ -108,6 +109,60 @@ namespace Lokad.ILPack.Metadata
         {
             action(new BlobEncoder(builder));
             return builder;
+        }
+
+        public static void AppendTypeFriendlyName(StringBuilder output, Type type)
+        {
+            var depth = 0;
+            while (type != null)
+            {
+                if (depth > 0)
+                {
+                    output.Append(" of ");
+                }
+
+                output.Append("\"");
+                output.Append(string.IsNullOrEmpty(type.AssemblyQualifiedName)
+                    ? type.ToString()
+                    : type.AssemblyQualifiedName);
+                output.Append("\"");
+
+                type = type.DeclaringType;
+                ++depth;
+            }
+        }
+
+        public static string GetFriendlyName<TEntity>(TEntity entity)
+        {
+            if (entity == null)
+            {
+                return "\"null\"";
+            }
+
+            var sb = new StringBuilder();
+            MemberInfo member;
+
+            // Note that Type class derives from MemberInfo.
+            // So, we need to check it first.
+            if (entity is Type type)
+            {
+                AppendTypeFriendlyName(sb, type);
+            }
+            else if ((member = entity as MemberInfo) != null)
+            {
+                sb.Append($"\"{member}\"");
+                if (member.DeclaringType != null)
+                {
+                    sb.Append(" of ");
+                    AppendTypeFriendlyName(sb, member.DeclaringType);
+                }
+            }
+            else
+            {
+                sb.Append($"\"{entity}\"");
+            }
+
+            return sb.ToString();
         }
     }
 }

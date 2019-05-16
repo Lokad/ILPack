@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Lokad.ILPack.Metadata;
 
@@ -14,7 +13,7 @@ namespace Lokad.ILPack
         ///     Gets all interfaces and base types of a given type including all of its parents.
         ///     Referenced types from external assemblies are excluded.
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="type">Type to be examined.</param>
         /// <returns>All interfaces and base types of given type and its parents recursively.</returns>
         private IEnumerable<Type> GetBaseTypes(Type type)
         {
@@ -62,7 +61,8 @@ namespace Lokad.ILPack
 
                 if (!_metadata.TryGetTypeDefinition(type, out var metadata))
                 {
-                    throw new InvalidOperationException($"Type definition metadata cannot be found: {type}");
+                    throw new InvalidOperationException(
+                        $"Type definition metadata cannot be found: {MetadataHelper.GetFriendlyName(type)}");
                 }
 
                 metadata.MarkAsEmitted();

@@ -18,7 +18,8 @@ namespace Lokad.ILPack.Metadata
                 return ResolveMethodReference(method);
             }
 
-            throw new InvalidOperationException($"Method cannot be found: {method}");
+            throw new ArgumentException($"Method cannot be found: {MetadataHelper.GetFriendlyName(method)}",
+                nameof(method));
         }
 
         public BlobHandle GetMethodSignature(MethodInfo methodInfo)
@@ -48,7 +49,9 @@ namespace Lokad.ILPack.Metadata
         {
             if (!IsReferencedType(method.DeclaringType))
             {
-                throw new ArgumentException("Method of a reference type is expected.", nameof(method));
+                throw new ArgumentException(
+                    $"Method of a reference type is expected: {MetadataHelper.GetFriendlyName(method)}",
+                    nameof(method));
             }
 
             if (_methodRefHandles.TryGetValue(method, out var handle))

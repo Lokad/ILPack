@@ -45,14 +45,16 @@ namespace Lokad.ILPack
         {
             if (metadata.IsEmitted)
             {
-                throw new InvalidOperationException($"Entity metadata was already emitted before: {entity}");
+                var friendlyName = MetadataHelper.GetFriendlyName(entity);
+                throw new InvalidOperationException($"Entity metadata was already emitted before: {friendlyName}");
             }
         }
 
         private static void ThrowMetadataIsNotReserved<TEntity>(string entityFriendlyName, TEntity entity)
         {
+            var friendlyName = MetadataHelper.GetFriendlyName(entity);
             throw new InvalidOperationException(
-                $"{entityFriendlyName} metadata should be reserved before emitting metadata: {entity}");
+                $"{entityFriendlyName} metadata should be reserved before emitting metadata: {friendlyName}");
         }
 
         private static void VerifyEmittedHandle<TEntity, THandle>(DefinitionMetadata<TEntity, THandle> metadata,

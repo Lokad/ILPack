@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\RewriteOriginal\RewriteOriginal.csproj" />
     <ProjectReference Include="..\..\src\Lokad.ILPack.csproj" />
   </ItemGroup>
 

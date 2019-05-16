@@ -73,8 +73,8 @@ namespace Lokad.ILPack.Tests
             {
                 // Define set method
                 var propertySetterName = $"set_${propertyName}";
-                var propertySetter = typeBuilder.DefineMethod(propertySetterName, MethodAttributes.Public, propertyType,
-                    Type.EmptyTypes);
+                var propertySetter = typeBuilder.DefineMethod(propertySetterName, MethodAttributes.Public, null,
+                    new Type[] { propertyType });
 
                 var il = propertySetter.GetILGenerator();
                 il.Emit(OpCodes.Ldarg_0);

@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
+using Lokad.ILPack.Metadata;
 using Xunit;
 
 namespace Lokad.ILPack.Tests
@@ -279,6 +280,38 @@ namespace Lokad.ILPack.Tests
             myType.CreateType();
 
             SerializeAndVerifyAssembly(newAssembly, "InlineConstructorReference.dll");
+        }
+
+        [Fact]
+        public void TestMetadataFriendlyName()
+        {
+            var type = typeof(object);
+            var ctor = type.GetConstructor(Type.EmptyTypes);
+            var method = type.GetMethod("ToString");
+
+            Assert.Equal("\"null\"", MetadataHelper.GetFriendlyName<Type>(null));
+            Assert.Equal($"\"{type.AssemblyQualifiedName}\"", MetadataHelper.GetFriendlyName(type));
+            Assert.Equal($"\"{ctor}\" of \"{ctor.DeclaringType.AssemblyQualifiedName}\"",
+                MetadataHelper.GetFriendlyName(ctor));
+            Assert.Equal($"\"{method}\" of \"{method.DeclaringType.AssemblyQualifiedName}\"",
+                MetadataHelper.GetFriendlyName(method));
+
+            var anonymousObj = new
+            {
+                NestedType = new
+                {
+                    MyField = false
+                }
+            };
+            var anonymousType = anonymousObj.GetType();
+            var anonymousNestedType = anonymousObj.NestedType.GetType();
+            var anonymousNestedProperty = anonymousNestedType.GetProperty(nameof(anonymousObj.NestedType.MyField));
+
+            Assert.Equal($"\"{anonymousType.AssemblyQualifiedName}\"", MetadataHelper.GetFriendlyName(anonymousType));
+            Assert.Equal($"\"{anonymousNestedType.AssemblyQualifiedName}\"",
+                MetadataHelper.GetFriendlyName(anonymousNestedType));
+            Assert.Equal($"\"{anonymousNestedProperty}\" of \"{anonymousNestedType.AssemblyQualifiedName}\"",
+                MetadataHelper.GetFriendlyName(anonymousNestedProperty));
         }
 
         [Fact]

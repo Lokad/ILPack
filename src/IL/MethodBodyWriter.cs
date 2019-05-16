@@ -115,7 +115,7 @@ namespace Lokad.ILPack.IL
                                 break;
 
                             default:
-                                throw new NotSupportedException();
+                                throw new NotSupportedException($"Unsupported inline operand: {il[i].Operand}");
                         }
 
                         break;
@@ -134,7 +134,7 @@ namespace Lokad.ILPack.IL
                         }
                         else
                         {
-                            throw new NotSupportedException();
+                            throw new NotSupportedException($"Unsupported short inline variable: {il[i].Operand}");
                         }
 
                         break;
@@ -153,13 +153,13 @@ namespace Lokad.ILPack.IL
                         }
                         else
                         {
-                            throw new NotSupportedException();
+                            throw new NotSupportedException($"Unsupported inline variable: {il[i].Operand}");
                         }
 
                         break;
 
                     default:
-                        throw new NotSupportedException();
+                        throw new NotSupportedException($"Unsupported operand type: {opCode.OperandType}");
                 }
             }
         }

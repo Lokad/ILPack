@@ -97,7 +97,7 @@ namespace Lokad.ILPack
                 return PrimitiveTypeCode.Void;
             }
 
-            throw new ArgumentException($"Type {type.Name} is unknown");
+            throw new ArgumentException($"Type is unknown: {MetadataHelper.GetFriendlyName(type)}", nameof(type));
         }
 
         internal static void FromSystemType(
@@ -133,8 +133,8 @@ namespace Lokad.ILPack
             else if (type == typeof(void))
             {
                 throw new ArgumentException(
-                    "Void type is not allowed in SignatureTypeEncoder. Please, use FromSystemType from ReturnTypeEncoder.");
-                //typeEncoder.VoidPointer();
+                    "Void type is not allowed in SignatureTypeEncoder. Please, use FromSystemType from ReturnTypeEncoder.",
+                    nameof(type));
             }
             else if (type.IsArray)
             {

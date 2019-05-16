@@ -23,13 +23,13 @@ namespace Lokad.ILPack.IL
             var body = method.GetMethodBody();
             if (body == null)
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Method body is null.", nameof(method));
             }
 
             var bytes = body.GetILAsByteArray();
             if (bytes == null)
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Method body IL stream is null.", nameof(method));
             }
 
             if (!(method is ConstructorInfo))
@@ -150,7 +150,7 @@ namespace Lokad.ILPack.IL
                     break;
 
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException($"Operand type is not supported: {instruction.OpCode.OperandType}");
             }
         }
 
@@ -287,7 +287,7 @@ namespace Lokad.ILPack.IL
             {
                 if (_position + count > _buffer.Length)
                 {
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(count), "Attempt to read beyond end of stream.");
                 }
             }
         }

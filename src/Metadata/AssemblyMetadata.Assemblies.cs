@@ -39,7 +39,7 @@ namespace Lokad.ILPack.Metadata
                 return _assemblyRefHandles[uniqueName];
             }
 
-            throw new Exception($"Referenced Assembly not found! ({asm.FullName})");
+            throw new InvalidOperationException($"Referenced assembly cannot be found: {asm.FullName}");
         }
 
         private void AddReferencedAssembly(string referenceName, AssemblyName assemblyName)

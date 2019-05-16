@@ -18,7 +18,8 @@ namespace Lokad.ILPack.Metadata
                 return ResolveFieldReference(field);
             }
 
-            throw new InvalidOperationException($"Field cannot be found: {field}");
+            throw new ArgumentException($"Field cannot be found: {MetadataHelper.GetFriendlyName(field)}",
+                nameof(field));
         }
 
         public BlobHandle GetFieldSignature(FieldInfo fieldInfo)
@@ -39,7 +40,8 @@ namespace Lokad.ILPack.Metadata
         {
             if (!IsReferencedType(field.DeclaringType))
             {
-                throw new ArgumentException("Field of a reference type is expected.", nameof(field));
+                throw new ArgumentException(
+                    $"Field of a reference type is expected: {MetadataHelper.GetFriendlyName(field)}", nameof(field));
             }
 
 

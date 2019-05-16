@@ -24,7 +24,8 @@ namespace Lokad.ILPack.Metadata
                 }
             }
 
-            throw new InvalidOperationException($"Constructor cannot be found: {ctor}");
+            throw new ArgumentException($"Constructor cannot be found: {MetadataHelper.GetFriendlyName(ctor)}",
+                nameof(ctor));
         }
 
         internal BlobHandle GetConstructorSignature(ConstructorInfo constructorInfo)

@@ -14,9 +14,13 @@ namespace Lokad.ILPack.Tests
             // Get the original assembly
             _originalAssembly = typeof(RewriteOriginal.MyClass).Assembly;
 
+            // Put clone in a subdirectory
+            var outDir = System.IO.Path.GetFullPath(".\\cloned\\");
+            System.IO.Directory.CreateDirectory(outDir);
+
             // Rewrite it
             var generator = new AssemblyGenerator();
-            var targetPath = System.IO.Path.GetFullPath("RewriteClone.dll");
+            var targetPath = System.IO.Path.GetFullPath(".\\cloned\\RewriteOriginal.dll");
             generator.GenerateAssembly(_originalAssembly, targetPath);
 
             // Load it

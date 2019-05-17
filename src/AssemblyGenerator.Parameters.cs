@@ -1,10 +1,14 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
+        int _nextParameterRowId = 1;
+
         /// <summary>
         ///     Creates parameter metadata of a method parameters.
         /// </summary>
@@ -15,40 +19,28 @@ namespace Lokad.ILPack
         /// </returns>
         private ParameterHandle CreateParameters(ParameterInfo[] parameters)
         {
-            if (parameters.Length == 0)
-            {
-                return default;
-            }
-
-            ParameterHandle? firstHandle = null;
+            var firstHandle = MetadataTokens.ParameterHandle(_nextParameterRowId);
             for (var i = 0; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
 
                 if (_metadata.TryGetParameterHandle(parameter, out var parameterDef))
                 {
-                    if (firstHandle == null)
-                    {
-                        firstHandle = parameterDef;
-                    }
-
-                    continue;
+                    throw new InvalidOperationException("Duplicate emit of parameter");
                 }
 
                 parameterDef =
                     _metadata.Builder.AddParameter(parameter.Attributes, _metadata.GetOrAddString(parameter.Name), i);
 
+                System.Diagnostics.Debug.Assert(parameterDef == MetadataTokens.ParameterHandle(_nextParameterRowId));
+
+                _nextParameterRowId++;
+
                 _metadata.AddParameterHandle(parameter, parameterDef);
-
-                if (firstHandle == null)
-                {
-                    firstHandle = parameterDef;
-                }
-
                 CreateCustomAttributes(parameterDef, parameter.GetCustomAttributesData());
             }
 
-            return firstHandle ?? default;
+            return firstHandle;
         }
     }
 }

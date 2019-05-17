@@ -3,5 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
+  
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="dotnet $(SolutionDir)/test/RewriteTool/bin/$(ConfigurationName)/netcoreapp2.1/RewriteTool.dll $(SolutionDir)/test/RewriteOriginal/bin/$(ConfigurationName)/netcoreapp2.1/RewriteOriginal.dll $(SolutionDir)/test/RewriteOriginal/bin/$(ConfigurationName)/netcoreapp2.1/cloned/RewriteOriginal.dll" />
+  </Target>
 
 </Project>

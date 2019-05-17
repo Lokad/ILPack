@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RewriteTool": {
+      "commandName": "Project",
+      "commandLineArgs": "..\\..\\..\\..\\RewriteOriginal\\bin\\Debug\\netcoreapp2.1\\RewriteOriginal.dll output.dll"
+    }
+  }
+}

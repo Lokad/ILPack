@@ -141,11 +141,10 @@ namespace Lokad.ILPack.Tests
 
         [Theory]
         [MemberData(nameof(EnumProperties))]
-        public void PropertiesMatch(MethodInfo original, MethodInfo clone)
+        public void PropertiesMatch(PropertyInfo original, PropertyInfo clone)
         {
             Assert.Equal(original.Name, clone.Name);
-            Assert.Equal(original.ReturnType.Name, clone.ReturnType.Name);
-            Assert.Equal(original.GetParameters().Length, clone.GetParameters().Length);
+            Assert.Equal(original.PropertyType.Name, clone.PropertyType.Name);
         }
 
 
@@ -176,11 +175,9 @@ namespace Lokad.ILPack.Tests
 
         [Theory]
         [MemberData(nameof(EnumEvents))]
-        public void EventsMatch(MethodInfo original, MethodInfo clone)
+        public void EventsMatch(EventInfo original, EventInfo clone)
         {
             Assert.Equal(original.Name, clone.Name);
-            Assert.Equal(original.ReturnType.Name, clone.ReturnType.Name);
-            Assert.Equal(original.GetParameters().Length, clone.GetParameters().Length);
         }
 
 

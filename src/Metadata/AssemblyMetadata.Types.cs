@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Lokad.ILPack.Metadata
 {
@@ -7,6 +8,13 @@ namespace Lokad.ILPack.Metadata
     {
         public EntityHandle GetTypeHandle(Type type)
         {
+            if (type.IsGenericType && !type.IsGenericTypeDefinition)
+            {
+                var typeSpecEncoder = new BlobEncoder(new BlobBuilder()).TypeSpecificationSignature();
+                typeSpecEncoder.FromSystemType(type, this);
+                return Builder.AddTypeSpecification(GetOrAddBlob(typeSpecEncoder.Builder));
+            }
+
             if (TryGetTypeDefinition(type, out var metadata))
             {
                 return metadata.Handle;

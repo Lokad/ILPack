@@ -73,9 +73,9 @@ namespace Lokad.ILPack.Metadata
         }
 
         public TypeDefinitionMetadata ReserveTypeDefinition(Type type, TypeDefinitionHandle handle, int fieldIndex,
-            int propertyIndex, int methodIndex)
+            int propertyIndex, int methodIndex, int eventIndex)
         {
-            var metadata = new TypeDefinitionMetadata(type, handle, fieldIndex, propertyIndex, methodIndex);
+            var metadata = new TypeDefinitionMetadata(type, handle, fieldIndex, propertyIndex, methodIndex, eventIndex);
             _typeDefHandles.Add(type.GUID, metadata);
             return metadata;
         }

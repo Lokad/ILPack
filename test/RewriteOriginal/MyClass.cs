@@ -14,11 +14,11 @@ namespace RewriteOriginal
         public int ReadOnlyProperty
         {
             get;
-        }
+        } = 23;
 
         public int WriteOnlyProperty
         {
-            get;
+            set { }
         }
 
         public int ReadWriteProperty
@@ -33,7 +33,7 @@ namespace RewriteOriginal
 
         public int IntMethod()
         {
-            return 0;
+            return 33;
         }
 
         public int IntMethodWithParameters(int a, int b)
@@ -44,7 +44,7 @@ namespace RewriteOriginal
         public int AnotherParameterlessMethod()
         {
             // Argless methods must be rewritten using the next available param id
-            // even if they have no parameters.
+            // even if they have not parameters.
             return 0;
         }
 
@@ -55,5 +55,15 @@ namespace RewriteOriginal
 
         public event Action NoParamEvent;
         public event Action<int> IntParamEvent;
+
+        public void InvokeNoParamEvent()
+        {
+            NoParamEvent?.Invoke();
+        }
+
+        public void InvokeIntParamEvent(int withValue)
+        {
+            IntParamEvent?.Invoke(withValue);
+        }
     }
 }

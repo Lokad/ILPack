@@ -25,13 +25,13 @@
   .ver 1:0:0:0
 }
 .module RewriteOriginal.dll
-// MVID: {70E07465-D414-4A4A-AB35-0A11268331A3}
+// MVID: {88C795A1-2B5D-406C-8552-66F154778D66}
 .imagebase 0x00400000
 .file alignment 0x00000200
 .stackreserve 0x00100000
 .subsystem 0x0003       // WINDOWS_CUI
 .corflags 0x00000001    //  ILONLY
-// Image base: 0x00000253D8460000
+// Image base: 0x000001EB500E0000
 
 
 // =============== CLASS MEMBERS DECLARATION ===================

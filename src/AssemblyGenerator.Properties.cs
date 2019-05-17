@@ -32,7 +32,7 @@ namespace Lokad.ILPack
             return _metadata.GetOrAddBlob(blob);
         }
 
-        private void CreateProperty(PropertyInfo property)
+        private void CreateProperty(PropertyInfo property, bool addToPropertyMap)
         {
             if (!_metadata.TryGetPropertyMetadata(property, out var metadata))
             {
@@ -45,6 +45,17 @@ namespace Lokad.ILPack
                 property.Attributes,
                 _metadata.GetOrAddString(property.Name),
                 GetPropertySignature(property));
+
+            // If this is the first property for this type then add to the property map
+            // (Without this ildasm doesn't show the .property block and intellisense doesn't show any properties)
+            if (addToPropertyMap)
+            {
+                if (!_metadata.TryGetTypeDefinition(property.DeclaringType, out var typeHandle))
+                {
+                    ThrowMetadataIsNotReserved("Type", property.DeclaringType);
+                }
+                _metadata.Builder.AddPropertyMap((TypeDefinitionHandle)typeHandle.Handle, propertyHandle);
+            }
 
             VerifyEmittedHandle(metadata, propertyHandle);
             metadata.MarkAsEmitted();
@@ -78,9 +89,11 @@ namespace Lokad.ILPack
 
         private void CreatePropertiesForType(IEnumerable<PropertyInfo> properties)
         {
+            bool first = true;
             foreach (var property in properties)
             {
-                CreateProperty(property);
+                CreateProperty(property, first);
+                first = false;
             }
         }
     }

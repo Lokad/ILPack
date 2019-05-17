@@ -38,6 +38,14 @@ namespace Lokad.ILPack.Metadata
         }
     }
 
+    internal class EventDefinitionMetadata : DefinitionMetadata<EventInfo, EventDefinitionHandle>
+    {
+        public EventDefinitionMetadata(EventInfo ev, EventDefinitionHandle eventHandle) : base(
+            ev, eventHandle)
+        {
+        }
+    }
+
     internal class MethodBaseDefinitionMetadata : DefinitionMetadata<MethodBase, MethodDefinitionHandle>
     {
         public MethodBaseDefinitionMetadata(MethodBase method, MethodDefinitionHandle handle) : base(method, handle)
@@ -50,20 +58,23 @@ namespace Lokad.ILPack.Metadata
         public int FieldIndex { get; set; }
         public int PropertyIndex { get; set; }
         public int MethodIndex { get; set; }
+        public int EventIndex { get; set; }
     }
 
     internal class TypeDefinitionMetadata : DefinitionMetadata<Type, EntityHandle>
     {
         public TypeDefinitionMetadata(Type type, EntityHandle handle, int fieldIndex, int propertyIndex,
-            int methodIndex) : base(type, handle)
+            int methodIndex, int eventIndex) : base(type, handle)
         {
             FieldIndex = fieldIndex;
             PropertyIndex = propertyIndex;
             MethodIndex = methodIndex;
+            EventIndex = eventIndex;
         }
 
         public int FieldIndex { get; }
         public int PropertyIndex { get; }
         public int MethodIndex { get; }
+        public int EventIndex { get; }
     }
 }

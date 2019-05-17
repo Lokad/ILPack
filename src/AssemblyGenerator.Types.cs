@@ -135,7 +135,7 @@ namespace Lokad.ILPack
 
             var typeHandle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
-                _metadata.GetOrAddString(type.Namespace),
+                _metadata.GetOrAddString(ApplyNameChange(type.Namespace)),
                 _metadata.GetOrAddString(type.Name),
                 baseTypeHandle,
                 MetadataTokens.FieldDefinitionHandle(offset.FieldIndex + 1),

@@ -1,189 +1,156 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Lokad.ILPack.Tests
 {
+    /*
+     * These test cases work by taking the RewriteOriginal project, passing it
+     * through ILPack to generate a new assembly and then checking that the
+     * newly generated assembly is correct by actually loading it and invoking
+     * methods and properties on it.
+     * 
+     * It works as follows:
+     * 
+     * 1. `RewriteOriginal.dll` is loaded through a project reference and found
+     *    with a simple typeof(MyClass)
+     *    
+     * 2. ILPack is used to to rewrite a new assembly `RewriteClone.dll`
+     * 
+     * 3. To allow the second DLL to be loaded into the same process (we don't
+     *    have AppDomains under net core), we use ILPack's RenameForTesting method
+     *    to change the names of the assembly and the contained namespace(s)
+     *    
+     * 4. Use CSharpScript to load the newly cloned assembly and poke it in 
+     *    various ways to make sure it still works.
+     *    
+     * Also, in the Lokad.ILPack.Tests project folder there's a dump.bat script
+     * which on Windows will run ildasm and mddumper on both the original and the
+     * cloned assemblies.  Handy for comparison when diagnosing issues. (ildasm
+     * and mddumper both need to be on your path)
+     * 
+     */
+
     public class RewriteTest
     {
         static RewriteTest()
         {
             // Get the original assembly
-            _originalAssembly = typeof(RewriteOriginal.MyClass).Assembly;
+            var original = typeof(RewriteOriginal.MyClass).Assembly;
+            var originalAssembly = original.Location;
 
-            // Put clone in a subdirectory
-            var outDir = System.IO.Path.GetFullPath(".\\cloned\\");
-            System.IO.Directory.CreateDirectory(outDir);
+            // Generate the cloned assembly
+            // NB: putting it in the "cloned" sub directory prevents an
+            //     issue with someone (VisStudio perhaps) having the file open
+            //     and preventing rewrite on subsequent run. 
+            var outDir = Path.Join(Path.GetDirectoryName(originalAssembly), "cloned");
+            Directory.CreateDirectory(outDir);
+            var clonedAssembly = Path.Join(outDir, "RewriteClone.dll");
 
-            // Rewrite it
+            // Rewrite it (renaming the assembly and namespaces in the process)
             var generator = new AssemblyGenerator();
-            var targetPath = System.IO.Path.GetFullPath(".\\cloned\\RewriteOriginal.dll");
-            generator.GenerateAssembly(_originalAssembly, targetPath);
+            generator.RenameForTesting("RewriteOriginal", "RewriteClone");
+            generator.GenerateAssembly(original, clonedAssembly);
 
-            // Load it
-            _clonedAssembly = Assembly.LoadFrom(targetPath);
+            _namespaceName = "RewriteClone";
+            _assembly = clonedAssembly;
+
+            // Uncomment these two lines to run with the original uncloned assembly
+            // (handy to check if test case is wrong)
+            //_namespaceName = "RewriteOriginal";
+            //_assembly = originalAssembly;
         }
 
-        static Assembly _originalAssembly;
-        static Assembly _clonedAssembly;
+        static string _namespaceName;
+        static string _assembly;
+
+        async Task<object> Invoke(string setup, string resultExpression)
+        {
+            var script = CSharpScript
+                .Create($"var x = new {_namespaceName}.MyClass();", 
+                        ScriptOptions.Default.WithReferences(_assembly))
+                .ContinueWith(setup)
+                .ContinueWith(resultExpression);
+
+            return (await script.RunAsync()).ReturnValue;
+        }
 
         [Fact]
-        void RewrittenDidLoad()
+        public async void ReadOnlyProperty()
         {
-            Assert.NotNull(_clonedAssembly);
+            Assert.Equal(23, await Invoke(
+                "",
+                "x.ReadOnlyProperty"));
         }
 
         [Fact]
-        void AssemblyNamesMatch()
+        public async void WriteOnlyProperty()
         {
-            Assert.Equal(_originalAssembly.FullName, _clonedAssembly.FullName);
+            Assert.Equal(true, await Invoke(
+                "x.WriteOnlyProperty = 99;",
+                "true"));
         }
 
-        public static IEnumerable<object[]> EnumModules
+        [Fact]
+        public async void ReadWriteOnlyProperty()
         {
-            get
-            {
-                var original = _originalAssembly.GetModules().OrderBy(x=>x.FullyQualifiedName).ToArray();
-                var cloned = _clonedAssembly.GetModules().OrderBy(x=>x.FullyQualifiedName).ToArray();
-                Assert.Equal(original.Length, cloned.Length);
-                for (int i = 0; i < original.Length; i++)
-                {
-                    yield return new object[] { original[i], cloned[i] };
-                }
-            }
+            Assert.Equal(101, await Invoke(
+                "x.ReadWriteProperty = 101;",
+                "x.ReadWriteProperty"));
         }
 
-        [Theory]
-        [MemberData(nameof(EnumModules))]
-        void ModuleNamesMatch(Module original, Module clone)
+        [Fact]
+        public async void VoidMethod()
         {
-            Assert.Equal(original.Name, clone.Name);
+            Assert.Equal(true, await Invoke(
+                "x.VoidMethod();",
+                "true"));
         }
 
-        public static IEnumerable<object[]> EnumTypes
+        [Fact]
+        public async void IntMethod()
         {
-            get
-            {
-                var original = _originalAssembly.GetTypes().OrderBy(x => x.FullName).ToArray();
-                var cloned = _clonedAssembly.GetTypes().OrderBy(x => x.FullName).ToArray();
-                Assert.Equal(original.Length, cloned.Length);
-                for (int i = 0; i < original.Length; i++)
-                {
-                    yield return new object[] { original[i], cloned[i] };
-                }
-            }
+            Assert.Equal(33, await Invoke(
+                "var r = x.IntMethod();",
+                "r"));
         }
 
-        [Theory]
-        [MemberData(nameof(EnumTypes))]
-        void TypesMatch(Type original, Type clone)
+        [Fact]
+        public async void IntMethodWithParameters()
         {
-            Assert.Equal(original.Name, clone.Name);
+            Assert.Equal(30, await Invoke(
+                "var r = x.IntMethodWithParameters(10,20);",
+                "r"));
         }
 
-        // Get all methods in an assembly
-        static IEnumerable<MethodInfo> AllMethodsInAssembly(Assembly a)
+        [Fact]
+        public async void NoParamEvent()
         {
-            foreach (var t in _originalAssembly.GetTypes().OrderBy(x => x.FullName).ToArray())
-            {
-                foreach (var m in t.GetMethods())
-                {
-                    yield return m;
-                }
-            }
-        }
-        public static IEnumerable<object[]> EnumMethods
-        {
-            get
-            {
-                var original = AllMethodsInAssembly(_originalAssembly).ToArray();
-                var cloned = AllMethodsInAssembly(_clonedAssembly).ToArray();
-                Assert.Equal(original.Length, cloned.Length);
-                for (int i = 0; i < original.Length; i++)
-                {
-                    yield return new object[] { original[i], cloned[i] };
-                }
-            }
+            Assert.Equal(99, await Invoke(
+                @"  int cbVal = 0; 
+                    x.NoParamEvent += () => cbVal = 99;
+                    x.InvokeNoParamEvent()",
+                   
+                "cbVal"));
         }
 
-        [Theory]
-        [MemberData(nameof(EnumMethods))]
-        public void MethodsMatch(MethodInfo original, MethodInfo clone)
+        [Fact]
+        public async void IntParamEvent()
         {
-            Assert.Equal(original.Name, clone.Name);
-            Assert.Equal(original.GetParameters().Length, clone.GetParameters().Length);
+            Assert.Equal(77, await Invoke(
+                @"  int cbVal = 0; 
+                    x.IntParamEvent += (val) => cbVal = val;
+                    x.InvokeIntParamEvent(77)",
+                   
+                "cbVal"));
         }
-
-
-        // Get all properties in an assembly
-        static IEnumerable<PropertyInfo> AllPropertiesInAssembly(Assembly a)
-        {
-            foreach (var t in _originalAssembly.GetTypes().OrderBy(x => x.FullName).ToArray())
-            {
-                foreach (var p in t.GetProperties())
-                {
-                    yield return p;
-                }
-            }
-        }
-        public static IEnumerable<object[]> EnumProperties
-        {
-            get
-            {
-                var original = AllPropertiesInAssembly(_originalAssembly).ToArray();
-                var cloned = AllPropertiesInAssembly(_clonedAssembly).ToArray();
-                Assert.Equal(original.Length, cloned.Length);
-                for (int i = 0; i < original.Length; i++)
-                {
-                    yield return new object[] { original[i], cloned[i] };
-                }
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(EnumProperties))]
-        public void PropertiesMatch(PropertyInfo original, PropertyInfo clone)
-        {
-            Assert.Equal(original.Name, clone.Name);
-            Assert.Equal(original.PropertyType.Name, clone.PropertyType.Name);
-        }
-
-
-        // Get all events in an assembly
-        static IEnumerable<EventInfo> AllEventsInAssembly(Assembly a)
-        {
-            foreach (var t in _originalAssembly.GetTypes().OrderBy(x => x.FullName).ToArray())
-            {
-                foreach (var e in t.GetEvents())
-                {
-                    yield return e;
-                }
-            }
-        }
-        public static IEnumerable<object[]> EnumEvents
-        {
-            get
-            {
-                var original = AllEventsInAssembly(_originalAssembly).ToArray();
-                var cloned = AllEventsInAssembly(_clonedAssembly).ToArray();
-                Assert.Equal(original.Length, cloned.Length);
-                for (int i = 0; i < original.Length; i++)
-                {
-                    yield return new object[] { original[i], cloned[i] };
-                }
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(EnumEvents))]
-        public void EventsMatch(EventInfo original, EventInfo clone)
-        {
-            Assert.Equal(original.Name, clone.Name);
-        }
-
 
     }
 }

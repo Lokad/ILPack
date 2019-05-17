@@ -1,0 +1,295 @@
+./bin/Debug/netcoreapp2.1/RewriteOriginal.dll
+********************************************************************************
+Module (0x00):
+=======================================================================================================
+   Gen  Name                          Mvid                                         EncId  EncBaseId  
+=======================================================================================================
+1: 0    'RewriteOriginal.dll' (#29d)  {70e07465-d414-4a4a-ab35-0a11268331a3} (#1)  nil    nil        
+
+TypeRef (0x01):
+=======================================================================================================================
+    Scope                     Name                                            Namespace                                 
+=======================================================================================================================
+ 1: 0x23000001 (AssemblyRef)  'CompilationRelaxationsAttribute' (#1c2)        'System.Runtime.CompilerServices' (#2ea)  
+ 2: 0x23000001 (AssemblyRef)  'RuntimeCompatibilityAttribute' (#214)          'System.Runtime.CompilerServices' (#2ea)  
+ 3: 0x23000001 (AssemblyRef)  'DebuggableAttribute' (#101)                    'System.Diagnostics' (#2d7)               
+ 4: 0x01000003 (TypeRef)      'DebuggingModes' (#30a)                         nil                                       
+ 5: 0x23000001 (AssemblyRef)  'TargetFrameworkAttribute' (#147)               'System.Runtime.Versioning' (#25a)        
+ 6: 0x23000001 (AssemblyRef)  'AssemblyCompanyAttribute' (#1fb)               'System.Reflection' (#2bf)                
+ 7: 0x23000001 (AssemblyRef)  'AssemblyConfigurationAttribute' (#1a3)         'System.Reflection' (#2bf)                
+ 8: 0x23000001 (AssemblyRef)  'AssemblyFileVersionAttribute' (#160)           'System.Reflection' (#2bf)                
+ 9: 0x23000001 (AssemblyRef)  'AssemblyInformationalVersionAttribute' (#17d)  'System.Reflection' (#2bf)                
+ a: 0x23000001 (AssemblyRef)  'AssemblyProductAttribute' (#1e2)               'System.Reflection' (#2bf)                
+ b: 0x23000001 (AssemblyRef)  'AssemblyTitleAttribute' (#130)                 'System.Reflection' (#2bf)                
+ c: 0x23000001 (AssemblyRef)  'Object' (#351)                                 'System' (#2b1)                           
+ d: 0x23000001 (AssemblyRef)  'Action' (#2b8)                                 'System' (#2b1)                           
+ e: 0x23000001 (AssemblyRef)  'Action`1' (#1)                                 'System' (#2b1)                           
+ f: 0x23000001 (AssemblyRef)  'CompilerGeneratedAttribute' (#e6)              'System.Runtime.CompilerServices' (#2ea)  
+10: 0x23000002 (AssemblyRef)  'DebuggerBrowsableState' (#cf)                  'System.Diagnostics' (#2d7)               
+11: 0x23000002 (AssemblyRef)  'DebuggerBrowsableAttribute' (#115)             'System.Diagnostics' (#2d7)               
+12: 0x23000001 (AssemblyRef)  'Delegate' (#c6)                                'System' (#2b1)                           
+13: 0x23000003 (AssemblyRef)  'Interlocked' (#17)                             'System.Threading' (#249)                 
+
+TypeDef (0x02):
+=================================================================================================================================================================================================================================================
+   Name              Namespace                 EnclosingType  BaseType              Interfaces  Fields                 Methods                Attributes                                                          ClassSize  PackingSize  
+=================================================================================================================================================================================================================================================
+1: '<Module>' (#a)   nil                       nil            nil                   nil         nil                    nil                    0                                                                   n/a        n/a          
+2: 'MyClass' (#349)  'RewriteOriginal' (#28d)  nil            0x0100000c (TypeRef)  nil         0x04000001-0x04000004  0x06000001-0x06000010  0x00100001 (AutoLayout, AnsiClass, Class, Public, BeforeFieldInit)  n/a        n/a          
+
+Field (0x04):
+=====================================================================================================================================
+   Name                                        Signature                Attributes                      Marshalling  Offset  RVA  
+=====================================================================================================================================
+1: '<ReadOnlyProperty>k__BackingField' (#46)   06-08 (#72)              0x00000021 (Private, InitOnly)  nil          n/a     0    
+2: '<ReadWriteProperty>k__BackingField' (#23)  06-08 (#72)              0x00000001 (Private)            nil          n/a     0    
+3: 'NoParamEvent' (#383)                       06-12-35 (#75)           0x00000001 (Private)            nil          n/a     0    
+4: 'IntParamEvent' (#3bd)                      06-15-12-39-01-08 (#79)  0x00000001 (Private)            nil          n/a     0    
+
+Method (0x06, 0x1C):
+=====================================================================================================================================================================================================================================================================
+    Name                                Signature                      RVA         Parameters             GenericParameters  ImplAttributes                                                            Attributes  ImportAttributes  ImportName  ImportModule  
+=====================================================================================================================================================================================================================================================================
+ 1: 'get_ReadOnlyProperty' (#3f7)       20-00-08 (#80)                 0x00002050  nil                    nil                0x00000886 (PrivateScope, Public, HideBySig, SpecialName)                 0           0                 nil         nil           
+ 2: 'set_WriteOnlyProperty' (#40c)      20-01-01-08 (#1)               0x00002058  0x08000001-0x08000001  nil                0x00000886 (PrivateScope, Public, HideBySig, SpecialName)                 0           0                 nil         nil           
+ 3: 'get_ReadWriteProperty' (#3cb)      20-00-08 (#80)                 0x0000205B  nil                    nil                0x00000886 (PrivateScope, Public, HideBySig, SpecialName)                 0           0                 nil         nil           
+ 4: 'set_ReadWriteProperty' (#3e1)      20-01-01-08 (#1)               0x00002063  0x08000002-0x08000002  nil                0x00000886 (PrivateScope, Public, HideBySig, SpecialName)                 0           0                 nil         nil           
+ 5: 'VoidMethod' (#68)                  20-00-01 (#6)                  0x0000206C  nil                    nil                0x00000086 (PrivateScope, Public, HideBySig)                              0           0                 nil         nil           
+ 6: 'IntMethod' (#8e)                   20-00-08 (#80)                 0x00002070  nil                    nil                0x00000086 (PrivateScope, Public, HideBySig)                              0           0                 nil         nil           
+ 7: 'IntMethodWithParameters' (#331)    20-02-08-08-08 (#84)           0x00002084  0x08000003-0x08000004  nil                0x00000086 (PrivateScope, Public, HideBySig)                              0           0                 nil         nil           
+ 8: 'AnotherParameterlessMethod' (#73)  20-00-08 (#80)                 0x0000209C  nil                    nil                0x00000086 (PrivateScope, Public, HideBySig)                              0           0                 nil         nil           
+ 9: 'AnotherMethodWithParams' (#319)    20-02-08-08-08 (#84)           0x000020B0  0x08000005-0x08000006  nil                0x00000086 (PrivateScope, Public, HideBySig)                              0           0                 nil         nil           
+ a: 'add_NoParamEvent' (#358)           20-01-01-12-35 (#8a)           0x000020C8  0x08000007-0x08000007  nil                0x00000886 (PrivateScope, Public, HideBySig, SpecialName)                 0           0                 nil         nil           
+ b: 'remove_NoParamEvent' (#369)        20-01-01-12-35 (#8a)           0x00002100  0x08000008-0x08000008  nil                0x00000886 (PrivateScope, Public, HideBySig, SpecialName)                 0           0                 nil         nil           
+ c: 'add_IntParamEvent' (#390)          20-01-01-15-12-39-01-08 (#90)  0x00002138  0x08000009-0x08000009  nil                0x00000886 (PrivateScope, Public, HideBySig, SpecialName)                 0           0                 nil         nil           
+ d: 'remove_IntParamEvent' (#3a2)       20-01-01-15-12-39-01-08 (#90)  0x00002170  0x0800000a-0x0800000a  nil                0x00000886 (PrivateScope, Public, HideBySig, SpecialName)                 0           0                 nil         nil           
+ e: 'InvokeNoParamEvent' (#37d)         20-00-01 (#6)                  0x000021A5  nil                    nil                0x00000086 (PrivateScope, Public, HideBySig)                              0           0                 nil         nil           
+ f: 'InvokeIntParamEvent' (#3b7)        20-01-01-08 (#1)               0x000021BA  0x0800000b-0x0800000b  nil                0x00000086 (PrivateScope, Public, HideBySig)                              0           0                 nil         nil           
+10: '.ctor' (#2d1)                      20-00-01 (#6)                  0x000021D0  nil                    nil                0x00001886 (PrivateScope, Public, HideBySig, SpecialName, RTSpecialName)  0           0                 nil         nil           
+
+Param (0x08):
+=======================================================
+   Name                Seq#  Attributes  Marshalling  
+=======================================================
+1: 'value' (#23c)      1     0           nil          
+2: 'value' (#23c)      1     0           nil          
+3: 'a' (#13)           1     0           nil          
+4: 'b' (#15)           2     0           nil          
+5: 'a' (#13)           1     0           nil          
+6: 'b' (#15)           2     0           nil          
+7: 'value' (#23c)      1     0           nil          
+8: 'value' (#23c)      1     0           nil          
+9: 'value' (#23c)      1     0           nil          
+a: 'value' (#23c)      1     0           nil          
+b: 'withValue' (#232)  1     0           nil          
+
+MemberRef (0x0a):
+==============================================================================================
+    Parent                 Name                     Signature                                  
+==============================================================================================
+ 1: 0x01000001 (TypeRef)   '.ctor' (#2d1)           20-01-01-08 (#1)                           
+ 2: 0x01000002 (TypeRef)   '.ctor' (#2d1)           20-00-01 (#6)                              
+ 3: 0x01000003 (TypeRef)   '.ctor' (#2d1)           20-01-01-11-11 (#a)                        
+ 4: 0x01000005 (TypeRef)   '.ctor' (#2d1)           20-01-01-0E (#10)                          
+ 5: 0x01000006 (TypeRef)   '.ctor' (#2d1)           20-01-01-0E (#10)                          
+ 6: 0x01000007 (TypeRef)   '.ctor' (#2d1)           20-01-01-0E (#10)                          
+ 7: 0x01000008 (TypeRef)   '.ctor' (#2d1)           20-01-01-0E (#10)                          
+ 8: 0x01000009 (TypeRef)   '.ctor' (#2d1)           20-01-01-0E (#10)                          
+ 9: 0x0100000a (TypeRef)   '.ctor' (#2d1)           20-01-01-0E (#10)                          
+ a: 0x0100000b (TypeRef)   '.ctor' (#2d1)           20-01-01-0E (#10)                          
+ b: 0x0100000f (TypeRef)   '.ctor' (#2d1)           20-00-01 (#6)                              
+ c: 0x01000011 (TypeRef)   '.ctor' (#2d1)           20-01-01-11-41 (#1b)                       
+ d: 0x01000012 (TypeRef)   'Combine' (#be)          00-02-12-49-12-49-12-49 (#2e)              
+ e: 0x01000013 (TypeRef)   'CompareExchange' (#98)  10-01-03-1E-00-10-1E-00-1E-00-1E-00 (#37)  
+ f: 0x01000012 (TypeRef)   'Remove' (#242)          00-02-12-49-12-49-12-49 (#2e)              
+10: 0x0100000d (TypeRef)   'Invoke' (#a8)           20-00-01 (#6)                              
+11: 0x1b000001 (TypeSpec)  'Invoke' (#a8)           20-01-01-13-00 (#63)                       
+12: 0x0100000c (TypeRef)   '.ctor' (#2d1)           20-00-01 (#6)                              
+
+CustomAttribute (0x0c):
+=========================================================================================================================================================================================================================
+    Parent                  Constructor             Value                                                                                                                                                                 
+=========================================================================================================================================================================================================================
+ 1: 0x06000001 (MethodDef)  0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+ 2: 0x04000001 (Field)      0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+ 3: 0x04000001 (Field)      0x0a00000c (MemberRef)  01-00-00-00-00-00-00-00 (#141)                                                                                                                                        
+ 4: 0x20000001 (Assembly)   0x0a000001 (MemberRef)  01-00-08-00-00-00-00-00 (#9d)                                                                                                                                         
+ 5: 0x20000001 (Assembly)   0x0a000002 (MemberRef)  01-00-01-00-54-02-16-57-72-61-70-4E-6F-6E-45-78-63-65-70-74-69-6F-6E-54-68-72-6F-77-73-01 (#a6)                                                                       
+ 6: 0x20000001 (Assembly)   0x0a000003 (MemberRef)  01-00-07-01-00-00-00-00 (#c5)                                                                                                                                         
+ 7: 0x20000001 (Assembly)   0x0a000004 (MemberRef)  01-00-18-2E-4E-45-54-43-6F-72-65-41-70-70-2C-56-65-72-73-69-6F-6E-3D-76-32-2E-31-01-00-54-0E-14-46-72-61-6D-65-77-6F-72-6B-44-69-73-70-6C-61-79-4E-61-6D-65-00 (#ce)  
+ 8: 0x20000001 (Assembly)   0x0a000005 (MemberRef)  01-00-0F-52-65-77-72-69-74-65-4F-72-69-67-69-6E-61-6C-00-00 (#104)                                                                                                    
+ 9: 0x20000001 (Assembly)   0x0a000006 (MemberRef)  01-00-05-44-65-62-75-67-00-00 (#119)                                                                                                                                  
+ a: 0x20000001 (Assembly)   0x0a000007 (MemberRef)  01-00-07-31-2E-30-2E-30-2E-30-00-00 (#124)                                                                                                                            
+ b: 0x20000001 (Assembly)   0x0a000008 (MemberRef)  01-00-05-31-2E-30-2E-30-00-00 (#131)                                                                                                                                  
+ c: 0x20000001 (Assembly)   0x0a000009 (MemberRef)  01-00-0F-52-65-77-72-69-74-65-4F-72-69-67-69-6E-61-6C-00-00 (#104)                                                                                                    
+ d: 0x20000001 (Assembly)   0x0a00000a (MemberRef)  01-00-0F-52-65-77-72-69-74-65-4F-72-69-67-69-6E-61-6C-00-00 (#104)                                                                                                    
+ e: 0x04000002 (Field)      0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+ f: 0x04000002 (Field)      0x0a00000c (MemberRef)  01-00-00-00-00-00-00-00 (#141)                                                                                                                                        
+10: 0x06000003 (MethodDef)  0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+11: 0x04000003 (Field)      0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+12: 0x04000003 (Field)      0x0a00000c (MemberRef)  01-00-00-00-00-00-00-00 (#141)                                                                                                                                        
+13: 0x06000004 (MethodDef)  0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+14: 0x04000004 (Field)      0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+15: 0x04000004 (Field)      0x0a00000c (MemberRef)  01-00-00-00-00-00-00-00 (#141)                                                                                                                                        
+16: 0x0600000a (MethodDef)  0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+17: 0x0600000b (MethodDef)  0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+18: 0x0600000c (MethodDef)  0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+19: 0x0600000d (MethodDef)  0x0a00000b (MemberRef)  01-00-00-00 (#13c)                                                                                                                                                    
+
+StandAloneSig (0x11):
+===========================================================
+   Signature                                                 
+===========================================================
+1: 07-01-08 (#21)                                            
+2: 07-03-12-35-12-35-12-35 (#25)                             
+3: 07-03-15-12-39-01-08-15-12-39-01-08-15-12-39-01-08 (#49)  
+
+Event (0x12, 0x14, 0x18):
+===============================================================================================
+   Name                    Add                     Remove                  Fire  Attributes  
+===============================================================================================
+1: 'NoParamEvent' (#383)   0x0600000a (MethodDef)  0x0600000b (MethodDef)  nil   0           
+2: 'IntParamEvent' (#3bd)  0x0600000c (MethodDef)  0x0600000d (MethodDef)  nil   0           
+
+Property (0x15, 0x17, 0x18):
+============================================================================================
+   Name                        Get                     Set                     Attributes  
+============================================================================================
+1: 'ReadOnlyProperty' (#3fb)   0x06000001 (MethodDef)  nil                     0           
+2: 'WriteOnlyProperty' (#410)  nil                     0x06000002 (MethodDef)  0           
+3: 'ReadWriteProperty' (#3e5)  0x06000003 (MethodDef)  0x06000004 (MethodDef)  0           
+
+TypeSpec (0x1b):
+=======================
+   Name                  
+=======================
+1: 15-12-39-01-08 (#15)  
+
+Assembly (0x20):
+=======================================================================================
+   Name                      Version  Culture  PublicKey  Flags  HashAlgorithm      
+=======================================================================================
+1: 'RewriteOriginal' (#28d)  1.0.0.0  nil      nil        0      0x00008004 (Sha1)  
+
+AssemblyRef (0x23):
+================================================================================================
+   Name                               Version  Culture  PublicKeyOrToken               Flags  
+================================================================================================
+1: 'System.Runtime' (#af)             4.2.0.1  nil      B0-3F-5F-7F-11-D5-0A-3A (#69)  0      
+2: 'System.Diagnostics.Debug' (#274)  4.1.0.1  nil      B0-3F-5F-7F-11-D5-0A-3A (#69)  0      
+3: 'System.Threading' (#249)          4.1.0.1  nil      B0-3F-5F-7F-11-D5-0A-3A (#69)  0      
+
+MethodSpec (0x2b):
+======================================================
+   Method                  Signature                   
+======================================================
+1: 0x0a00000e (MemberRef)  0A-01-12-35 (#44)           
+2: 0x0a00000e (MemberRef)  0A-01-15-12-39-01-08 (#5b)  
+
+#US (size = 4):
+  0: ''
+  1: ''
+  2: ''
+  3: ''
+
+#String (size = 1058):
+  0: ''
+  1: 'Action`1'
+  a: '<Module>'
+  13: 'a'
+  15: 'b'
+  17: 'Interlocked'
+  23: '<ReadWriteProperty>k__BackingField'
+  46: '<ReadOnlyProperty>k__BackingField'
+  68: 'VoidMethod'
+  73: 'AnotherParameterlessMethod'
+  8e: 'IntMethod'
+  98: 'CompareExchange'
+  a8: 'Invoke'
+  af: 'System.Runtime'
+  be: 'Combine'
+  c6: 'Delegate'
+  cf: 'DebuggerBrowsableState'
+  e6: 'CompilerGeneratedAttribute'
+  101: 'DebuggableAttribute'
+  115: 'DebuggerBrowsableAttribute'
+  130: 'AssemblyTitleAttribute'
+  147: 'TargetFrameworkAttribute'
+  160: 'AssemblyFileVersionAttribute'
+  17d: 'AssemblyInformationalVersionAttribute'
+  1a3: 'AssemblyConfigurationAttribute'
+  1c2: 'CompilationRelaxationsAttribute'
+  1e2: 'AssemblyProductAttribute'
+  1fb: 'AssemblyCompanyAttribute'
+  214: 'RuntimeCompatibilityAttribute'
+  232: 'withValue'
+  23c: 'value'
+  242: 'Remove'
+  249: 'System.Threading'
+  25a: 'System.Runtime.Versioning'
+  274: 'System.Diagnostics.Debug'
+  28d: 'RewriteOriginal'
+  29d: 'RewriteOriginal.dll'
+  2b1: 'System'
+  2b8: 'Action'
+  2bf: 'System.Reflection'
+  2d1: '.ctor'
+  2d7: 'System.Diagnostics'
+  2ea: 'System.Runtime.CompilerServices'
+  30a: 'DebuggingModes'
+  319: 'AnotherMethodWithParams'
+  331: 'IntMethodWithParameters'
+  349: 'MyClass'
+  351: 'Object'
+  358: 'add_NoParamEvent'
+  369: 'remove_NoParamEvent'
+  37d: 'InvokeNoParamEvent'
+  390: 'add_IntParamEvent'
+  3a2: 'remove_IntParamEvent'
+  3b7: 'InvokeIntParamEvent'
+  3cb: 'get_ReadWriteProperty'
+  3e1: 'set_ReadWriteProperty'
+  3f7: 'get_ReadOnlyProperty'
+  40c: 'set_WriteOnlyProperty'
+
+#Blob (size = 332):
+  0: 
+  1: 20-01-01-08
+  6: 20-00-01
+  a: 20-01-01-11-11
+  10: 20-01-01-0E
+  15: 15-12-39-01-08
+  1b: 20-01-01-11-41
+  21: 07-01-08
+  25: 07-03-12-35-12-35-12-35
+  2e: 00-02-12-49-12-49-12-49
+  37: 10-01-03-1E-00-10-1E-00-1E-00-1E-00
+  44: 0A-01-12-35
+  49: 07-03-15-12-39-01-08-15-12-39-01-08-15-12-39-01-08
+  5b: 0A-01-15-12-39-01-08
+  63: 20-01-01-13-00
+  69: B0-3F-5F-7F-11-D5-0A-3A
+  72: 06-08
+  75: 06-12-35
+  79: 06-15-12-39-01-08
+  80: 20-00-08
+  84: 20-02-08-08-08
+  8a: 20-01-01-12-35
+  90: 20-01-01-15-12-39-01-08
+  99: 28-00-08
+  9d: 01-00-08-00-00-00-00-00
+  a6: 01-00-01-00-54-02-16-57-72-61-70-4E-6F-6E-45-78-63-65-70-74-69-6F-6E-54-68-72-6F-77-73-01
+  c5: 01-00-07-01-00-00-00-00
+  ce: 01-00-18-2E-4E-45-54-43-6F-72-65-41-70-70-2C-56-65-72-73-69-6F-6E-3D-76-32-2E-31-01-00-54-0E-14-46-72-61-6D-65-77-6F-72-6B-44-69-73-70-6C-61-79-4E-61-6D-65-00
+  104: 01-00-0F-52-65-77-72-69-74-65-4F-72-69-67-69-6E-61-6C-00-00
+  119: 01-00-05-44-65-62-75-67-00-00
+  124: 01-00-07-31-2E-30-2E-30-2E-30-00-00
+  131: 01-00-05-31-2E-30-2E-30-00-00
+  13c: 01-00-00-00
+  141: 01-00-00-00-00-00-00-00
+  14a: 
+  14b: 
+
+#Guid (size = 16):
+  1: {70e07465-d414-4a4a-ab35-0a11268331a3}
+

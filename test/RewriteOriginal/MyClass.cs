@@ -44,7 +44,7 @@ namespace RewriteOriginal
         public int AnotherParameterlessMethod()
         {
             // Argless methods must be rewritten using the next available param id
-            // even if they have not parameters.
+            // even if they have no parameters.
             return 0;
         }
 

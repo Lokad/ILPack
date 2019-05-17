@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="RewriteOriginal">
+      <HintPath>..\RewriteOriginal\bin\Debug\netcoreapp2.1\cloned\RewriteOriginal.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

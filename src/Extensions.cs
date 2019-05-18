@@ -118,7 +118,11 @@ namespace Lokad.ILPack
         internal static void FromSystemType(this SignatureTypeEncoder typeEncoder, Type type,
             IAssemblyMetadata metadata)
         {
-            if (type.IsPrimitive)
+            if (type.IsPointer && type.GetElementType().IsPrimitive)
+            {
+                typeEncoder.Pointer().PrimitiveType(GetPrimitiveTypeCode(type.GetElementType()));
+            }
+            else if (type.IsPrimitive)
             {
                 typeEncoder.PrimitiveType(GetPrimitiveTypeCode(type));
             }
@@ -139,7 +143,6 @@ namespace Lokad.ILPack
             else if (type.IsArray)
             {
                 var elementType = type.GetElementType();
-                var rank = type.GetArrayRank();
 
                 typeEncoder.Array(
                     x => x.FromSystemType(elementType, metadata),

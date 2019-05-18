@@ -63,18 +63,8 @@ namespace Lokad.ILPack.Metadata
 
     internal class TypeDefinitionMetadata : DefinitionMetadata<Type, EntityHandle>
     {
-        public TypeDefinitionMetadata(Type type, EntityHandle handle, int fieldIndex, int propertyIndex,
-            int methodIndex, int eventIndex) : base(type, handle)
+        public TypeDefinitionMetadata(Type type, EntityHandle handle) : base(type, handle)
         {
-            FieldIndex = fieldIndex;
-            PropertyIndex = propertyIndex;
-            MethodIndex = methodIndex;
-            EventIndex = eventIndex;
         }
-
-        public int FieldIndex { get; }
-        public int PropertyIndex { get; }
-        public int MethodIndex { get; }
-        public int EventIndex { get; }
     }
 }

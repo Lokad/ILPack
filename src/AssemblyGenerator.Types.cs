@@ -142,8 +142,7 @@ namespace Lokad.ILPack
                 MetadataTokens.MethodDefinitionHandle(offset.MethodIndex + 1));
 
             // Add immediately to support self referencing generics
-            _metadata.ReserveTypeDefinition(type, typeHandle, offset.FieldIndex, offset.PropertyIndex,
-                offset.MethodIndex, offset.EventIndex);
+            _metadata.ReserveTypeDefinition(type, typeHandle);
 
             // Handle generics type
             if (type.IsGenericType)

@@ -167,6 +167,10 @@ namespace Lokad.ILPack
                     }
                 }
             }
+            else if (type.IsGenericParameter)
+            {
+                typeEncoder.GenericTypeParameter(type.GenericParameterPosition);
+            }
             else
             {
                 var typeHandler = metadata.GetTypeHandle(type);

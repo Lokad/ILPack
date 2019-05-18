@@ -30,7 +30,7 @@ namespace Lokad.ILPack
                 }
 
                 parameterDef =
-                    _metadata.Builder.AddParameter(parameter.Attributes, _metadata.GetOrAddString(parameter.Name), i);
+                    _metadata.Builder.AddParameter(parameter.Attributes, _metadata.GetOrAddString(parameter.Name), i + 1);
 
                 System.Diagnostics.Debug.Assert(parameterDef == MetadataTokens.ParameterHandle(_nextParameterRowId));
 

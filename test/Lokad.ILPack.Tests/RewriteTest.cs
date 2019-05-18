@@ -1,11 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -160,53 +156,6 @@ namespace Lokad.ILPack.Tests
         [Fact]
         public async void InvokeNoParamEventWithNoListeners()
         {
-            // This test highlights an issue with incorrect MSIL generation
-
-            // CLONED:
-            /* 
-              .method public hidebysig instance void 
-                      InvokeNoParamEvent() cil managed
-              {
-                // Code size       20 (0x14)
-                .maxstack  8
-                IL_0000:  nop
-                IL_0001:  ldarg.0
-                IL_0002:  ldfld      class [System.Runtime]System.Action RewriteClone.MyClass::NoParamEvent
-                IL_0007:  dup
-                IL_0008:  brtrue.s   IL_000a            <<<<<<<<<<<<< WRONG (SEE BELOW)
-
-                IL_000a:  pop
-                IL_000b:  br.s       IL_000e            <<<<<<<<<<<<< WRONG (SEE BELOW)
-
-                IL_000d:  callvirt   instance void [System.Runtime]System.Action::Invoke()
-                IL_0012:  nop
-                IL_0013:  ret
-              } // end of method MyClass::InvokeNoParamEvent
-            */
-
-            // ORIGINAL:
-            /*
-              .method public hidebysig instance void 
-                      InvokeNoParamEvent() cil managed
-              {
-                // Code size       20 (0x14)
-                .maxstack  8
-                IL_0000:  nop
-                IL_0001:  ldarg.0
-                IL_0002:  ldfld      class [System.Runtime]System.Action RewriteOriginal.MyClass::NoParamEvent
-                IL_0007:  dup
-                IL_0008:  brtrue.s   IL_000d
-
-                IL_000a:  pop
-                IL_000b:  br.s       IL_0013
-
-                IL_000d:  callvirt   instance void [System.Runtime]System.Action::Invoke()
-                IL_0012:  nop
-                IL_0013:  ret
-              } // end of method MyClass::InvokeNoParamEvent
-             */
-
-
             Assert.Equal(true, await Invoke(
                 @"x.InvokeNoParamEvent()",
                 "true"));

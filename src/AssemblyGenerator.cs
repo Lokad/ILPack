@@ -61,6 +61,8 @@ namespace Lokad.ILPack
                 ConvertGeneratedAssemblyNameFlags(name),
                 ConvertAssemblyHashAlgorithm(name.HashAlgorithm));
 
+            CreateCustomAttributes(assemblyHandle, assembly.GetCustomAttributesData());
+
             // Add "<Module>" type definition *before* any type definition.
             //
             // TODO: [osman] methodList argument should be as following:

@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Lokad.ILPack
 {
@@ -10,36 +12,78 @@ namespace Lokad.ILPack
     {
         public void CreateCustomAttributes(EntityHandle parent, IEnumerable<CustomAttributeData> attributes)
         {
-            // TODO: implement support for custom attributes
-            // Following code is reported that it does not work. It's commented out for future reference.
+            foreach (var attr in attributes)
+            {
+                // Get the attribute type and make sure handle created
+                var attrType = attr.AttributeType;
+                var attrTypeHandle = _metadata.GetTypeHandle(attrType); // create type
 
-            //foreach (var attr in attributes)
-            //{
-            //    var type = attr.AttributeType;
-            //    GetTypeHandle(type); // create type
+                // Get handle to the constructor
+                var ctorHandle = _metadata.GetConstructorHandle(attr.Constructor);
+                System.Diagnostics.Debug.Assert(!ctorHandle.IsNil);
 
-            //    var args = attr.ConstructorArguments;
-            //    var text = string.Join(",", args.Select(x => $"\"{x.Value}"));
+                // Encode the attribute values
+                var enc = new BlobEncoder(new BlobBuilder());
+                enc.CustomAttributeSignature(
+                    (fa) => EncodeFixedAttributes(fa, attr), 
+                    (na) => EncodeNamedAttributes(na, attr)
+                    );
 
-            //    /*
-            //    var namedArgs = attr.NamedArguments;
-            //    var namedText = string.Join(", ", namedArgs
-            //        .Where(x => !string.IsNullOrEmpty(x.TypedValue.Value.ToString()))
-            //        .Select(x =>
-            //    {
-            //        return $"{x.MemberName}=\"{x.TypedValue.Value}\"";
-            //    }));
+                // Add attribute to the entity
+                _metadata.Builder.AddCustomAttribute(parent, ctorHandle, _metadata.Builder.GetOrAddBlob(enc.Builder));
+            }
+        }
 
-            //    if (!string.IsNullOrEmpty(namedText))
-            //        text += $", {namedText}";
-            //    */
-            //    var ctor = GetTypeConstructor(type);
-            //    if (ctor != null)
-            //    {
-            //        //Console.WriteLine(text);
-            //        _metadata.Builder.AddCustomAttribute(parent, ctor.Value, GetCustomAttributeValueFromString(text));
-            //    }
-            //}
+        static void EncodeFixedAttributes(FixedArgumentsEncoder fa, CustomAttributeData attr)
+        {
+            var args = attr.ConstructorArguments;
+            foreach (var a in args)
+            {
+                // Check argument type supported (ie: simple scalar values)
+                PrimitiveTypeCodeFromSystemTypeCode(a.ArgumentType);
+
+                // Add it
+                fa.AddArgument().Scalar().Constant(a.Value);
+            }
+        }
+
+        static void EncodeNamedAttributes(CustomAttributeNamedArgumentsEncoder na, CustomAttributeData attr)
+        {
+            var args = attr.NamedArguments;
+            var enc = na.Count(args.Count);
+            foreach (var a in args)
+            {
+                // Work out the primitive type code
+                var primTypeCode = PrimitiveTypeCodeFromSystemTypeCode(a.TypedValue.ArgumentType);
+
+                // Encode it
+                enc.AddArgument(a.IsField, out var typeEnc, out var nameEnc, out var litEnc);
+                typeEnc.ScalarType().PrimitiveType(primTypeCode);
+                nameEnc.Name(a.MemberName);
+                litEnc.Scalar().Constant(a.TypedValue.Value);
+            }
+        }
+
+        static PrimitiveSerializationTypeCode PrimitiveTypeCodeFromSystemTypeCode(Type sysType)
+        {
+            switch (Type.GetTypeCode(sysType))
+            {
+                case TypeCode.Boolean: return PrimitiveSerializationTypeCode.Boolean;
+                case TypeCode.Char: return PrimitiveSerializationTypeCode.Char;
+                case TypeCode.SByte: return PrimitiveSerializationTypeCode.SByte;
+                case TypeCode.Byte: return PrimitiveSerializationTypeCode.Byte;
+                case TypeCode.Int16: return PrimitiveSerializationTypeCode.Int16;
+                case TypeCode.UInt16: return PrimitiveSerializationTypeCode.UInt16;
+                case TypeCode.Int32: return PrimitiveSerializationTypeCode.Int32;
+                case TypeCode.UInt32: return PrimitiveSerializationTypeCode.UInt32;
+                case TypeCode.Int64: return PrimitiveSerializationTypeCode.Int64;
+                case TypeCode.UInt64: return PrimitiveSerializationTypeCode.UInt64;
+                case TypeCode.Single: return PrimitiveSerializationTypeCode.Single;
+                case TypeCode.Double: return PrimitiveSerializationTypeCode.Double;
+                case TypeCode.String: return PrimitiveSerializationTypeCode.String;
+            }
+
+            throw new NotImplementedException($"Unsupported primitive type: {sysType}");
         }
     }
 }

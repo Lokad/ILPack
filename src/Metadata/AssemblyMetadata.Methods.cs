@@ -117,11 +117,6 @@ namespace Lokad.ILPack.Metadata
                 return Builder.AddMethodSpecification(definitionHandle, GetOrAddBlob(enc.Builder));
             }
 
-            if (method.Name == "Invoke" && method.DeclaringType == typeof(Action<int>))
-            {
-                int x = 3;
-            }
-
             var typeRef = ResolveTypeReference(method.DeclaringType);
             var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(method.Name),
                 GetMethodSignature(method));

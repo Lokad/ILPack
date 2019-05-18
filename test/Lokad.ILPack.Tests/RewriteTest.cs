@@ -137,12 +137,79 @@ namespace Lokad.ILPack.Tests
         [Fact]
         public async void NoParamEvent()
         {
+            // Currently failing with:
+            // 
+            // Message: System.TypeLoadException : Could not load type 'System.Threading.Interlocked' from assembly 'System.Runtime, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+            //
+            // MSIL from original is:
+            //
+            //    IL_001e:  call       !!0 [System.Threading]System.Threading.Interlocked::CompareExchange<class [System.Runtime]System.Action>(!!0&,
+            // 
+            // MSIL from clone is:
+            //
+            //    IL_001e:  call       class [System.Runtime]System.Action [System.Runtime]System.Threading.Interlocked::CompareExchange(class [System.Runtime]System.'Action&',
+
             Assert.Equal(99, await Invoke(
                 @"  int cbVal = 0; 
                     x.NoParamEvent += () => cbVal = 99;
                     x.InvokeNoParamEvent()",
                    
                 "cbVal"));
+        }
+
+        [Fact]
+        public async void InvokeNoParamEventWithNoListeners()
+        {
+            // This test highlights an issue with incorrect MSIL generation
+
+            // CLONED:
+            /* 
+              .method public hidebysig instance void 
+                      InvokeNoParamEvent() cil managed
+              {
+                // Code size       20 (0x14)
+                .maxstack  8
+                IL_0000:  nop
+                IL_0001:  ldarg.0
+                IL_0002:  ldfld      class [System.Runtime]System.Action RewriteClone.MyClass::NoParamEvent
+                IL_0007:  dup
+                IL_0008:  brtrue.s   IL_000a            <<<<<<<<<<<<< WRONG (SEE BELOW)
+
+                IL_000a:  pop
+                IL_000b:  br.s       IL_000e            <<<<<<<<<<<<< WRONG (SEE BELOW)
+
+                IL_000d:  callvirt   instance void [System.Runtime]System.Action::Invoke()
+                IL_0012:  nop
+                IL_0013:  ret
+              } // end of method MyClass::InvokeNoParamEvent
+            */
+
+            // ORIGINAL:
+            /*
+              .method public hidebysig instance void 
+                      InvokeNoParamEvent() cil managed
+              {
+                // Code size       20 (0x14)
+                .maxstack  8
+                IL_0000:  nop
+                IL_0001:  ldarg.0
+                IL_0002:  ldfld      class [System.Runtime]System.Action RewriteOriginal.MyClass::NoParamEvent
+                IL_0007:  dup
+                IL_0008:  brtrue.s   IL_000d
+
+                IL_000a:  pop
+                IL_000b:  br.s       IL_0013
+
+                IL_000d:  callvirt   instance void [System.Runtime]System.Action::Invoke()
+                IL_0012:  nop
+                IL_0013:  ret
+              } // end of method MyClass::InvokeNoParamEvent
+             */
+
+
+            Assert.Equal(true, await Invoke(
+                @"x.InvokeNoParamEvent()",
+                "true"));
         }
 
         [Fact]
@@ -154,6 +221,19 @@ namespace Lokad.ILPack.Tests
                     x.InvokeIntParamEvent(77)",
                    
                 "cbVal"));
+        }
+
+        [Fact]
+        public async void InvokeIntParamEventWithNoListeners()
+        {
+            // This test highlights an issue trying to load Action<int> from wrong assembly
+            //
+            // Message: System.TypeLoadException : Could not load type 'System.Action`1' from assembly 'RewriteClone, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            //                                                         ^^^^^^^^^^^^^^^^^                ^^^^^^^^^^^^ huh?
+
+            Assert.Equal(true, await Invoke(
+                @"x.InvokeIntParamEvent(77)",
+                "true"));
         }
 
         [Fact]

@@ -43,8 +43,8 @@ namespace Lokad.ILPack.Tests
         static RewriteTest()
         {
             // Get the original assembly
-            var original = typeof(RewriteOriginal.MyClass).Assembly;
-            var originalAssembly = original.Location;
+            _asmOriginal = typeof(RewriteOriginal.MyClass).Assembly;
+            var originalAssembly = _asmOriginal.Location;
 
             // Generate the cloned assembly
             // NB: putting it in the "cloned" sub directory prevents an
@@ -57,7 +57,7 @@ namespace Lokad.ILPack.Tests
             // Rewrite it (renaming the assembly and namespaces in the process)
             var generator = new AssemblyGenerator();
             generator.RenameForTesting("RewriteOriginal", "RewriteClone");
-            generator.GenerateAssembly(original, clonedAssembly);
+            generator.GenerateAssembly(_asmOriginal, clonedAssembly);
 
             _namespaceName = "RewriteClone";
             _assembly = clonedAssembly;
@@ -66,10 +66,14 @@ namespace Lokad.ILPack.Tests
             // (handy to check if test case is wrong)
             //_namespaceName = "RewriteOriginal";
             //_assembly = originalAssembly;
+
+            _asmCloned = Assembly.LoadFrom(_assembly);
         }
 
         static string _namespaceName;
         static string _assembly;
+        static Assembly _asmOriginal;
+        static Assembly _asmCloned;
 
         async Task<object> Invoke(string setup, string resultExpression)
         {
@@ -150,6 +154,25 @@ namespace Lokad.ILPack.Tests
                     x.InvokeIntParamEvent(77)",
                    
                 "cbVal"));
+        }
+
+        [Fact]
+        public void AssemblyTargetFramework()
+        {
+            var targetFrameworkOriginal = _asmOriginal.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
+            var targetFrameworkClone = _asmCloned.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
+
+            Assert.Equal(targetFrameworkOriginal.FrameworkDisplayName, targetFrameworkClone.FrameworkDisplayName);
+            Assert.Equal(targetFrameworkOriginal.FrameworkName, targetFrameworkClone.FrameworkName);
+        }
+
+        [Fact]
+        public void AssemblyName()
+        {
+            var titleOriginal = _asmOriginal.GetCustomAttribute<System.Reflection.AssemblyTitleAttribute>();
+            var titleClone = _asmCloned.GetCustomAttribute<System.Reflection.AssemblyTitleAttribute>();
+
+            Assert.Equal(titleOriginal.Title, titleClone.Title);
         }
 
     }

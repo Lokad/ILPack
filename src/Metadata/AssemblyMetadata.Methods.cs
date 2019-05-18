@@ -29,7 +29,7 @@ namespace Lokad.ILPack.Metadata
             if (methodInfo.DeclaringType.IsConstructedGenericType)
             {
                 // When calling methods on constructed generic types, the type is the constructed 
-                // type name, but the the method info the method from the open type definition. eg:
+                // type name, but the method info is the method from the open type definition. eg:
                 // 
                 // callvirt instance void class System.Action`1<int32>::Invoke(!0)
                 //                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^          ^
@@ -44,11 +44,11 @@ namespace Lokad.ILPack.Metadata
                 //                                                             wrong
                 //
                 // There doesn't seem to be a reflection API method to get the definition method.
-                // Note: MethodInfo.GetGenericMethodDefinition won't work here becuase this is a
-                // non-generic method in a generic type.
+                // Note: MethodInfo.GetGenericMethodDefinition won't work here because this is a
+                // non-generic method in a generic type (as opposed to a generic method)
                 // 
-                // Luckily both the original and the constructed method info have the same meta
-                // data token... so we just go to the original generic definition and find the 
+                // Luckily both the original and the constructed type's method have the same meta
+                // data token so we just go to the original generic definition and find the 
                 // method with the same token.
                 //
                 // TODO: What about generic method definitions in a generic type???

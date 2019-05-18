@@ -19,9 +19,13 @@ namespace Lokad.ILPack
             _debugDirectoryBuilder = new DebugDirectoryBuilder();
         }
 
-        // Called by the unit tests to rename the assembly and the namespaces
-        // in the rewritten assembly.  This allows the unit tests to load
-        // both RewrittenOriginal.dll and RewrittenClone.dll.
+        /// <summary>
+        /// Called by the unit tests to rename the assembly and the namespaces 
+        /// in the rewritten assembly.  This allows the unit tests to load
+        /// both RewrittenOriginal.dll and RewrittenClone.dll.
+        /// </summary>
+        /// <param name="oldName">Name to replace</param>
+        /// <param name="newName">What to replace it with</param>
         internal void RenameForTesting(string oldName, string newName)
         {
             _oldName = oldName;

@@ -11,13 +11,8 @@ namespace Lokad.ILPack.IL
     {
         public static void Write(IAssemblyMetadata metadata, IReadOnlyList<Instruction> il)
         {
-            var targetOffsets = new ArrayMapper<int>();
-            //var offsetIndex = new Dictionary<int, int>();
-
             for (var i = 0; i < il.Count; i++)
             {
-                //offsetIndex.Add(il[i].Offset, i);
-
                 var opCode = il[i].OpCode;
 
                 opCode.WriteOpCode(metadata.ILBuilder.WriteByte);
@@ -33,23 +28,20 @@ namespace Lokad.ILPack.IL
                         for (var k = 0; k < branches.Length; k++)
                         {
                             var branchOffset = branches[k];
-                            metadata.ILBuilder.WriteInt32(targetOffsets.Add(
-                                branchOffset + il[i].Offset + opCode.Size + 4 * (branches.Length + 1)));
+                            metadata.ILBuilder.WriteInt32(branchOffset);
                         }
 
                         break;
 
                     case OperandType.ShortInlineBrTarget:
                         var offset8 = (sbyte) il[i].Operand;
-                        // offset convention in IL: zero is at next instruction
-                        metadata.ILBuilder.WriteSByte(
-                            (sbyte) targetOffsets.Add(offset8 + il[i].Offset + opCode.Size + 1));
+                        metadata.ILBuilder.WriteSByte(offset8);
                         break;
 
                     case OperandType.InlineBrTarget:
                         var offset32 = (int) il[i].Operand;
                         // offset convention in IL: zero is at next instruction
-                        metadata.ILBuilder.WriteInt32(targetOffsets.Add(offset32 + il[i].Offset + opCode.Size + 4));
+                        metadata.ILBuilder.WriteInt32(offset32);
                         break;
 
                     case OperandType.ShortInlineI:

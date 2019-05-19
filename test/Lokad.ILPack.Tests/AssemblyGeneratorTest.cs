@@ -15,8 +15,9 @@ namespace Lokad.ILPack.Tests
     {
         private static string SerializeAssembly(Assembly asm, string fileName)
         {
-            var current = Directory.GetCurrentDirectory();
-            var path = Path.Combine(current, fileName);
+            var outdir = Path.Combine(Directory.GetCurrentDirectory(), "generated");
+            Directory.CreateDirectory(outdir);
+            var path = Path.Combine(outdir, fileName);
 
             var generator = new AssemblyGenerator();
             generator.GenerateAssembly(asm, path);

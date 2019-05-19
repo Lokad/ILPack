@@ -527,7 +527,7 @@ namespace Lokad.ILPack.Tests
 
             var methodBldr = typeBldr.DefineMethod("SubLocalByRef", MethodAttributes.Public | MethodAttributes.Static, typeof(int), null);
 
-            ILGenerator ilGen = methodBldr.GetILGenerator();
+            var ilGen = methodBldr.GetILGenerator();
 
             var val = ilGen.DeclareLocal(typeof(int));
             ilGen.DeclareLocal(typeof(int).MakeByRefType()); // refToVal
@@ -553,11 +553,16 @@ namespace Lokad.ILPack.Tests
 
             var type = assembly.GetType("Ns.ClassLocalByRef");
 
-            MethodInfo methodInfo = type.GetMethod("SubLocalByRef", BindingFlags.Static | BindingFlags.Public);
+            var methodInfo = type.GetMethod("SubLocalByRef", BindingFlags.Static | BindingFlags.Public);
+
+            var locals = methodInfo.GetMethodBody().LocalVariables;
 
             var subLocalByRef = (SubLocalByRef)methodInfo.CreateDelegate(typeof(SubLocalByRef));
 
-            /* TEST */
+            /* TESTS */
+            Assert.True(locals[0].LocalIndex == 0 && locals[0].LocalType == typeof(int));
+            Assert.True(locals[1].LocalIndex == 1 && locals[1].LocalType == typeof(int).MakeByRefType());
+
             Assert.Equal(value * 2, subLocalByRef());
         }
     }

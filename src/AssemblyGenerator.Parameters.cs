@@ -29,15 +29,20 @@ namespace Lokad.ILPack
                     throw new InvalidOperationException("Duplicate emit of parameter");
                 }
 
-                parameterDef =
-                    _metadata.Builder.AddParameter(parameter.Attributes, _metadata.GetOrAddString(parameter.Name), i);
+                parameterDef = _metadata.Builder.AddParameter(
+                    parameter.Attributes, 
+                    _metadata.GetOrAddString(parameter.Name), 
+                    i+1         // As per EMCA335 II.22.33 sequence numbers are one based for parameters
+                                // and zero refers to the return value.  Without this parameter attributes
+                                // get applied to the wrong parameter.
+                );
 
                 System.Diagnostics.Debug.Assert(parameterDef == MetadataTokens.ParameterHandle(_nextParameterRowId));
 
-                _nextParameterRowId++;
-
                 _metadata.AddParameterHandle(parameter, parameterDef);
-                CreateCustomAttributes(parameterDef, parameter.GetCustomAttributesData());
+                //CreateCustomAttributes(parameterDef, parameter.GetCustomAttributesData());
+
+                _nextParameterRowId++;
             }
 
             return firstHandle;

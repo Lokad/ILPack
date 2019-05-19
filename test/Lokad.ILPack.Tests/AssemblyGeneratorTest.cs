@@ -13,29 +13,44 @@ namespace Lokad.ILPack.Tests
 {
     public class AssemblyGeneratorTest
     {
-        private static string SerializeAssembly(Assembly asm, string fileName)
+        private static readonly string _basePath;
+
+        static AssemblyGeneratorTest()
         {
-            var current = Directory.GetCurrentDirectory();
-            var path = Path.Combine(current, fileName);
+            _basePath = Directory.GetCurrentDirectory();
+        }
+
+        private static string GetPathForAssembly(string fileName) => Path.Combine(_basePath, fileName);
+
+        private static void SerializeAssembly(Assembly assembly, string fileName)
+        {
+            var path = GetPathForAssembly(fileName);
 
             var generator = new AssemblyGenerator();
-            generator.GenerateAssembly(asm, path);
-
-            return path;
+            generator.GenerateAssembly(assembly, path);
         }
 
-        private static void VerifyAssembly(string path)
+        private static Type[] VerifyAssembly(string fileName)
         {
+            var path = GetPathForAssembly(fileName);
+
             // Unfortunately, until .NET Core 3.0 we cannot unload assemblies.
-            var asm = Assembly.LoadFile(path);
-            var types = asm.GetTypes(); // force to access metadata
+            var assembly = Assembly.LoadFile(path);
+            return assembly.GetTypes(); // force to access metadata
         }
 
-        private static string SerializeAndVerifyAssembly(Assembly asm, string fileName)
+        private static Type[] SerializeAndVerifyAssembly(Assembly assembly, string fileName)
         {
-            var path = SerializeAssembly(asm, fileName);
-            VerifyAssembly(path);
-            return path;
+            SerializeAssembly(assembly, fileName);
+            return VerifyAssembly(fileName);
+        }
+
+        private static Assembly LoadAssembly(string fileName)
+        {
+            var path = GetPathForAssembly(fileName);
+
+            // Unfortunately, until .NET Core 3.0 we cannot unload assemblies.
+            return Assembly.LoadFile(path);
         }
 
         private static PropertyBuilder CreateProperty(TypeBuilder typeBuilder, Type propertyType, string propertyName,
@@ -88,7 +103,7 @@ namespace Lokad.ILPack.Tests
             return propertyBuilder;
         }
 
-        private string SerializeGenericsLibrary(string fileName)
+        private void SerializeGenericsLibrary(string fileName)
         {
             // Define assembly and module
             var assemblyName = new AssemblyName {Name = "GenericsAssembly"};
@@ -139,7 +154,7 @@ namespace Lokad.ILPack.Tests
             vectorType.DefineField("Elements", listType, FieldAttributes.Public);
             vectorType.CreateType();
 
-            return SerializeAssembly(newAssembly, fileName);
+            SerializeAssembly(newAssembly, fileName);
         }
 
         [Fact]
@@ -195,8 +210,9 @@ namespace Lokad.ILPack.Tests
         [Fact]
         public void TestFactorial()
         {
-            var asm = SampleFactorialFromEmission.EmitAssembly(10);
-            SerializeAndVerifyAssembly(asm, "SampleFactorial.dll");
+            var assembly = SampleFactorialFromEmission.EmitAssembly(10);
+
+            SerializeAndVerifyAssembly(assembly, "SampleFactorial.dll");
         }
 
         [Fact]
@@ -237,8 +253,8 @@ namespace Lokad.ILPack.Tests
         [Fact]
         public void TestGenericsType()
         {
-            var path = SerializeGenericsLibrary("GenericsSerialization.dll");
-            VerifyAssembly(path);
+            SerializeGenericsLibrary("GenericsSerialization.dll");
+            VerifyAssembly("GenericsSerialization.dll");
         }
 
         [Fact]
@@ -495,6 +511,54 @@ namespace Lokad.ILPack.Tests
             myType.CreateType();
 
             SerializeAndVerifyAssembly(newAssembly, "TypeSerialization.dll");
+        }
+
+        private delegate int SubLocalByRef();
+
+        [Theory]
+        [InlineData(256)]
+        public void TestLocalByRef(int value)
+        {
+            /* SAVE */
+            var assemblyBldr = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("AsmLocalByRef"), AssemblyBuilderAccess.Run);
+            var moduleBldr = assemblyBldr.DefineDynamicModule("ModLocalByRef");
+
+            var typeBldr = moduleBldr.DefineType("Ns.ClassLocalByRef", TypeAttributes.Public);
+
+            var methodBldr = typeBldr.DefineMethod("SubLocalByRef", MethodAttributes.Public | MethodAttributes.Static, typeof(int), null);
+
+            ILGenerator ilGen = methodBldr.GetILGenerator();
+
+            var val = ilGen.DeclareLocal(typeof(int));
+            ilGen.DeclareLocal(typeof(int).MakeByRefType()); // refToVal
+
+            ilGen.Emit(OpCodes.Ldc_I4, value);
+            ilGen.Emit(OpCodes.Stloc_0);
+            ilGen.Emit(OpCodes.Ldloca_S, val);
+            ilGen.Emit(OpCodes.Stloc_1);
+            ilGen.Emit(OpCodes.Ldloc_1);
+            ilGen.Emit(OpCodes.Ldloc_0);
+            ilGen.Emit(OpCodes.Ldc_I4_2);
+            ilGen.Emit(OpCodes.Mul);
+            ilGen.Emit(OpCodes.Stind_I4);
+            ilGen.Emit(OpCodes.Ldloc_0);
+            ilGen.Emit(OpCodes.Ret);
+
+            typeBldr.CreateType();
+
+            SerializeAssembly(assemblyBldr, "TestLocalByRef.dll");
+
+            /* LOAD */
+            var assembly = LoadAssembly("TestLocalByRef.dll");
+
+            var type = assembly.GetType("Ns.ClassLocalByRef");
+
+            MethodInfo methodInfo = type.GetMethod("SubLocalByRef", BindingFlags.Static | BindingFlags.Public);
+
+            var subLocalByRef = (SubLocalByRef)methodInfo.CreateDelegate(typeof(SubLocalByRef));
+
+            /* TEST */
+            Assert.Equal(value * 2, subLocalByRef());
         }
     }
 }

@@ -534,7 +534,7 @@ namespace Lokad.ILPack.Tests
                 methodBldr.DefineParameter(i, ParameterAttributes.None, $"op{i}");
             }
 
-            ILGenerator ilGen = methodBldr.GetILGenerator();
+            var ilGen = methodBldr.GetILGenerator();
 
             ilGen.Emit(OpCodes.Ldarg_0);
             ilGen.Emit(OpCodes.Ldind_I4);
@@ -555,7 +555,7 @@ namespace Lokad.ILPack.Tests
 
             var type = assembly.GetType("Ns.ClassParamPtr");
 
-            MethodInfo methodInfo = type.GetMethod("SubParamPtr", BindingFlags.Static | BindingFlags.Public);
+            var methodInfo = type.GetMethod("SubParamPtr", BindingFlags.Static | BindingFlags.Public);
 
             var parameters = methodInfo.GetParameters();
 

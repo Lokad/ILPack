@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -8,31 +9,19 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
-        private const string SystemRuntimeAssemblyName = "System.Runtime";
-        private const string MscorlibAssemblyName = "mscorlib";
-
-        private byte[] _coreLibToken;
-
-        private AssemblyReferenceHandle GetCoreLibAssembly()
-        {
-            return _assemblyRefHandles.First().Value;
-        }
-
         private AssemblyReferenceHandle GetReferencedAssemblyForType(Type type)
         {
-            if (type.Name == "System.RuntimeType")
+            // To look up nested types in the forwarding map, we need the outermost type
+            while (type.DeclaringType != null)
+                type = type.DeclaringType;
+
+            // Look up the reverse forwarding map
+            if (!_reverseForwardingMap.TryGetValue($"{type.Namespace}.{type.Name}", out var asm))
             {
-                return GetCoreLibAssembly();
+                asm = type.Assembly.GetName();
             }
 
-            var asm = type.Assembly.GetName();
-
-            var token = asm.GetPublicKeyToken();
-            if (token.SequenceEqual(_coreLibToken))
-            {
-                return GetCoreLibAssembly();
-            }
-
+            // Get the assembly reference
             var uniqueName = asm.ToString();
             if (_assemblyRefHandles.ContainsKey(uniqueName))
             {
@@ -40,6 +29,7 @@ namespace Lokad.ILPack.Metadata
             }
 
             throw new InvalidOperationException($"Referenced assembly cannot be found: {asm.FullName}");
+
         }
 
         private void AddReferencedAssembly(string referenceName, AssemblyName assemblyName)
@@ -51,11 +41,6 @@ namespace Lokad.ILPack.Metadata
             }
 
             var token = assemblyName.GetPublicKeyToken();
-            if (token != null && _coreLibToken != null && token.SequenceEqual(_coreLibToken))
-            {
-                return;
-            }
-
             var key = assemblyName.GetPublicKey();
             var hashOrToken = token ?? key;
             var handle = Builder.AddAssemblyReference(
@@ -69,43 +54,51 @@ namespace Lokad.ILPack.Metadata
             _assemblyRefHandles.Add(uniqueName, handle);
         }
 
-        private static bool IsDotNetCore()
-        {
-            var desc = RuntimeInformation.FrameworkDescription;
-            if (string.IsNullOrEmpty(desc))
-            {
-                return false;
-            }
+        // A map of type name to the original assembly reference that forwarded it
+        Dictionary<string, AssemblyName> _reverseForwardingMap = new Dictionary<string, AssemblyName>();
 
-            return desc.StartsWith(".NET Core ");
+        // Build a map of forwarded types to the original assembly reference that forwarded it.
+        void AddAssemblyToReverseForwardingMap(AssemblyName asmName)
+        {
+            // Load the assembly
+            var asm = Assembly.Load(asmName);
+
+            // Get it's metadata
+            MetadataReader mdr = null;
+            try
+            {
+                unsafe
+                {
+                    if (asm.TryGetRawMetadata(out var blob, out var length))
+                    {
+                        mdr = new MetadataReader(blob, length);
+                    }
+                }
+            }
+            catch { /* Don't care */ }
+
+            // Look up all its exported types and add them to the map
+            if (mdr != null)
+            {
+                foreach (var eth in mdr.ExportedTypes)
+                {
+                    var et = mdr.GetExportedType(eth);
+                    if (et.IsForwarder)
+                    {
+                        var name = mdr.GetString(et.Name);
+                        var ns = mdr.GetString(et.Namespace);
+                        _reverseForwardingMap.Add($"{ns}.{name}", asmName);
+                    }
+                }
+            }
         }
 
         private void CreateReferencedAssemblies(AssemblyName[] assemblies)
         {
-            // We reference different core library assembly for .NET Core and .NET Framework.
-            // We reference "System.Runtime" for .NET Core and "mscorlib" for .NET Framework.
-            // We also define a mapping, so that "System.Private.CoreLib" which is added as first
-            // assembly for dynamically generated assemblies in .NET Core maps to "System.Runtime".
-
-            if (IsDotNetCore())
-            {
-                var systemRuntime = Assembly.Load(SystemRuntimeAssemblyName).GetName();
-                AddReferencedAssembly(SystemRuntimeAssemblyName, systemRuntime);
-            }
-            else
-            {
-                var mscorlib = Assembly.Load("mscorlib").GetName();
-                AddReferencedAssembly(MscorlibAssemblyName, mscorlib);
-            }
-
-            // Since AddReferencedAssembly checks for mapping,
-            // we set _corLibToken after "mscorlib"/"System.Runtime"
-            var coreLib = typeof(object).GetTypeInfo().Assembly.GetName();
-            _coreLibToken = coreLib.GetPublicKeyToken();
-
             foreach (var asm in assemblies)
             {
-                AddReferencedAssembly(asm.ToString(), asm);
+                AddAssemblyToReverseForwardingMap(asm);
+                AddReferencedAssembly(asm.Name, asm);
             }
         }
     }

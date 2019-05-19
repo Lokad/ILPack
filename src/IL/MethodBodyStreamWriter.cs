@@ -16,7 +16,7 @@ namespace Lokad.ILPack.IL
             _metadata = metadata;
         }
 
-        public int AddMethodBody(MethodBase methodBase)
+        public int AddMethodBody(MethodBase methodBase, StandaloneSignatureHandle localVariablesSignature = default)
         {
             var body = methodBase.GetMethodBody();
             if (body == null)
@@ -24,19 +24,11 @@ namespace Lokad.ILPack.IL
                 return _metadata.ILBuilder.Count;
             }
 
-            var localVariables = body.LocalVariables.ToArray();
-			var localEncoder = new BlobEncoder(new BlobBuilder()).LocalVariableSignature(localVariables.Length);
-            foreach (var l in localVariables)
-            {
-                localEncoder.AddVariable().Type().FromSystemType(l.LocalType, _metadata); 
-            }
-
             var instructions = methodBase.GetInstructions();
             var maxStack = body.MaxStackSize;
             var codeSize = body.GetILAsByteArray().Length;
             var exceptionRegionCount = body.ExceptionHandlingClauses.Count;
             var attributes = body.InitLocals ? MethodBodyAttributes.InitLocals : MethodBodyAttributes.None;
-            var localVariablesSignature = _metadata.AddStandAloneSignature(localEncoder.Builder);
             var hasDynamicStackAllocation = instructions.Any(x => x.OpCode == OpCodes.Localloc);
 
             var offset = SerializeHeader(codeSize, maxStack, exceptionRegionCount, attributes, localVariablesSignature,

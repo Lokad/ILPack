@@ -75,7 +75,14 @@ namespace Lokad.ILPack.Metadata
                     {
                         foreach (var par in parameters)
                         {
-                            parEnc.AddParameter().Type().FromSystemType(par.ParameterType, this);
+                            if (par.ParameterType.IsByRef)
+                            {
+                                parEnc.AddParameter().Type(true).FromSystemType(par.ParameterType.GetElementType(), this);
+                            }
+                            else
+                            {
+                                parEnc.AddParameter().Type(false).FromSystemType(par.ParameterType, this);
+                            }
                         }
                     }
                 );
@@ -93,15 +100,15 @@ namespace Lokad.ILPack.Metadata
                     nameof(method));
             }
 
-            // Already created?
-            if (_methodRefHandles.TryGetValue(method, out var handle))
-            {
-                return handle;
-            }
-
             // Constructed generic method?
             if (method.IsConstructedGenericMethod)
             {
+                // Already created?
+                if (_methodSpecHandles.TryGetValue(method, out var handle))
+                {
+                    return handle;
+                }
+
                 // Get the definition handle
                 var definition = method.GetGenericMethodDefinition();
                 var definitionHandle = ResolveMethodReference(definition);
@@ -114,14 +121,24 @@ namespace Lokad.ILPack.Metadata
                 }
 
                 // Add method spec
-                return Builder.AddMethodSpecification(definitionHandle, GetOrAddBlob(enc.Builder));
+                var spec = Builder.AddMethodSpecification(definitionHandle, GetOrAddBlob(enc.Builder));
+                _methodSpecHandles.Add(method, spec);
+                return spec;
             }
+            else
+            {
+                // Already created?
+                if (_methodRefHandles.TryGetValue(method, out var handle))
+                {
+                    return handle;
+                }
 
-            var typeRef = ResolveTypeReference(method.DeclaringType);
-            var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(method.Name),
-                GetMethodSignature(method));
-            _methodRefHandles.Add(method, methodRef);
-            return methodRef;
+                var typeRef = ResolveTypeReference(method.DeclaringType);
+                var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(method.Name),
+                    GetMethodSignature(method));
+                _methodRefHandles.Add(method, methodRef);
+                return methodRef;
+            }
         }
 
         public bool TryGetMethodDefinition(MethodInfo methodInfo, out MethodBaseDefinitionMetadata metadata)

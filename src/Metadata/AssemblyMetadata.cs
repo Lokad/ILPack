@@ -15,11 +15,12 @@ namespace Lokad.ILPack.Metadata
         private readonly Dictionary<FieldInfo, MemberReferenceHandle> _fieldRefHandles;
         private readonly Dictionary<MethodInfo, MethodBaseDefinitionMetadata> _methodDefHandles;
         private readonly Dictionary<MethodInfo, MemberReferenceHandle> _methodRefHandles;
+        private readonly Dictionary<MethodInfo, MethodSpecificationHandle> _methodSpecHandles;
         private readonly Dictionary<ParameterInfo, ParameterHandle> _parameterHandles;
         private readonly Dictionary<PropertyInfo, PropertyDefinitionMetadata> _propertyHandles;
         private readonly Dictionary<EventInfo, EventDefinitionMetadata> _eventHandles;
-        private readonly Dictionary<Guid, TypeDefinitionMetadata> _typeDefHandles;
-        private readonly Dictionary<Guid, TypeReferenceHandle> _typeRefHandles;
+        private readonly Dictionary<Type, TypeDefinitionMetadata> _typeDefHandles;
+        private readonly Dictionary<Type, TypeReferenceHandle> _typeRefHandles;
 
         public AssemblyMetadata(Assembly sourceAssembly)
         {
@@ -34,11 +35,12 @@ namespace Lokad.ILPack.Metadata
             _fieldRefHandles = new Dictionary<FieldInfo, MemberReferenceHandle>();
             _methodDefHandles = new Dictionary<MethodInfo, MethodBaseDefinitionMetadata>();
             _methodRefHandles = new Dictionary<MethodInfo, MemberReferenceHandle>();
+            _methodSpecHandles = new Dictionary<MethodInfo, MethodSpecificationHandle>();
             _parameterHandles = new Dictionary<ParameterInfo, ParameterHandle>();
             _propertyHandles = new Dictionary<PropertyInfo, PropertyDefinitionMetadata>();
             _eventHandles = new Dictionary<EventInfo, EventDefinitionMetadata>();
-            _typeDefHandles = new Dictionary<Guid, TypeDefinitionMetadata>();
-            _typeRefHandles = new Dictionary<Guid, TypeReferenceHandle>();
+            _typeDefHandles = new Dictionary<Type, TypeDefinitionMetadata>();
+            _typeRefHandles = new Dictionary<Type, TypeReferenceHandle>();
 
             CreateReferencedAssemblies(SourceAssembly.GetReferencedAssemblies());
         }

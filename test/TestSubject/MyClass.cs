@@ -77,6 +77,8 @@ namespace TestSubject
             value = 35;
         }
 
+
+        /*
         public static T StaticGenericMethod<T>(T x)
         {
             return x;
@@ -106,6 +108,6 @@ namespace TestSubject
             await Task.Delay(100);
             return x + y;
         }
-
+        */
     }
 }

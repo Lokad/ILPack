@@ -229,6 +229,7 @@ namespace Lokad.ILPack.Tests
                 "r"));
         }
 
+        /*
         [Fact]
         public async void StaticGenericMethod()
         {
@@ -268,6 +269,6 @@ namespace Lokad.ILPack.Tests
                 $"int r = await x.AsyncMethod(30, 30);",
                 "r"));
         }
-
+        */
     }
 }

@@ -65,7 +65,7 @@ namespace Lokad.ILPack.Tests
             // Rewrite it (renaming the assembly and namespaces in the process)
             var generator = new AssemblyGenerator();
             generator.RenameForTesting("TestSubject", "ClonedTestSubject");
-//            generator.GenerateAssembly(_asmOriginal, clonedAssembly);
+            generator.GenerateAssembly(_asmOriginal, clonedAssembly);
 
             _namespaceName = "ClonedTestSubject";
             _assembly = clonedAssembly;

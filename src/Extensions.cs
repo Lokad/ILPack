@@ -148,6 +148,10 @@ namespace Lokad.ILPack
                         ImmutableArray.Create<int>(),
                         ImmutableArray.Create<int>()));
             }
+            else if (type.IsByRef)
+            {
+                throw new InvalidOperationException("ByRef types not allowed in SignatureType encoder (should be handled in calling ParameterEncoder)");
+            }
             else if (type.IsGenericType)
             {
                 var genericTypeDef = type.GetGenericTypeDefinition();
@@ -166,6 +170,14 @@ namespace Lokad.ILPack
                         inst.AddArgument().FromSystemType(ga, metadata);
                     }
                 }
+            }
+            else if (type.IsGenericMethodParameter)
+            {
+                typeEncoder.GenericMethodTypeParameter(type.GenericParameterPosition);
+            }
+            else if (type.IsGenericParameter)
+            {
+                typeEncoder.GenericTypeParameter(type.GenericParameterPosition);
             }
             else
             {

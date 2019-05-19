@@ -8,13 +8,6 @@ namespace Lokad.ILPack.Metadata
     {
         public EntityHandle GetTypeHandle(Type type)
         {
-            if (type.IsGenericType && !type.IsGenericTypeDefinition)
-            {
-                var typeSpecEncoder = new BlobEncoder(new BlobBuilder()).TypeSpecificationSignature();
-                typeSpecEncoder.FromSystemType(type, this);
-                return Builder.AddTypeSpecification(GetOrAddBlob(typeSpecEncoder.Builder));
-            }
-
             if (TryGetTypeDefinition(type, out var metadata))
             {
                 return metadata.Handle;
@@ -48,9 +41,16 @@ namespace Lokad.ILPack.Metadata
                     nameof(type));
             }
 
-            if (_typeRefHandles.TryGetValue(type.GUID, out var typeRef))
+            if (_typeRefHandles.TryGetValue(type, out var typeRef))
             {
                 return typeRef;
+            }
+
+            if (type.IsGenericType && !type.IsGenericTypeDefinition)
+            {
+                var typeSpecEncoder = new BlobEncoder(new BlobBuilder()).TypeSpecificationSignature();
+                typeSpecEncoder.FromSystemType(type, this);
+                return Builder.AddTypeSpecification(GetOrAddBlob(typeSpecEncoder.Builder));
             }
 
             var scope = GetResolutionScopeForType(type);
@@ -59,7 +59,7 @@ namespace Lokad.ILPack.Metadata
                 GetOrAddString(type.Namespace),
                 GetOrAddString(type.Name));
 
-            _typeRefHandles.Add(type.GUID, typeHandle);
+            _typeRefHandles.Add(type, typeHandle);
 
             // Create all public constructor references
             foreach (var ctor in type.GetConstructors())
@@ -75,13 +75,13 @@ namespace Lokad.ILPack.Metadata
         public TypeDefinitionMetadata ReserveTypeDefinition(Type type, TypeDefinitionHandle handle)
         {
             var metadata = new TypeDefinitionMetadata(type, handle);
-            _typeDefHandles.Add(type.GUID, metadata);
+            _typeDefHandles.Add(type, metadata);
             return metadata;
         }
 
         public bool TryGetTypeDefinition(Type type, out TypeDefinitionMetadata metadata)
         {
-            return _typeDefHandles.TryGetValue(type.GUID, out metadata);
+            return _typeDefHandles.TryGetValue(type, out metadata);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Lokad.ILPack.IL;
 using Lokad.ILPack.Metadata;
 
@@ -20,32 +21,13 @@ namespace Lokad.ILPack
 
             EnsureMetadataWasNotEmitted(metadata, method);
 
-            var offset = _metadata.ILBuilder.Count; // take an offset
             var body = method.GetMethodBody();
-            // If body exists, we write it in IL body stream
-            if (body != null)
-            {
-                var methodBodyWriter = new MethodBodyStreamWriter(_metadata);
 
-                // offset can be aligned during serialization. So, override the correct offset.
-                offset = methodBodyWriter.AddMethodBody(method);
-            }
-
-            var signature = _metadata.GetMethodSignature(method);
-            var parameters = CreateParameters(method.GetParameters());
-
-            var handle = _metadata.Builder.AddMethodDefinition(
-                method.Attributes,
-                method.MethodImplementationFlags,
-                _metadata.GetOrAddString(method.Name),
-                signature,
-                offset,
-                parameters);
+            var localVariablesSignature = default(StandaloneSignatureHandle);
 
             if (body != null && body.LocalVariables.Count > 0)
             {
-                _metadata.Builder.AddStandaloneSignature
-                (_metadata.GetOrAddBlob(
+                localVariablesSignature = _metadata.Builder.AddStandaloneSignature(_metadata.GetOrAddBlob(
                     MetadataHelper.BuildSignature(x =>
                     {
                         var sig = x.LocalVariableSignature(body.LocalVariables.Count);
@@ -58,6 +40,27 @@ namespace Lokad.ILPack
                         }
                     })));
             }
+
+            var offset = _metadata.ILBuilder.Count; // take an offset
+
+            // If body exists, we write it in IL body stream
+            if (body != null)
+            {
+                var methodBodyWriter = new MethodBodyStreamWriter(_metadata);
+
+                // offset can be aligned during serialization. So, override the correct offset.
+                offset = methodBodyWriter.AddMethodBody(method, localVariablesSignature);
+            }
+
+            var parameters = CreateParameters(method.GetParameters());
+
+            var handle = _metadata.Builder.AddMethodDefinition(
+                method.Attributes,
+                method.MethodImplementationFlags,
+                _metadata.GetOrAddString(method.Name),
+                _metadata.GetMethodSignature(method),
+                offset,
+                parameters);
 
             VerifyEmittedHandle(metadata, handle);
             metadata.MarkAsEmitted();

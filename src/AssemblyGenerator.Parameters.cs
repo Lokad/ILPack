@@ -40,7 +40,7 @@ namespace Lokad.ILPack
                 System.Diagnostics.Debug.Assert(parameterDef == MetadataTokens.ParameterHandle(_nextParameterRowId));
 
                 _metadata.AddParameterHandle(parameter, parameterDef);
-                //CreateCustomAttributes(parameterDef, parameter.GetCustomAttributesData());
+                CreateCustomAttributes(parameterDef, parameter.GetCustomAttributesData());
 
                 _nextParameterRowId++;
             }

@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
+﻿// Uncomment this to test against the original TestSubject instead of the cloned one
+//#define USE_ORIGINAL_TESTSUBJECT
+
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System.IO;
 using System.Reflection;
@@ -40,7 +43,16 @@ namespace Lokad.ILPack.Tests
         {
             // Get the original assembly
             _asmOriginal = typeof(TestSubject.MyClass).Assembly;
+            _asmCloned = typeof(TestSubject.MyClass).Assembly;
             var originalAssembly = _asmOriginal.Location;
+
+
+#if USE_ORIGINAL_TESTSUBJECT
+
+            _namespaceName = "TestSubject";
+            _assembly = originalAssembly;
+
+#else
 
             // Generate the cloned assembly
             // NB: putting it in the "cloned" sub directory prevents an
@@ -53,17 +65,14 @@ namespace Lokad.ILPack.Tests
             // Rewrite it (renaming the assembly and namespaces in the process)
             var generator = new AssemblyGenerator();
             generator.RenameForTesting("TestSubject", "ClonedTestSubject");
-            generator.GenerateAssembly(_asmOriginal, clonedAssembly);
+//            generator.GenerateAssembly(_asmOriginal, clonedAssembly);
 
             _namespaceName = "ClonedTestSubject";
             _assembly = clonedAssembly;
 
-            // Uncomment these two lines to run with the original uncloned assembly
-            // (handy to check if test case is wrong)
-            //_namespaceName = "TestSubject";
-            //_assembly = originalAssembly;
-
             _asmCloned = Assembly.LoadFrom(_assembly);
+
+#endif
         }
 
         static string _namespaceName;
@@ -202,6 +211,62 @@ namespace Lokad.ILPack.Tests
             var titleClone = _asmCloned.GetCustomAttribute<System.Reflection.AssemblyTitleAttribute>();
 
             Assert.Equal(titleOriginal.Title, titleClone.Title);
+        }
+
+        [Fact]
+        public async void ByRefParam()
+        {
+            Assert.Equal(34, await Invoke(
+                $"int r=0; x.ByRefParam(ref r);",
+                "r"));
+        }
+
+        [Fact]
+        public async void OutParam()
+        {
+            Assert.Equal(35, await Invoke(
+                $"int r; x.OutParam(out r);",
+                "r"));
+        }
+
+        [Fact]
+        public async void StaticGenericMethod()
+        {
+            Assert.Equal(36, await Invoke(
+                $"int r = {_namespaceName}.MyClass.StaticGenericMethod<int>(36);",
+                "r"));
+        }
+
+        [Fact]
+        public async void StaticGenericMethodWithByRef()
+        {
+            Assert.Equal((38,37), await Invoke(
+                $"int a = 37; int b = 38; {_namespaceName}.MyClass.StaticGenericMethodWithByRef<int>(ref a, ref b);",
+                "(a,b)"));
+        }
+
+        [Fact]
+        public async void GenericMethod()
+        {
+            Assert.Equal(36, await Invoke(
+                $"int r = x.GenericMethod<int>(36);",
+                "r"));
+        }
+
+        [Fact]
+        public async void GenericMethodWithByRef()
+        {
+            Assert.Equal((38,37), await Invoke(
+                $"int a = 37; int b = 38; x.GenericMethodWithByRef<int>(ref a, ref b);",
+                "(a,b)"));
+        }
+
+        [Fact]
+        public async void AsyncMethod()
+        {
+            Assert.Equal(60, await Invoke(
+                $"int r = await x.AsyncMethod(30, 30);",
+                "r"));
         }
 
     }

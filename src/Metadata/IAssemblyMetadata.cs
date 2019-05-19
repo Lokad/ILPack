@@ -13,6 +13,5 @@ namespace Lokad.ILPack.Metadata
         EntityHandle GetFieldHandle(FieldInfo field);
         EntityHandle GetConstructorHandle(ConstructorInfo ctor);
         EntityHandle GetMethodHandle(MethodInfo method);
-        StandaloneSignatureHandle AddStandAloneSignature(BlobBuilder blobBuilder);
     }
 }

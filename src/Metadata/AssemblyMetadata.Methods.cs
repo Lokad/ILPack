@@ -65,6 +65,7 @@ namespace Lokad.ILPack.Metadata
             var enc = new BlobEncoder(new BlobBuilder())
                 .MethodSignature(
                     MetadataHelper.ConvertCallingConvention(methodInfo.CallingConvention),
+                    genericParameterCount: methodInfo.GetGenericArguments().Length,
                     isInstanceMethod: !methodInfo.IsStatic);
 
             // Add return type and parameters

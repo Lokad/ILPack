@@ -62,11 +62,11 @@ namespace Lokad.ILPack
                 // Encode it
                 enc.AddArgument(a.IsField, out var typeEnc, out var nameEnc, out var litEnc);
 
-                nameEnc.Name(a.MemberName);
 
                 if (a.TypedValue.Value is Type type)
                 {
                     typeEnc.ScalarType().SystemType();
+                    nameEnc.Name(a.MemberName);
                     litEnc.Scalar().SystemType(type.FullName);
                 }
                 else
@@ -74,6 +74,7 @@ namespace Lokad.ILPack
                     // Work out the primitive type code
                     var primTypeCode = PrimitiveTypeCodeFromSystemTypeCode(a.TypedValue.ArgumentType);
                     typeEnc.ScalarType().PrimitiveType(primTypeCode);
+                    nameEnc.Name(a.MemberName);
                     litEnc.Scalar().Constant(a.TypedValue.Value);
                 }
             }

@@ -21,6 +21,7 @@ namespace Lokad.ILPack.Metadata
         private readonly Dictionary<EventInfo, EventDefinitionMetadata> _eventHandles;
         private readonly Dictionary<Type, TypeDefinitionMetadata> _typeDefHandles;
         private readonly Dictionary<Type, TypeReferenceHandle> _typeRefHandles;
+        private readonly Dictionary<Type, TypeSpecificationHandle> _typeSpecHandles;
 
         public AssemblyMetadata(Assembly sourceAssembly)
         {
@@ -41,6 +42,7 @@ namespace Lokad.ILPack.Metadata
             _eventHandles = new Dictionary<EventInfo, EventDefinitionMetadata>();
             _typeDefHandles = new Dictionary<Type, TypeDefinitionMetadata>();
             _typeRefHandles = new Dictionary<Type, TypeReferenceHandle>();
+            _typeSpecHandles = new Dictionary<Type, TypeSpecificationHandle>();
 
             CreateReferencedAssemblies(SourceAssembly.GetReferencedAssemblies());
         }

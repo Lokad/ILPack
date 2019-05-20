@@ -13,6 +13,11 @@ namespace Lokad.ILPack.Metadata
                 return metadata.Handle;
             }
 
+            if (IsGenericTypeSpec(type))
+            {
+                return ResolveGenericTypeSpec(type);
+            }
+
             if (IsReferencedType(type))
             {
                 return ResolveTypeReference(type);
@@ -28,13 +33,13 @@ namespace Lokad.ILPack.Metadata
             return type.Assembly != SourceAssembly;
         }
 
-        private EntityHandle GetResolutionScopeForType(Type type)
-        {
-            return GetReferencedAssemblyForType(type);
-        }
-
         private EntityHandle ResolveTypeReference(Type type)
         {
+            if (IsGenericTypeSpec(type))
+            {
+                return ResolveGenericTypeSpec(type);
+            }
+
             if (!IsReferencedType(type))
             {
                 throw new ArgumentException($"Reference type is expected: {MetadataHelper.GetFriendlyName(type)}",
@@ -46,14 +51,7 @@ namespace Lokad.ILPack.Metadata
                 return typeRef;
             }
 
-            if (type.IsGenericType && !type.IsGenericTypeDefinition)
-            {
-                var typeSpecEncoder = new BlobEncoder(new BlobBuilder()).TypeSpecificationSignature();
-                typeSpecEncoder.FromSystemType(type, this);
-                return Builder.AddTypeSpecification(GetOrAddBlob(typeSpecEncoder.Builder));
-            }
-
-            var scope = GetResolutionScopeForType(type);
+            var scope = GetReferencedAssemblyForType(type);
             var typeHandle = Builder.AddTypeReference(
                 scope,
                 GetOrAddString(type.Namespace),
@@ -70,6 +68,35 @@ namespace Lokad.ILPack.Metadata
             }
 
             return typeHandle;
+        }
+
+
+        public bool IsGenericTypeSpec(Type type)
+        {
+            return type.IsGenericMethodParameter || type.IsGenericParameter || (type.IsGenericType && !type.IsGenericTypeDefinition);
+        }
+
+        private EntityHandle ResolveGenericTypeSpec(Type type)
+        {
+            if (!IsGenericTypeSpec(type))
+            {
+                throw new ArgumentException($"Generic type spec is expected: {MetadataHelper.GetFriendlyName(type)}",
+                    nameof(type));
+            }
+
+            if (_typeSpecHandles.TryGetValue(type, out var typeSpec))
+            {
+                return typeSpec;
+            }
+
+            var typeSpecEncoder = new BlobEncoder(new BlobBuilder()).TypeSpecificationSignature();
+            typeSpecEncoder.FromSystemType(type, this);
+            var typeSpecHandle = Builder.AddTypeSpecification(GetOrAddBlob(typeSpecEncoder.Builder));
+
+            _typeSpecHandles.Add(type, typeSpecHandle);
+
+            return typeSpecHandle;
+
         }
 
         public TypeDefinitionMetadata ReserveTypeDefinition(Type type, TypeDefinitionHandle handle)

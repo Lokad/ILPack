@@ -139,6 +139,14 @@ namespace TestSubject
             };
         }
 
+        public class NestedClass
+        {
+            public int Method()
+            {
+                return 9;
+            }
+        }
+
         /*
         public async Task<int> AsyncMethod(int x, int y)
         {

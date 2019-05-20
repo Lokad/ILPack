@@ -299,9 +299,17 @@ namespace Lokad.ILPack.Tests
         [Fact]
         public async void BasicStructTest()
         {
-            Assert.Equal((20,30), await Invoke(
+            Assert.Equal((20, 30), await Invoke(
                 $"var s = x.GetMyStruct();",
-                "(s.x,s.y)"
+                "(s.x,s.y)"));
+        }
+
+        [Fact]
+        public async void NestedClass()
+        {
+            Assert.Equal(9, await Invoke(
+                $"var r = new {_namespaceName}.MyClass.NestedClass().Method();",
+                "r"
                 ));
         }
 

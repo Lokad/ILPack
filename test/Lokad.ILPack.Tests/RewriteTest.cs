@@ -20,7 +20,7 @@ namespace Lokad.ILPack.Tests
      * 
      * 1. `TestSubject.dll` is loaded through a project reference and found
      *    with a simple typeof(MyClass)
-     *    
+     *        
      * 2. ILPack is used to to rewrite a new assembly `ClonedTestSubject.dll`
      * 
      * 3. To allow the second DLL to be loaded into the same process (we don't
@@ -229,7 +229,6 @@ namespace Lokad.ILPack.Tests
                 "r"));
         }
 
-        /*
         [Fact]
         public async void StaticGenericMethod()
         {
@@ -262,6 +261,7 @@ namespace Lokad.ILPack.Tests
                 "(a,b)"));
         }
 
+        /*
         [Fact]
         public async void AsyncMethod()
         {

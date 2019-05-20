@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 // This project defines a set of types that will be rewritten by the test cases to a new
-// dll named "RewriteClone".  The test cases then compare the final type information of both
+// dll named "ClonedTestSubject".  The test cases then compare the final type information of both
 // assemblies to confirm everything was re-written correction
 
 // SEE RewriteTest in Lokad.ILPack.Tests
 
 
-namespace RewriteOriginal
+namespace TestSubject
 {
     public class MyClass
     {
@@ -65,5 +66,47 @@ namespace RewriteOriginal
         {
             IntParamEvent?.Invoke(withValue);
         }
+
+        public void ByRefParam(ref int value)
+        {
+            value = 34;
+        }
+
+        public void OutParam(out int value)
+        {
+            value = 35;
+        }
+
+        public static T StaticGenericMethod<T>(T x)
+        {
+            return x;
+        }
+
+        public static void StaticGenericMethodWithByRef<T>(ref T x, ref T y)
+        {
+            T temp = x;
+            x = y;
+            y = temp;
+        }
+
+        public T GenericMethod<T>(T x)
+        {
+            return x;
+        }
+
+        public void GenericMethodWithByRef<T>(ref T x, ref T y)
+        {
+            T temp = x;
+            x = y;
+            y = temp;
+        }
+
+        /*
+        public async Task<int> AsyncMethod(int x, int y)
+        {
+            await Task.Delay(100);
+            return x + y;
+        }
+        */
     }
 }

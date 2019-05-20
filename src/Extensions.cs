@@ -122,6 +122,10 @@ namespace Lokad.ILPack
             {
                 typeEncoder.PrimitiveType(GetPrimitiveTypeCode(type.GetElementType()));
             }
+            else if (type.IsPointer && type.GetElementType().IsPrimitive)
+            {
+                typeEncoder.Pointer().PrimitiveType(GetPrimitiveTypeCode(type.GetElementType()));
+            }
             else if (type.IsPrimitive)
             {
                 typeEncoder.PrimitiveType(GetPrimitiveTypeCode(type));
@@ -169,6 +173,14 @@ namespace Lokad.ILPack
                         inst.AddArgument().FromSystemType(ga, metadata);
                     }
                 }
+            }
+            else if (type.IsGenericMethodParameter)
+            {
+                typeEncoder.GenericMethodTypeParameter(type.GenericParameterPosition);
+            }
+            else if (type.IsGenericParameter)
+            {
+                typeEncoder.GenericTypeParameter(type.GenericParameterPosition);
             }
             else
             {

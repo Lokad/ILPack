@@ -41,11 +41,13 @@ namespace Lokad.ILPack
                     })));
             }
 
-            var offset = _metadata.ILBuilder.Count; // take an offset
+            var offset = -1;
 
             // If body exists, we write it in IL body stream
-            if (body != null)
+            if (body != null && !method.IsAbstract)
             {
+                offset = _metadata.ILBuilder.Count; // take an offset
+
                 var methodBodyWriter = new MethodBodyStreamWriter(_metadata);
 
                 // offset can be aligned during serialization. So, override the correct offset.
@@ -61,6 +63,23 @@ namespace Lokad.ILPack
                 _metadata.GetMethodSignature(method),
                 offset,
                 parameters);
+
+            // Add generic parameters
+            if (method.IsGenericMethodDefinition)
+            {
+                int index = 0;
+                foreach (var ga in method.GetGenericArguments())
+                {
+                    // Add the argument
+                    var gaHandle = _metadata.Builder.AddGenericParameter(handle, ga.GenericParameterAttributes, _metadata.GetOrAddString(ga.Name), index++);
+
+                    // Add it's constraints
+                    foreach (var constraint in ga.GetGenericParameterConstraints())
+                    {
+                        _metadata.Builder.AddGenericParameterConstraint(gaHandle, _metadata.GetTypeHandle(constraint));
+                    }
+                }
+            }
 
             VerifyEmittedHandle(metadata, handle);
             metadata.MarkAsEmitted();

@@ -57,7 +57,7 @@ namespace Lokad.ILPack
             {
                 if (!_metadata.TryGetMethodDefinition(ev.RemoveMethod, out var removeMethodMetadata))
                 {
-                    ThrowMetadataIsNotReserved("Property setter method", ev);
+                    ThrowMetadataIsNotReserved("Event remove method", ev);
                 }
 
                 _metadata.Builder.AddMethodSemantics(

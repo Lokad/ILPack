@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
+﻿// Uncomment this to test against the original TestSubject instead of the cloned one
+//#define USE_ORIGINAL_TESTSUBJECT
+
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System.IO;
 using System.Reflection;
@@ -8,17 +11,17 @@ using Xunit;
 namespace Lokad.ILPack.Tests
 {
     /*
-     * These test cases work by taking the RewriteOriginal project, passing it
+     * These test cases work by taking the TestSubject project, passing it
      * through ILPack to generate a new assembly and then checking that the
      * newly generated assembly is correct by actually loading it and invoking
      * methods and properties on it.
      * 
      * It works as follows:
      * 
-     * 1. `RewriteOriginal.dll` is loaded through a project reference and found
+     * 1. `TestSubject.dll` is loaded through a project reference and found
      *    with a simple typeof(MyClass)
-     *    
-     * 2. ILPack is used to to rewrite a new assembly `RewriteClone.dll`
+     *        
+     * 2. ILPack is used to to rewrite a new assembly `ClonedTestSubject.dll`
      * 
      * 3. To allow the second DLL to be loaded into the same process (we don't
      *    have AppDomains under net core), we use ILPack's RenameForTesting method
@@ -39,8 +42,17 @@ namespace Lokad.ILPack.Tests
         static RewriteTest()
         {
             // Get the original assembly
-            _asmOriginal = typeof(RewriteOriginal.MyClass).Assembly;
+            _asmOriginal = typeof(TestSubject.MyClass).Assembly;
+            _asmCloned = typeof(TestSubject.MyClass).Assembly;
             var originalAssembly = _asmOriginal.Location;
+
+
+#if USE_ORIGINAL_TESTSUBJECT
+
+            _namespaceName = "TestSubject";
+            _assembly = originalAssembly;
+
+#else
 
             // Generate the cloned assembly
             // NB: putting it in the "cloned" sub directory prevents an
@@ -48,22 +60,19 @@ namespace Lokad.ILPack.Tests
             //     and preventing rewrite on subsequent run. 
             var outDir = Path.Join(Path.GetDirectoryName(originalAssembly), "cloned");
             Directory.CreateDirectory(outDir);
-            var clonedAssembly = Path.Join(outDir, "RewriteClone.dll");
+            var clonedAssembly = Path.Join(outDir, "ClonedTestSubject.dll");
 
             // Rewrite it (renaming the assembly and namespaces in the process)
             var generator = new AssemblyGenerator();
-            generator.RenameForTesting("RewriteOriginal", "RewriteClone");
+            generator.RenameForTesting("TestSubject", "ClonedTestSubject");
             generator.GenerateAssembly(_asmOriginal, clonedAssembly);
 
-            _namespaceName = "RewriteClone";
+            _namespaceName = "ClonedTestSubject";
             _assembly = clonedAssembly;
 
-            // Uncomment these two lines to run with the original uncloned assembly
-            // (handy to check if test case is wrong)
-            //_namespaceName = "RewriteOriginal";
-            //_assembly = originalAssembly;
-
             _asmCloned = Assembly.LoadFrom(_assembly);
+
+#endif
         }
 
         static string _namespaceName;
@@ -177,7 +186,7 @@ namespace Lokad.ILPack.Tests
         {
             // This test highlights an issue trying to load Action<int> from wrong assembly
             //
-            // Message: System.TypeLoadException : Could not load type 'System.Action`1' from assembly 'RewriteClone, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // Message: System.TypeLoadException : Could not load type 'System.Action`1' from assembly 'ClonedTestSubject, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
             //                                                         ^^^^^^^^^^^^^^^^^                ^^^^^^^^^^^^ huh?
 
             Assert.Equal(true, await Invoke(
@@ -204,5 +213,62 @@ namespace Lokad.ILPack.Tests
             Assert.Equal(titleOriginal.Title, titleClone.Title);
         }
 
+        [Fact]
+        public async void ByRefParam()
+        {
+            Assert.Equal(34, await Invoke(
+                $"int r=0; x.ByRefParam(ref r);",
+                "r"));
+        }
+
+        [Fact]
+        public async void OutParam()
+        {
+            Assert.Equal(35, await Invoke(
+                $"int r; x.OutParam(out r);",
+                "r"));
+        }
+
+        [Fact]
+        public async void StaticGenericMethod()
+        {
+            Assert.Equal(36, await Invoke(
+                $"int r = {_namespaceName}.MyClass.StaticGenericMethod<int>(36);",
+                "r"));
+        }
+
+        [Fact]
+        public async void StaticGenericMethodWithByRef()
+        {
+            Assert.Equal((38,37), await Invoke(
+                $"int a = 37; int b = 38; {_namespaceName}.MyClass.StaticGenericMethodWithByRef<int>(ref a, ref b);",
+                "(a,b)"));
+        }
+
+        [Fact]
+        public async void GenericMethod()
+        {
+            Assert.Equal(36, await Invoke(
+                $"int r = x.GenericMethod<int>(36);",
+                "r"));
+        }
+
+        [Fact]
+        public async void GenericMethodWithByRef()
+        {
+            Assert.Equal((38,37), await Invoke(
+                $"int a = 37; int b = 38; x.GenericMethodWithByRef<int>(ref a, ref b);",
+                "(a,b)"));
+        }
+
+        /*
+        [Fact]
+        public async void AsyncMethod()
+        {
+            Assert.Equal(60, await Invoke(
+                $"int r = await x.AsyncMethod(30, 30);",
+                "r"));
+        }
+        */
     }
 }

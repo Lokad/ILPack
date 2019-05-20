@@ -39,11 +39,17 @@ namespace Lokad.ILPack
             var args = attr.ConstructorArguments;
             foreach (var a in args)
             {
-                // Check argument type supported (ie: simple scalar values)
-                PrimitiveTypeCodeFromSystemTypeCode(a.ArgumentType);
-
                 // Add it
-                fa.AddArgument().Scalar().Constant(a.Value);
+                if (a.Value is Type type)
+                {
+                    fa.AddArgument().Scalar().SystemType(type.FullName);
+                }
+                else
+                {
+                    // Check argument type supported (ie: simple scalar values)
+                    PrimitiveTypeCodeFromSystemTypeCode(a.ArgumentType);
+                    fa.AddArgument().Scalar().Constant(a.Value);
+                }
             }
         }
 
@@ -53,14 +59,24 @@ namespace Lokad.ILPack
             var enc = na.Count(args.Count);
             foreach (var a in args)
             {
-                // Work out the primitive type code
-                var primTypeCode = PrimitiveTypeCodeFromSystemTypeCode(a.TypedValue.ArgumentType);
-
                 // Encode it
                 enc.AddArgument(a.IsField, out var typeEnc, out var nameEnc, out var litEnc);
-                typeEnc.ScalarType().PrimitiveType(primTypeCode);
-                nameEnc.Name(a.MemberName);
-                litEnc.Scalar().Constant(a.TypedValue.Value);
+
+
+                if (a.TypedValue.Value is Type type)
+                {
+                    typeEnc.ScalarType().SystemType();
+                    nameEnc.Name(a.MemberName);
+                    litEnc.Scalar().SystemType(type.FullName);
+                }
+                else
+                {
+                    // Work out the primitive type code
+                    var primTypeCode = PrimitiveTypeCodeFromSystemTypeCode(a.TypedValue.ArgumentType);
+                    typeEnc.ScalarType().PrimitiveType(primTypeCode);
+                    nameEnc.Name(a.MemberName);
+                    litEnc.Scalar().Constant(a.TypedValue.Value);
+                }
             }
         }
 

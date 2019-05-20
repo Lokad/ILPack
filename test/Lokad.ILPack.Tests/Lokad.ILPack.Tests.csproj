@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Lokad.ILPack.csproj" />
-    <ProjectReference Include="..\RewriteOriginal\RewriteOriginal.csproj" />
+    <ProjectReference Include="..\TestSubject\TestSubject.csproj" />
   </ItemGroup>
 
   <ItemGroup>

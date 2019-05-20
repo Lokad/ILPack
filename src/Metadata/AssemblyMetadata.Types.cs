@@ -8,16 +8,14 @@ namespace Lokad.ILPack.Metadata
     {
         public EntityHandle GetTypeHandle(Type type)
         {
-            if (type.IsGenericType && !type.IsGenericTypeDefinition)
-            {
-                var typeSpecEncoder = new BlobEncoder(new BlobBuilder()).TypeSpecificationSignature();
-                typeSpecEncoder.FromSystemType(type, this);
-                return Builder.AddTypeSpecification(GetOrAddBlob(typeSpecEncoder.Builder));
-            }
-
             if (TryGetTypeDefinition(type, out var metadata))
             {
                 return metadata.Handle;
+            }
+
+            if (IsGenericTypeSpec(type))
+            {
+                return ResolveGenericTypeSpec(type);
             }
 
             if (IsReferencedType(type))
@@ -35,31 +33,31 @@ namespace Lokad.ILPack.Metadata
             return type.Assembly != SourceAssembly;
         }
 
-        private EntityHandle GetResolutionScopeForType(Type type)
-        {
-            return GetReferencedAssemblyForType(type);
-        }
-
         private EntityHandle ResolveTypeReference(Type type)
         {
+            if (IsGenericTypeSpec(type))
+            {
+                return ResolveGenericTypeSpec(type);
+            }
+
             if (!IsReferencedType(type))
             {
                 throw new ArgumentException($"Reference type is expected: {MetadataHelper.GetFriendlyName(type)}",
                     nameof(type));
             }
 
-            if (_typeRefHandles.TryGetValue(type.GUID, out var typeRef))
+            if (_typeRefHandles.TryGetValue(type, out var typeRef))
             {
                 return typeRef;
             }
 
-            var scope = GetResolutionScopeForType(type);
+            var scope = GetReferencedAssemblyForType(type);
             var typeHandle = Builder.AddTypeReference(
                 scope,
                 GetOrAddString(type.Namespace),
                 GetOrAddString(type.Name));
 
-            _typeRefHandles.Add(type.GUID, typeHandle);
+            _typeRefHandles.Add(type, typeHandle);
 
             // Create all public constructor references
             foreach (var ctor in type.GetConstructors())
@@ -72,17 +70,45 @@ namespace Lokad.ILPack.Metadata
             return typeHandle;
         }
 
-        public TypeDefinitionMetadata ReserveTypeDefinition(Type type, TypeDefinitionHandle handle, int fieldIndex,
-            int propertyIndex, int methodIndex, int eventIndex)
+
+        public bool IsGenericTypeSpec(Type type)
         {
-            var metadata = new TypeDefinitionMetadata(type, handle, fieldIndex, propertyIndex, methodIndex, eventIndex);
-            _typeDefHandles.Add(type.GUID, metadata);
+            return type.IsGenericMethodParameter || type.IsGenericParameter || (type.IsGenericType && !type.IsGenericTypeDefinition);
+        }
+
+        private EntityHandle ResolveGenericTypeSpec(Type type)
+        {
+            if (!IsGenericTypeSpec(type))
+            {
+                throw new ArgumentException($"Generic type spec is expected: {MetadataHelper.GetFriendlyName(type)}",
+                    nameof(type));
+            }
+
+            if (_typeSpecHandles.TryGetValue(type, out var typeSpec))
+            {
+                return typeSpec;
+            }
+
+            var typeSpecEncoder = new BlobEncoder(new BlobBuilder()).TypeSpecificationSignature();
+            typeSpecEncoder.FromSystemType(type, this);
+            var typeSpecHandle = Builder.AddTypeSpecification(GetOrAddBlob(typeSpecEncoder.Builder));
+
+            _typeSpecHandles.Add(type, typeSpecHandle);
+
+            return typeSpecHandle;
+
+        }
+
+        public TypeDefinitionMetadata ReserveTypeDefinition(Type type, TypeDefinitionHandle handle)
+        {
+            var metadata = new TypeDefinitionMetadata(type, handle);
+            _typeDefHandles.Add(type, metadata);
             return metadata;
         }
 
         public bool TryGetTypeDefinition(Type type, out TypeDefinitionMetadata metadata)
         {
-            return _typeDefHandles.TryGetValue(type.GUID, out metadata);
+            return _typeDefHandles.TryGetValue(type, out metadata);
         }
     }
 }

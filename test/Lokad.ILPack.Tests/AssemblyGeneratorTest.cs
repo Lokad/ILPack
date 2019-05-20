@@ -17,7 +17,8 @@ namespace Lokad.ILPack.Tests
 
         static AssemblyGeneratorTest()
         {
-            _basePath = Directory.GetCurrentDirectory();
+            _basePath = Path.Combine(Directory.GetCurrentDirectory(), "generated");
+            Directory.CreateDirectory(_basePath);
         }
 
         private static string GetPathForAssembly(string fileName) => Path.Combine(_basePath, fileName);
@@ -511,6 +512,65 @@ namespace Lokad.ILPack.Tests
             myType.CreateType();
 
             SerializeAndVerifyAssembly(newAssembly, "TypeSerialization.dll");
+        }
+
+        private unsafe delegate int SubParamPtr(int* op1, int op2, int op3, int op4);
+
+        [Theory]
+        [InlineData(1, 2, 3, 4)]
+        public unsafe void TestParamPtr(int op1, int op2, int op3, int op4)
+        {
+            /* SAVE */
+            var assemblyBldr = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("AsmParamPtr"), AssemblyBuilderAccess.Run);
+            var moduleBldr = assemblyBldr.DefineDynamicModule("ModParamPtr");
+
+            var typeBldr = moduleBldr.DefineType("Ns.ClassParamPtr", TypeAttributes.Public);
+
+            var parameterTypes = new Type[] { typeof(int*), typeof(int), typeof(int), typeof(int) };
+            var returnType = typeof(int);
+            var methodBldr = typeBldr.DefineMethod("SubParamPtr", MethodAttributes.Public | MethodAttributes.Static, returnType, parameterTypes);
+
+            for (int i = 1; i <= 4; i++)
+            {
+                methodBldr.DefineParameter(i, ParameterAttributes.None, $"op{i}");
+            }
+
+            var ilGen = methodBldr.GetILGenerator();
+
+            ilGen.Emit(OpCodes.Ldarg_0);
+            ilGen.Emit(OpCodes.Ldind_I4);
+            ilGen.Emit(OpCodes.Ldarg_1);
+            ilGen.Emit(OpCodes.Add);
+            ilGen.Emit(OpCodes.Ldarg_2);
+            ilGen.Emit(OpCodes.Add);
+            ilGen.Emit(OpCodes.Ldarg_3);
+            ilGen.Emit(OpCodes.Add);
+            ilGen.Emit(OpCodes.Ret);
+
+            typeBldr.CreateType();
+
+            SerializeAssembly(assemblyBldr, "TestParamPtr.dll");
+
+            /* LOAD */
+            var assembly = LoadAssembly("TestParamPtr.dll");
+
+            var type = assembly.GetType("Ns.ClassParamPtr");
+
+            var methodInfo = type.GetMethod("SubParamPtr", BindingFlags.Static | BindingFlags.Public);
+
+            var parameters = methodInfo.GetParameters();
+
+            var subParamPtr = (SubParamPtr)methodInfo.CreateDelegate(typeof(SubParamPtr));
+
+            /* TESTS */
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                Assert.Equal($"op{i + 1}", parameters[i].Name);
+                Assert.Equal(i == 0 ? typeof(int*) : typeof(int), parameters[i].ParameterType);
+                Assert.Equal(i, parameters[i].Position);
+            }
+
+            Assert.Equal(op1 + op2 + op3 + op4, subParamPtr(&op1, op2, op3, op4));
         }
 
         private delegate int SubLocalByRef();

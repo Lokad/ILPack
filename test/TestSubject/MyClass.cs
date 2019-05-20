@@ -10,6 +10,13 @@ using System.Threading.Tasks;
 
 namespace TestSubject
 {
+    public enum MyEnum
+    {
+        Apples = 100,
+        Pears = 150,
+        Bananas = 200,
+    }
+
     public class MyClass
     {
         public int ReadOnlyProperty

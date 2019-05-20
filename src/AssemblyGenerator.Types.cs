@@ -158,6 +158,9 @@ namespace Lokad.ILPack
                 _metadata.Builder.AddNestedType(typeHandle, (TypeDefinitionHandle)_metadata.GetTypeHandle(type.DeclaringType));
             }
 
+            // Create attributes
+            CreateCustomAttributes(typeHandle, type.GetCustomAttributesData());
+
             // Add immediately to support self referencing generics
             _metadata.ReserveTypeDefinition(type, typeHandle);
 

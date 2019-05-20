@@ -10,6 +10,13 @@ using System.Threading.Tasks;
 
 namespace TestSubject
 {
+    public struct MyStruct
+    {
+        public int x;
+        public int y;
+    }
+
+
     public class MyClass
     {
         public int ReadOnlyProperty
@@ -100,6 +107,16 @@ namespace TestSubject
             x = y;
             y = temp;
         }
+
+        public MyStruct GetMyStruct()
+        {
+            return new MyStruct()
+            {
+                x = 20,
+                y = 30,
+            };
+        }
+
 
         /*
         public async Task<int> AsyncMethod(int x, int y)

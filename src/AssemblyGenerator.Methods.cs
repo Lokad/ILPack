@@ -42,6 +42,23 @@ namespace Lokad.ILPack
                 offset,
                 parameters);
 
+            // Add generic parameters
+            if (method.IsGenericMethodDefinition)
+            {
+                int index = 0;
+                foreach (var ga in method.GetGenericArguments())
+                {
+                    // Add the argument
+                    var gaHandle = _metadata.Builder.AddGenericParameter(handle, ga.GenericParameterAttributes, _metadata.GetOrAddString(ga.Name), index++);
+
+                    // Add it's constraints
+                    foreach (var constraint in ga.GetGenericParameterConstraints())
+                    {
+                        _metadata.Builder.AddGenericParameterConstraint(gaHandle, _metadata.GetTypeHandle(constraint));
+                    }
+                }
+            }
+
             if (body != null && body.LocalVariables.Count > 0)
             {
                 _metadata.Builder.AddStandaloneSignature

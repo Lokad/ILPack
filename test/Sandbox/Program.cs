@@ -49,31 +49,31 @@ namespace Sandbox
 
         async Task<object> Invoke(string setup, string resultExpression)
         {
-            try
-            {
+            var script = CSharpScript
+                .Create($"var x = new MyClass();",
+                        ScriptOptions.Default
+                            .WithReferences(_assembly)
+                            .WithImports(_namespaceName)
+                            )
+                .ContinueWith(setup)
+                .ContinueWith(resultExpression);
 
-                var script = CSharpScript
-                    .Create($"var x = new MyClass();",
-                            ScriptOptions.Default
-                                .WithReferences(_assembly)
-                                .WithImports(_namespaceName)
-                                )
-                    .ContinueWith(setup)
-                    .ContinueWith(resultExpression);
-
-                return (await script.RunAsync()).ReturnValue;
-            }
-            catch (Exception x)
-            {
-                Console.WriteLine(x.Message);
-                throw;
-            }
+            return (await script.RunAsync()).ReturnValue;
         }
 
 
         static void Main(string[] args)
         {
-            new Program().Run();
+            try
+            {
+                new Program().Run();
+            }
+            catch (Exception x)
+            {
+                Console.WriteLine(x.Message);
+                Console.WriteLine(x.StackTrace);
+                throw;
+            }
         }
 
         async void Run()
@@ -115,7 +115,7 @@ namespace Sandbox
             // Invoke the cloned assembly...
 
             var result = await Invoke(
-                $"int r = MyClass.StaticGenericMethod<int>(36);",
+                $"int r = await x.AsyncMethod(30, 30);",
                 "r");
 
             Console.WriteLine(result);

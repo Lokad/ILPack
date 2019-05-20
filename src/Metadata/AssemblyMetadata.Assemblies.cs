@@ -87,7 +87,9 @@ namespace Lokad.ILPack.Metadata
                     {
                         var name = mdr.GetString(et.Name);
                         var ns = mdr.GetString(et.Namespace);
-                        _reverseForwardingMap.Add($"{ns}.{name}", asmName);
+                        var key = $"{ns}.{name}";
+                        if (!_reverseForwardingMap.ContainsKey(key))
+                            _reverseForwardingMap.Add(key, asmName);
                     }
                 }
             }

@@ -20,11 +20,13 @@ namespace Lokad.ILPack
 
             EnsureMetadataWasNotEmitted(metadata, method);
 
-            var offset = _metadata.ILBuilder.Count; // take an offset
+            var offset = -1;
             var body = method.GetMethodBody();
             // If body exists, we write it in IL body stream
-            if (body != null)
+            if (body != null && !method.IsAbstract)
             {
+                offset = _metadata.ILBuilder.Count; // take an offset
+
                 var methodBodyWriter = new MethodBodyStreamWriter(_metadata);
 
                 // offset can be aligned during serialization. So, override the correct offset.

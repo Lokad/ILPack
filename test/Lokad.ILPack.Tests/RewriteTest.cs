@@ -83,8 +83,11 @@ namespace Lokad.ILPack.Tests
         async Task<object> Invoke(string setup, string resultExpression)
         {
             var script = CSharpScript
-                .Create($"var x = new {_namespaceName}.MyClass();", 
-                        ScriptOptions.Default.WithReferences(_assembly))
+                .Create($"var x = new MyClass();", 
+                        ScriptOptions.Default
+                            .WithReferences(_assembly)
+                            .WithImports(_namespaceName)
+                        )
                 .ContinueWith(setup)
                 .ContinueWith(resultExpression);
 
@@ -241,7 +244,7 @@ namespace Lokad.ILPack.Tests
         public async void StaticGenericMethodWithByRef()
         {
             Assert.Equal((38,37), await Invoke(
-                $"int a = 37; int b = 38; {_namespaceName}.MyClass.StaticGenericMethodWithByRef<int>(ref a, ref b);",
+                $"int a = 37; int b = 38; MyClass.StaticGenericMethodWithByRef<int>(ref a, ref b);",
                 "(a,b)"));
         }
 
@@ -259,6 +262,30 @@ namespace Lokad.ILPack.Tests
             Assert.Equal((38,37), await Invoke(
                 $"int a = 37; int b = 38; x.GenericMethodWithByRef<int>(ref a, ref b);",
                 "(a,b)"));
+        }
+
+        [Fact]
+        public async void CallExplicitlyImplementedInterfaceMethod()
+        {
+            Assert.Equal(1001, await Invoke(
+                $"int r = (x as IMyItf).InterfaceMethod1();",
+                "r"));
+        }
+
+        [Fact]
+        public async void CallImplicitlyImplementedInterfaceMethodThroughInterface()
+        {
+            Assert.Equal(1002, await Invoke(
+                $"int r = (x as IMyItf).InterfaceMethod2();",
+                "r"));
+        }
+
+        [Fact]
+        public async void CallImplicitlyImplementedInterfaceMethodThroughClass()
+        {
+            Assert.Equal(1002, await Invoke(
+                $"int r = x.InterfaceMethod2();",
+                "r"));
         }
 
         /*

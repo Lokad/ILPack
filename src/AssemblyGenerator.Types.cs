@@ -142,10 +142,13 @@ namespace Lokad.ILPack
                 MetadataTokens.FieldDefinitionHandle(offset.FieldIndex + 1),
                 MetadataTokens.MethodDefinitionHandle(offset.MethodIndex + 1));
 
-            // Add implemented interfaces
-            foreach (var itf in type.GetInterfaces())
+            // Add implemented interfaces (not for enums though - eg: IComparable etc...)
+            if (!type.IsEnum)
             {
-                _metadata.Builder.AddInterfaceImplementation(typeHandle, _metadata.GetTypeHandle(itf));
+                foreach (var itf in type.GetInterfaces())
+                {
+                    _metadata.Builder.AddInterfaceImplementation(typeHandle, _metadata.GetTypeHandle(itf));
+                }
             }
 
             // Add immediately to support self referencing generics

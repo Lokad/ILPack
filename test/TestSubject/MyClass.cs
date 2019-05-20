@@ -22,6 +22,12 @@ namespace TestSubject
         Pears = 150,
         Bananas = 200,
     }
+    public struct MyStruct
+    {
+        public int x;
+        public int y;
+    }
+
 
     public class MyClass : IMyItf
     {
@@ -122,6 +128,15 @@ namespace TestSubject
         public int InterfaceMethod2()
         {
             return 1002;
+        }
+
+        public MyStruct GetMyStruct()
+        {
+            return new MyStruct()
+            {
+                x = 20,
+                y = 30,
+            };
         }
 
         /*

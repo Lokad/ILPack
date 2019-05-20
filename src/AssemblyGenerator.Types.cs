@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Lokad.ILPack.Metadata;
 
@@ -135,11 +136,17 @@ namespace Lokad.ILPack
 
             var typeHandle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
-                _metadata.GetOrAddString(ApplyNameChange(type.Namespace)),
+                type.DeclaringType == null ? _metadata.GetOrAddString(ApplyNameChange(type.Namespace)) : default(StringHandle),
                 _metadata.GetOrAddString(type.Name),
                 baseTypeHandle,
                 MetadataTokens.FieldDefinitionHandle(offset.FieldIndex + 1),
                 MetadataTokens.MethodDefinitionHandle(offset.MethodIndex + 1));
+
+            // Setup enclosing type
+            if (type.DeclaringType != null)
+            {
+                _metadata.Builder.AddNestedType(typeHandle, (TypeDefinitionHandle)_metadata.GetTypeHandle(type.DeclaringType));
+            }
 
             // Add immediately to support self referencing generics
             _metadata.ReserveTypeDefinition(type, typeHandle);

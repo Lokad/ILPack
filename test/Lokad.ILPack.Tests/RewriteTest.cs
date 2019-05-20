@@ -261,6 +261,15 @@ namespace Lokad.ILPack.Tests
                 "(a,b)"));
         }
 
+        [Fact]
+        public async void NestedClass()
+        {
+            Assert.Equal(9, await Invoke(
+                $"var r = new {_namespaceName}.MyClass.NestedClass().Method();",
+                "r"
+                ));
+        }
+
         /*
         [Fact]
         public async void AsyncMethod()

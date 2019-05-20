@@ -141,6 +141,9 @@ namespace Lokad.ILPack
                 MetadataTokens.FieldDefinitionHandle(offset.FieldIndex + 1),
                 MetadataTokens.MethodDefinitionHandle(offset.MethodIndex + 1));
 
+            // Create attributes
+            CreateCustomAttributes(typeHandle, type.GetCustomAttributesData());
+
             // Add immediately to support self referencing generics
             _metadata.ReserveTypeDefinition(type, typeHandle);
 

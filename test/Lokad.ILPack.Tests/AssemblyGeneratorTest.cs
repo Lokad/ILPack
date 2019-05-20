@@ -17,15 +17,15 @@ namespace Lokad.ILPack.Tests
 
         static AssemblyGeneratorTest()
         {
-            _basePath = Directory.GetCurrentDirectory();
+            _basePath = Path.Combine(Directory.GetCurrentDirectory(), "generated");
+            Directory.CreateDirectory(_basePath);
         }
 
         private static string GetPathForAssembly(string fileName) => Path.Combine(_basePath, fileName);
 
         private static void SerializeAssembly(Assembly assembly, string fileName)
         {
-            var path = GetPathForAssembly(fileName);
-
+            var path = Path.Combine(_basePath, fileName);
             var generator = new AssemblyGenerator();
             generator.GenerateAssembly(assembly, path);
         }

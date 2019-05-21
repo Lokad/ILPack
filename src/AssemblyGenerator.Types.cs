@@ -133,6 +133,7 @@ namespace Lokad.ILPack
                 ++methodRowCount;
             }
 
+            // Add the type definition
             var typeHandle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
                 _metadata.GetOrAddString(ApplyNameChange(type.Namespace)),
@@ -140,6 +141,15 @@ namespace Lokad.ILPack
                 baseTypeHandle,
                 MetadataTokens.FieldDefinitionHandle(offset.FieldIndex + 1),
                 MetadataTokens.MethodDefinitionHandle(offset.MethodIndex + 1));
+
+            // Add implemented interfaces (not for enums though - eg: IComparable etc...)
+            if (!type.IsEnum)
+            {
+                foreach (var itf in type.GetInterfaces())
+                {
+                    _metadata.Builder.AddInterfaceImplementation(typeHandle, _metadata.GetTypeHandle(itf));
+                }
+            }
 
             // Add immediately to support self referencing generics
             _metadata.ReserveTypeDefinition(type, typeHandle);

@@ -10,7 +10,14 @@ using System.Threading.Tasks;
 
 namespace TestSubject
 {
-    public class MyClass
+    public interface IMyItf
+    {
+        int InterfaceMethod1();
+        int InterfaceMethod2();
+    }
+
+
+    public class MyClass : IMyItf
     {
         public int ReadOnlyProperty
         {
@@ -99,6 +106,16 @@ namespace TestSubject
             T temp = x;
             x = y;
             y = temp;
+        }
+
+        int IMyItf.InterfaceMethod1()
+        {
+            return 1001;
+        }
+
+        public int InterfaceMethod2()
+        {
+            return 1002;
         }
 
         /*

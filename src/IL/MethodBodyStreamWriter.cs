@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
@@ -25,10 +26,10 @@ namespace Lokad.ILPack.IL
             }
 
             var localVariables = body.LocalVariables.ToArray();
-			var localEncoder = new BlobEncoder(new BlobBuilder()).LocalVariableSignature(localVariables.Length);
+            var localEncoder = new BlobEncoder(new BlobBuilder()).LocalVariableSignature(localVariables.Length);
             foreach (var l in localVariables)
             {
-                localEncoder.AddVariable().Type().FromSystemType(l.LocalType, _metadata); 
+                localEncoder.AddVariable().Type().FromSystemType(l.LocalType, _metadata);
             }
 
             var instructions = methodBase.GetInstructions();
@@ -39,11 +40,57 @@ namespace Lokad.ILPack.IL
             var localVariablesSignature = _metadata.AddStandAloneSignature(localEncoder.Builder);
             var hasDynamicStackAllocation = instructions.Any(x => x.OpCode == OpCodes.Localloc);
 
-            var offset = SerializeHeader(codeSize, maxStack, exceptionRegionCount, attributes, localVariablesSignature,
-                hasDynamicStackAllocation);
+            // Header
+            var offset = SerializeHeader(codeSize, maxStack, exceptionRegionCount, attributes, localVariablesSignature, hasDynamicStackAllocation);
 
+            // Instructions
             MethodBodyWriter.Write(_metadata, instructions);
+
+            // Exceptions
+            SerializeExceptionRegions(body);
+
             return offset;
+        }
+
+        private void SerializeExceptionRegions(MethodBody body)
+        {
+            // Get exception clauses, quit if none
+            var clauses = body.ExceptionHandlingClauses;
+            if (clauses.Count == 0)
+                return;
+
+            // Can we use a small exception table?
+            var useSmallTable = HasSmallExceptionRegions(body.ExceptionHandlingClauses);
+
+            // Align to 4 byte boundary
+            var exre = ExceptionRegionEncoder.SerializeTableHeader(_metadata.ILBuilder, clauses.Count, useSmallTable);
+            foreach (var ex in body.ExceptionHandlingClauses)
+            {
+                exre.Add((ExceptionRegionKind)ex.Flags, ex.TryOffset, ex.TryLength, ex.HandlerOffset, ex.HandlerLength,
+                    ex.Flags == ExceptionHandlingClauseOptions.Clause ? _metadata.GetTypeHandle(ex.CatchType) : default(EntityHandle),
+                    ex.Flags == ExceptionHandlingClauseOptions.Filter ? ex.FilterOffset : 0);
+            }
+        }
+
+        private bool HasSmallExceptionRegions(IList<ExceptionHandlingClause> clauses)
+        {
+            System.Diagnostics.Debug.Assert(clauses != null);
+ 
+            if (!ExceptionRegionEncoder.IsSmallRegionCount(clauses.Count))
+            {
+                return false;
+            }
+ 
+            foreach (var clause in clauses)
+            {
+                if (!ExceptionRegionEncoder.IsSmallExceptionRegion(clause.TryOffset, clause.TryLength) ||
+                    !ExceptionRegionEncoder.IsSmallExceptionRegion(clause.HandlerOffset, clause.HandlerLength))
+                {
+                    return false;
+                }
+            }
+ 
+            return true;
         }
 
         // Adapted from: https://github.com/dotnet/corefx/blob/772a2486f2dd29f3a0401427a26da23e845a6e59/src/System.Reflection.Metadata/src/System/Reflection/Metadata/Ecma335/Encoding/MethodBodyStreamEncoder.cs#L222-L272

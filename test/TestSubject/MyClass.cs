@@ -22,12 +22,12 @@ namespace TestSubject
         Pears = 150,
         Bananas = 200,
     }
+
     public struct MyStruct
     {
         public int x;
         public int y;
     }
-
 
     public class MyClass : IMyItf
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -34,22 +35,68 @@ namespace Lokad.ILPack
             }
         }
 
+        static void EncodeLiteral(LiteralEncoder litEnc, CustomAttributeTypedArgument arg)
+        {
+            if (arg.Value is Type type)
+            {
+                // Type reference
+                litEnc.Scalar().SystemType(type.FullName);
+            }
+            else if (arg.Value is ReadOnlyCollection<CustomAttributeTypedArgument> array)
+            {
+                // Array of values
+                var subLitEnc = litEnc.Vector().Count(array.Count);
+                foreach (var el in array)
+                {
+                    EncodeLiteral(subLitEnc.AddLiteral(), el);
+                }
+            }
+            else
+            {
+                // Check argument type supported (ie: simple scalar values)
+                PrimitiveTypeCodeFromSystemTypeCode(arg.Value.GetType());
+                litEnc.Scalar().Constant(arg.Value);
+            }
+        }
+
+        static void EncodeType(CustomAttributeElementTypeEncoder typeEnc, Type type)
+        {
+            if (type == typeof(Type))
+            {
+                typeEnc.SystemType();
+            }
+            else
+            {
+                // Work out the primitive type code
+                var primTypeCode = PrimitiveTypeCodeFromSystemTypeCode(type);
+                typeEnc.PrimitiveType(primTypeCode);
+            }
+        }
+
+        static void EncodeType(NamedArgumentTypeEncoder typeEnc, Type type)
+        {
+            if (type == typeof(Type))
+            {
+                typeEnc.ScalarType().SystemType();
+            }
+            else if (type.IsArray)
+            {
+                EncodeType(typeEnc.SZArray().ElementType(), type.GetElementType());
+            }
+            else
+            {
+                // Work out the primitive type code
+                var primTypeCode = PrimitiveTypeCodeFromSystemTypeCode(type);
+                typeEnc.ScalarType().PrimitiveType(primTypeCode);
+            }
+        }
+
         static void EncodeFixedAttributes(FixedArgumentsEncoder fa, CustomAttributeData attr)
         {
             var args = attr.ConstructorArguments;
             foreach (var a in args)
             {
-                // Add it
-                if (a.Value is Type type)
-                {
-                    fa.AddArgument().Scalar().SystemType(type.FullName);
-                }
-                else
-                {
-                    // Check argument type supported (ie: simple scalar values)
-                    PrimitiveTypeCodeFromSystemTypeCode(a.ArgumentType);
-                    fa.AddArgument().Scalar().Constant(a.Value);
-                }
+                EncodeLiteral(fa.AddArgument(), a);
             }
         }
 
@@ -61,28 +108,15 @@ namespace Lokad.ILPack
             {
                 // Encode it
                 enc.AddArgument(a.IsField, out var typeEnc, out var nameEnc, out var litEnc);
-
-
-                if (a.TypedValue.Value is Type type)
-                {
-                    typeEnc.ScalarType().SystemType();
-                    nameEnc.Name(a.MemberName);
-                    litEnc.Scalar().SystemType(type.FullName);
-                }
-                else
-                {
-                    // Work out the primitive type code
-                    var primTypeCode = PrimitiveTypeCodeFromSystemTypeCode(a.TypedValue.ArgumentType);
-                    typeEnc.ScalarType().PrimitiveType(primTypeCode);
-                    nameEnc.Name(a.MemberName);
-                    litEnc.Scalar().Constant(a.TypedValue.Value);
-                }
+                EncodeType(typeEnc, a.TypedValue.ArgumentType);
+                nameEnc.Name(a.MemberName);
+                EncodeLiteral(litEnc, a.TypedValue);
             }
         }
 
-        static PrimitiveSerializationTypeCode PrimitiveTypeCodeFromSystemTypeCode(Type sysType)
+        static PrimitiveSerializationTypeCode PrimitiveTypeCodeFromSystemTypeCode(Type type)
         {
-            switch (Type.GetTypeCode(sysType))
+            switch (Type.GetTypeCode(type))
             {
                 case TypeCode.Boolean: return PrimitiveSerializationTypeCode.Boolean;
                 case TypeCode.Char: return PrimitiveSerializationTypeCode.Char;
@@ -99,7 +133,7 @@ namespace Lokad.ILPack
                 case TypeCode.String: return PrimitiveSerializationTypeCode.String;
             }
 
-            throw new NotImplementedException($"Unsupported primitive type: {sysType}");
+            throw new NotImplementedException($"Unsupported primitive type: {type}");
         }
     }
 }

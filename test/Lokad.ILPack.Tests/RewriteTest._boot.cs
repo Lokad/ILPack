@@ -86,7 +86,7 @@ namespace Lokad.ILPack.Tests
                 .Create($"var x = new MyClass();", 
                         ScriptOptions.Default
                             .WithReferences(_assembly)
-                            .WithImports(_namespaceName)
+                            .WithImports(_namespaceName, "System.Reflection")
                         )
                 .ContinueWith(setup)
                 .ContinueWith(resultExpression);

@@ -17,7 +17,12 @@ namespace Lokad.ILPack
             var countParameters = parameters.Length;
             var retType = propertyInfo.PropertyType;
 
-            var blob = MetadataHelper.BuildSignature(x => x.PropertySignature()
+            // Work out if this is an instance property
+            var eitherAccessor = propertyInfo.GetGetMethod() ?? propertyInfo.GetSetMethod();
+            System.Diagnostics.Debug.Assert(eitherAccessor != null);
+            var isInstanceProperty = eitherAccessor.CallingConvention.HasFlag(CallingConventions.HasThis);
+
+            var blob = MetadataHelper.BuildSignature(x => x.PropertySignature(isInstanceProperty)
                 .Parameters(
                     countParameters,
                     r => r.FromSystemType(retType, _metadata),

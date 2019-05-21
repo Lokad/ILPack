@@ -53,7 +53,7 @@ namespace Lokad.ILPack
                 ctor.Attributes,
                 ctor.MethodImplementationFlags,
                 _metadata.GetOrAddString(ctor.Name),
-                _metadata.GetConstructorSignature(ctor),
+                _metadata.GetMethodOrConstructorSignature(ctor),
                 bodyOffset,
                 parameters);
 

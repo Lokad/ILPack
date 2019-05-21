@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Lokad.ILPack.Metadata;
 
@@ -133,13 +134,32 @@ namespace Lokad.ILPack
                 ++methodRowCount;
             }
 
+            // Add the type definition
             var typeHandle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
-                _metadata.GetOrAddString(ApplyNameChange(type.Namespace)),
+                type.DeclaringType == null ? _metadata.GetOrAddString(ApplyNameChange(type.Namespace)) : default(StringHandle),
                 _metadata.GetOrAddString(type.Name),
                 baseTypeHandle,
                 MetadataTokens.FieldDefinitionHandle(offset.FieldIndex + 1),
                 MetadataTokens.MethodDefinitionHandle(offset.MethodIndex + 1));
+
+            // Add implemented interfaces (not for enums though - eg: IComparable etc...)
+            if (!type.IsEnum)
+            {
+                foreach (var itf in type.GetInterfaces())
+                {
+                    _metadata.Builder.AddInterfaceImplementation(typeHandle, _metadata.GetTypeHandle(itf));
+                }
+            }
+
+            // Setup enclosing type
+            if (type.DeclaringType != null)
+            {
+                _metadata.Builder.AddNestedType(typeHandle, (TypeDefinitionHandle)_metadata.GetTypeHandle(type.DeclaringType));
+            }
+
+            // Create attributes
+            CreateCustomAttributes(typeHandle, type.GetCustomAttributesData());
 
             // Add immediately to support self referencing generics
             _metadata.ReserveTypeDefinition(type, typeHandle);

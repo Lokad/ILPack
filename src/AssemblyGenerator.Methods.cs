@@ -60,9 +60,36 @@ namespace Lokad.ILPack
                 method.Attributes,
                 method.MethodImplementationFlags,
                 _metadata.GetOrAddString(method.Name),
-                _metadata.GetMethodSignature(method),
+                _metadata.GetMethodOrConstructorSignature(method),
                 offset,
                 parameters);
+
+            // Explicit interface implementations need to be marked with method implementation
+            // (This is the equivalent of .Override in msil)
+            if (method.IsPrivate)
+            {
+                // Go through all the implemented interfaces and all their methods
+                // looking for methods that this method implements and mark accordingly.
+
+                // NB: This is not super efficient.  Should probably create a map somewhere
+                //     for faster lookup, but this will do for now.
+
+                var type = method.DeclaringType;
+                foreach (var itf in type.GetInterfaces())
+                {
+                    var itfMap = type.GetInterfaceMap(itf);
+                    for (int i = 0; i < itfMap.TargetMethods.Length; i++)
+                    {
+                        var m = itfMap.TargetMethods[i];
+                        if (m == method)
+                        {
+                            var itfImpl = itfMap.InterfaceMethods[i];
+                            _metadata.Builder.AddMethodImplementation((TypeDefinitionHandle)_metadata.GetTypeHandle(method.DeclaringType), handle, _metadata.GetMethodHandle(itfImpl));
+
+                        }
+                    }
+                }
+            }
 
             // Add generic parameters
             if (method.IsGenericMethodDefinition)
@@ -94,5 +121,6 @@ namespace Lokad.ILPack
                 CreateMethod(method);
             }
         }
+
     }
 }

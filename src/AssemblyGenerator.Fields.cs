@@ -23,6 +23,9 @@ namespace Lokad.ILPack
                 _metadata.GetOrAddString(field.Name),
                 _metadata.GetFieldSignature(field));
 
+            if (field.Attributes.HasFlag(FieldAttributes.Literal))
+                _metadata.Builder.AddConstant(handle, field.GetRawConstantValue());
+
             VerifyEmittedHandle(metadata, handle);
             metadata.MarkAsEmitted();
 

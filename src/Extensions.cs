@@ -148,12 +148,19 @@ namespace Lokad.ILPack
             {
                 var elementType = type.GetElementType();
 
-                typeEncoder.Array(
-                    x => x.FromSystemType(elementType, metadata),
-                    x => x.Shape(
-                        type.GetArrayRank(),
-                        ImmutableArray.Create<int>(),
-                        ImmutableArray.Create<int>()));
+                if (type.GetArrayRank() == 1)
+                {
+                    typeEncoder.SZArray().FromSystemType(elementType, metadata);
+                }
+                else
+                {
+                    typeEncoder.Array(
+                        x => x.FromSystemType(elementType, metadata),
+                        x => x.Shape(
+                            type.GetArrayRank(),
+                            ImmutableArray.Create<int>(),
+                            ImmutableArray.Create<int>()));
+                }
             }
             else if (type.IsGenericType)
             {
@@ -161,7 +168,7 @@ namespace Lokad.ILPack
                 var typeHandler = metadata.GetTypeHandle(genericTypeDef);
                 var genericArguments = type.GetGenericArguments();
 
-                var inst = typeEncoder.GenericInstantiation(typeHandler, genericArguments.Length, false);
+                var inst = typeEncoder.GenericInstantiation(typeHandler, genericArguments.Length, type.IsValueType);
                 foreach (var ga in genericArguments)
                 {
                     if (ga.IsGenericParameter)

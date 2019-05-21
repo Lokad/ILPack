@@ -310,7 +310,16 @@ namespace Lokad.ILPack.Tests
             Assert.Equal(9, await Invoke(
                 $"var r = new {_namespaceName}.MyClass.NestedClass().Method();",
                 "r"
-                ));
+            ));
+        }
+
+        [Fact]
+        public async void Indexer()
+        {
+            Assert.Equal(10, await Invoke(
+                $"x[1] = 10; var r = x[1];",
+            "r"
+            ));
         }
 
         /*

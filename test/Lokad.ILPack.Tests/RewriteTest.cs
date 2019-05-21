@@ -288,6 +288,14 @@ namespace Lokad.ILPack.Tests
                 "r"));
         }
 
+        public async void BasicEnumTest()
+        {
+            Assert.Equal(150, await Invoke(
+                $"int r = (int)MyEnum.Pears;",
+                "r"
+                ));
+        }
+
         /*
         [Fact]
         public async void AsyncMethod()

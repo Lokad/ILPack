@@ -16,6 +16,12 @@ namespace TestSubject
         int InterfaceMethod2();
     }
 
+    public enum MyEnum
+    {
+        Apples = 100,
+        Pears = 150,
+        Bananas = 200,
+    }
 
     public class MyClass : IMyItf
     {

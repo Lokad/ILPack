@@ -28,5 +28,31 @@ namespace Lokad.ILPack.Tests
             Assert.Equal(titleOriginal.Title, titleClone.Title);
         }
 
+        [Fact]
+        public async void AttributePlacedArrayValues()
+        {
+            Assert.Equal(new int[] { 10, 20, 30 } , await Invoke(
+                $"var attr = typeof({_namespaceName}.MyClass).GetMethod(\"AttributeArrayTest\").GetCustomAttribute<MyAttribute>();",
+                "attr.Values"
+                ));
+        }
+
+        [Fact]
+        public async void AttributeNamedValue()
+        {
+            Assert.Equal("ILPack", await Invoke(
+                $"var attr = typeof({_namespaceName}.MyClass).GetMethod(\"AttributeArrayTest\").GetCustomAttribute<MyAttribute>();",
+                "attr.Named"
+                ));
+        }
+
+        [Fact]
+        public async void AttributeNamedArrayValues()
+        {
+            Assert.Equal(new int[] { 40, 50, 60 }, await Invoke(
+                $"var attr = typeof({_namespaceName}.MyClass).GetMethod(\"AttributeArrayTest\").GetCustomAttribute<MyAttribute>();",
+                "attr.NamedArray"
+                ));
+        }
     }
 }

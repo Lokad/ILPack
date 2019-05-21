@@ -7,9 +7,9 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        private readonly BindingFlags AllEvents =
+        private const BindingFlags AllEvents =
             BindingFlags.NonPublic | BindingFlags.Public |
-            BindingFlags.Instance | BindingFlags.Static;
+            BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
         private void CreateEvent(EventInfo ev, bool addToEventMap)
         {

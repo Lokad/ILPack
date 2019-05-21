@@ -7,9 +7,9 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        private readonly BindingFlags AllProperties =
+        private const BindingFlags AllProperties =
             BindingFlags.NonPublic | BindingFlags.Public |
-            BindingFlags.Instance | BindingFlags.Static;
+            BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
         private BlobHandle GetPropertySignature(PropertyInfo propertyInfo)
         {

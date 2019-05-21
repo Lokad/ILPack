@@ -15,52 +15,48 @@ namespace Lokad.ILPack.Metadata
 
             if (IsReferencedType(ctor.DeclaringType))
             {
-                // Make sure type reference and all public constructors are resolved
-                ResolveTypeReference(ctor.DeclaringType);
-
-                if (_ctorRefHandles.TryGetValue(ctor, out var handle))
-                {
-                    return handle;
-                }
+                return ResolveConstructorReference(ctor);
             }
 
             throw new ArgumentException($"Constructor cannot be found: {MetadataHelper.GetFriendlyName(ctor)}",
                 nameof(ctor));
         }
 
-        internal BlobHandle GetConstructorSignature(ConstructorInfo constructorInfo)
+        private EntityHandle ResolveConstructorReference(ConstructorInfo method)
         {
-            var parameters = constructorInfo.GetParameters();
-            var countParameters = parameters.Length;
+            if (!IsReferencedType(method.DeclaringType))
+            {
+                throw new ArgumentException(
+                    $"Method of a reference type is expected: {MetadataHelper.GetFriendlyName(method)}",
+                    nameof(method));
+            }
 
-            var blob = MetadataHelper.BuildSignature(x => x.MethodSignature(
-                    MetadataHelper.ConvertCallingConvention(constructorInfo.CallingConvention),
-                    isInstanceMethod: !constructorInfo.IsStatic)
-                .Parameters(
-                    countParameters,
-                    r => r.Void(),
-                    p =>
-                    {
-                        foreach (var par in parameters)
-                        {
-                            var parEncoder = p.AddParameter();
-                            parEncoder.Type().FromSystemType(par.ParameterType, this);
-                        }
-                    }));
-            return GetOrAddBlob(blob);
-        }
+            // Already created?
+            if (_ctorRefHandles.TryGetValue(method, out var handle))
+            {
+                return handle;
+            }
 
-        public MethodBaseDefinitionMetadata ReserveConstructorDefinition(ConstructorInfo ctor,
-            MethodDefinitionHandle handle)
-        {
-            var metadata = new MethodBaseDefinitionMetadata(ctor, handle);
-            _ctorDefHandles.Add(ctor, metadata);
-            return metadata;
+            var typeRef = ResolveTypeReference(method.DeclaringType);
+            var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(method.Name), GetMethodOrConstructorSignature(method));
+            _ctorRefHandles.Add(method, methodRef);
+            return methodRef;
         }
 
         public bool TryGetConstructorDefinition(ConstructorInfo ctor, out MethodBaseDefinitionMetadata metadata)
         {
             return _ctorDefHandles.TryGetValue(ctor, out metadata);
         }
-    }
+
+        public MethodBaseDefinitionMetadata ReserveConstructorDefinition(ConstructorInfo ctor, MethodDefinitionHandle handle)
+        {
+            var metadata = new MethodBaseDefinitionMetadata(ctor, handle);
+            _ctorDefHandles.Add(ctor, metadata);
+            return metadata;
+        }
+
+     }
 }
+
+
+

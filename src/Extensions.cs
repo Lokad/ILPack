@@ -168,7 +168,7 @@ namespace Lokad.ILPack
                 var typeHandler = metadata.GetTypeHandle(genericTypeDef);
                 var genericArguments = type.GetGenericArguments();
 
-                var inst = typeEncoder.GenericInstantiation(typeHandler, genericArguments.Length, false);
+                var inst = typeEncoder.GenericInstantiation(typeHandler, genericArguments.Length, type.IsValueType);
                 foreach (var ga in genericArguments)
                 {
                     if (ga.IsGenericParameter)

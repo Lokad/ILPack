@@ -261,6 +261,15 @@ namespace Lokad.ILPack.Tests
                 "(a,b)"));
         }
 
+        [Fact]
+        public async void Indexer()
+        {
+            Assert.Equal(10, await Invoke(
+                $"x[1] = 10; var r = x[1];",
+                "r"
+                ));
+        }
+
         /*
         [Fact]
         public async void AsyncMethod()

@@ -108,5 +108,12 @@ namespace TestSubject
             return x + y;
         }
         */
+
+        int[] _array = new int[10];
+        public int this[int index]
+        {
+            get => _array[index];
+            set => _array[index] = value;
+        }
     }
 }

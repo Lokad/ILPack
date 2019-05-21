@@ -59,14 +59,6 @@ namespace Lokad.ILPack.Metadata
 
             _typeRefHandles.Add(type, typeHandle);
 
-            // Create all public constructor references
-            foreach (var ctor in type.GetConstructors())
-            {
-                var signature = GetConstructorSignature(ctor);
-                var ctorRef = Builder.AddMemberReference(typeHandle, GetOrAddString(ctor.Name), signature);
-                _ctorRefHandles.Add(ctor, ctorRef);
-            }
-
             return typeHandle;
         }
 

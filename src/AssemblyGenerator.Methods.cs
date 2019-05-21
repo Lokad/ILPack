@@ -34,7 +34,7 @@ namespace Lokad.ILPack
                 offset = methodBodyWriter.AddMethodBody(method);
             }
 
-            var signature = _metadata.GetMethodSignature(method);
+            var signature = _metadata.GetMethodOrConstructorSignature(method);
             var parameters = CreateParameters(method.GetParameters());
 
             var handle = _metadata.Builder.AddMethodDefinition(

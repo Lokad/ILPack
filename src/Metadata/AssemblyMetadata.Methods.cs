@@ -24,9 +24,14 @@ namespace Lokad.ILPack.Metadata
                 nameof(method));
         }
 
-        public BlobHandle GetMethodSignature(MethodInfo methodInfo)
+        public BlobHandle GetMethodOrConstructorSignature(MethodBase methodBase)
         {
-            if (methodInfo.DeclaringType.IsConstructedGenericType)
+            // Method or Constructor? (must be one or the other)
+            var mi = methodBase as MethodInfo;
+            var ci = methodBase as ConstructorInfo;
+            System.Diagnostics.Debug.Assert(mi != null || ci != null);
+
+            if (methodBase.DeclaringType.IsConstructedGenericType)
             {
                 // When calling methods on constructed generic types, the type is the constructed 
                 // type name, but the method info is the method from the open type definition. eg:
@@ -52,26 +57,39 @@ namespace Lokad.ILPack.Metadata
                 // method with the same token.
                 //
                 // TODO: What about generic method definitions in a generic type???
-                System.Diagnostics.Debug.Assert(!methodInfo.IsGenericMethod);
+                System.Diagnostics.Debug.Assert(!methodBase.IsGenericMethod);
 
-                var definition = methodInfo.DeclaringType.GetGenericTypeDefinition();
-                methodInfo = definition.GetMethods().Single(x => x.MetadataToken == methodInfo.MetadataToken);
+                var definition = methodBase.DeclaringType.GetGenericTypeDefinition();
+                if (mi != null)
+                    methodBase = definition.GetMethods().Single(x => x.MetadataToken == methodBase.MetadataToken);
+                else
+                    methodBase = definition.GetConstructors().Single(x => x.MetadataToken == methodBase.MetadataToken);
             }
 
             // Get parameters
-            var parameters = methodInfo.GetParameters();
+            var parameters = methodBase.GetParameters();
 
             // Create method signature encoder
             var enc = new BlobEncoder(new BlobBuilder())
                 .MethodSignature(
-                    MetadataHelper.ConvertCallingConvention(methodInfo.CallingConvention),
-                    genericParameterCount: methodInfo.GetGenericArguments().Length,
-                    isInstanceMethod: !methodInfo.IsStatic);
+                    MetadataHelper.ConvertCallingConvention(methodBase.CallingConvention),
+                    genericParameterCount: mi == null ? 0 : mi.GetGenericArguments().Length,
+                    isInstanceMethod: !methodBase.IsStatic);
 
             // Add return type and parameters
             enc.Parameters(
                     parameters.Length,
-                    (retEnc) => retEnc.FromSystemType(methodInfo.ReturnType, this),
+                    (retEnc) =>
+                    {
+                        if (mi != null)
+                        {
+                            retEnc.FromSystemType(mi.ReturnType, this);
+                        }
+                        else
+                        {
+                            retEnc.Void();
+                        }
+                    },
                     (parEnc) =>
                     {
                         foreach (var par in parameters)
@@ -136,7 +154,7 @@ namespace Lokad.ILPack.Metadata
 
                 var typeRef = ResolveTypeReference(method.DeclaringType);
                 var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(method.Name),
-                    GetMethodSignature(method));
+                    GetMethodOrConstructorSignature(method));
                 _methodRefHandles.Add(method, methodRef);
                 return methodRef;
             }

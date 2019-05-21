@@ -9,6 +9,17 @@ namespace Lokad.ILPack.IL
 {
     internal static class MethodBodyWriter
     {
+        private static int GetParameterPosition(ParameterInfo parameterInfo)
+        {
+            var method = parameterInfo.Member as MethodBase;
+            if (method == null)
+            {
+                throw new ArgumentException("Declaring constructor or method cannot be null.", nameof(parameterInfo));
+            }
+
+            return parameterInfo.Position + (method.IsStatic ? 0 : 1);
+        }
+
         public static void Write(IAssemblyMetadata metadata, IReadOnlyList<Instruction> il)
         {
             for (var i = 0; i < il.Count; i++)
@@ -122,7 +133,7 @@ namespace Lokad.ILPack.IL
                         }
                         else if (bParameterInfo != null)
                         {
-                            metadata.ILBuilder.WriteByte((byte) bParameterInfo.Position);
+                            metadata.ILBuilder.WriteByte((byte) GetParameterPosition(bParameterInfo));
                         }
                         else
                         {
@@ -141,7 +152,7 @@ namespace Lokad.ILPack.IL
                         }
                         else if (sParameterInfo != null)
                         {
-                            metadata.ILBuilder.WriteUInt16((ushort) sParameterInfo.Position);
+                            metadata.ILBuilder.WriteUInt16((ushort) GetParameterPosition(sParameterInfo));
                         }
                         else
                         {

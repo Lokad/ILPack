@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Xunit;
 
 
@@ -32,5 +33,20 @@ namespace Lokad.ILPack.Tests
                 "r"));
         }
 
+        [Fact]
+        public async void AnotherMethodWithDifferentParameterTypes7()
+        {
+            Assert.Equal(CancellationToken.None, await Invoke(
+                "var r = x.AnotherMethodWithDifferentParameterTypes7(false, 1.0f, 2, 3, 4, new object(), System.Threading.CancellationToken.None);",
+                "r"));
+
+            Assert.Equal(9, await Invoke(
+                "var r = x.AnotherMethodWithDifferentParameterTypes7(true, 1.0f, 2, 3, 4, null, System.Threading.CancellationToken.None);",
+                "r"));
+
+            Assert.Equal(10, await Invoke(
+                "var r = x.AnotherMethodWithDifferentParameterTypes7(true, 1.0f, 2, 3, 4, new object(), System.Threading.CancellationToken.None);",
+                "r"));
+        }
     }
 }

@@ -46,8 +46,6 @@ namespace Lokad.ILPack
             // If body exists, we write it in IL body stream
             if (body != null && !method.IsAbstract)
             {
-                offset = _metadata.ILBuilder.Count; // take an offset
-
                 var methodBodyWriter = new MethodBodyStreamWriter(_metadata);
 
                 // offset can be aligned during serialization. So, override the correct offset.

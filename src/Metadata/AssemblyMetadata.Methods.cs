@@ -83,7 +83,7 @@ namespace Lokad.ILPack.Metadata
                     {
                         if (mi != null)
                         {
-                            retEnc.FromSystemType(mi.ReturnType, this);
+                            retEnc.FromSystemType(((MethodInfo)methodBase).ReturnType, this);
                         }
                         else
                         {

@@ -55,5 +55,85 @@ namespace Lokad.ILPack.Tests
                 "r"
                 ));
         }
-    }
+
+        [Fact]
+        public async void MethodWithJaggedArray()
+        {
+            Assert.Equal(36, await Invoke(
+                @"
+                    var array = new int[][]
+                    {
+                        new int[] { 1, 2, 3, 4, 5, },
+                        new int[] { 10, 11 },
+                    };
+                    var r = x.MethodWithJaggedArray(array);",
+                "r"
+                ));
+        }
+
+        [Fact]
+        public async void MethodReturningJaggedArray()
+        {
+            var expected = new int[][]
+            {
+                new int[] { 1, 2, 3, 4, 5, },
+                new int[] { 10, 11 },
+            };
+            Assert.Equal(expected, await Invoke(
+                @"var r = x.MethodReturningJaggedArray();",
+                "r"
+                ));
+        }
+
+        [Fact]
+        public async void MethodWithSZArrayOfUserType()
+        {
+            Assert.Equal(21, await Invoke(
+                @"
+                    var array = new MyStruct[]
+                    {
+                        new MyStruct(1, 2),
+                        new MyStruct(3, 4),
+                        new MyStruct(5, 6),
+                    };
+                    var r = x.MethodWithSZArrayOfUserType(array);",
+                "r"
+                ));
+        }
+
+        [Fact]
+        public async void MethodReturningSZArrayOfUserType()
+        {
+            Assert.Equal((3,4), await Invoke(
+                @"
+                var r = x.MethodReturningSZArrayOfUserType();",
+                "(r[1].x, r[1].y)"
+                ));
+        }
+
+
+        [Fact]
+        public async void MethodWithMultiDimArrayOfUserType()
+        {
+            Assert.Equal(36, await Invoke(
+                @"
+                    var array = new MyStruct[,]
+                    {
+                        { new MyStruct(1, 2), new MyStruct(3, 4), },
+                        { new MyStruct(5, 6), new MyStruct(7, 8), }
+                    };
+                    var r = x.MethodWithMultiDimArrayOfUserType(array);",
+                "r"
+                ));
+        }
+
+        [Fact]
+        public async void MethodReturningMultiArrayOfUserType()
+        {
+            Assert.Equal((3,4), await Invoke(
+                @"
+                var r = x.MethodReturningMultiDimArrayOfUserType();",
+                "(r[0,1].x, r[0,1].y)"
+                ));
+        }    }
 }

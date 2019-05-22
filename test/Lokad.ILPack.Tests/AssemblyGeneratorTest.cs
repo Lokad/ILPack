@@ -104,7 +104,7 @@ namespace Lokad.ILPack.Tests
             return propertyBuilder;
         }
 
-        private void SerializeGenericsLibrary(string fileName)
+        private static void SerializeGenericsLibrary(string fileName)
         {
             // Define assembly and module
             var assemblyName = new AssemblyName {Name = "GenericsAssembly"};
@@ -624,6 +624,55 @@ namespace Lokad.ILPack.Tests
             Assert.True(locals[1].LocalIndex == 1 && locals[1].LocalType == typeof(int).MakeByRefType());
 
             Assert.Equal(value * 2, subLocalByRef());
+        }
+
+        private static bool IsTinyMethod(MethodBase methodBase, bool hasDynamicStackAllocation = false)
+        {
+            var body = methodBase?.GetMethodBody() ?? throw new ArgumentNullException(nameof(methodBase));
+
+            return body.GetILAsByteArray().Length < 64 && body.MaxStackSize <= 8 &&
+                body.LocalSignatureMetadataToken == 0 && (!hasDynamicStackAllocation || !body.InitLocals) &&
+                body.ExceptionHandlingClauses.Count == 0;
+        }
+
+        [Fact]
+        public void TestIsTiny()
+        {
+            /* SAVE */
+            var assemblyBldr = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("AsmIsTiny"), AssemblyBuilderAccess.Run);
+            var moduleBldr = assemblyBldr.DefineDynamicModule("ModIsTiny");
+
+            var typeBldr = moduleBldr.DefineType("Ns.ClassIsTiny", TypeAttributes.Public);
+
+            var parameterTypes = new Type[] { typeof(int), typeof(int) };
+            var returnType = typeof(int);
+            var methodBldr = typeBldr.DefineMethod("SubIsTiny", MethodAttributes.Public | MethodAttributes.Static, returnType, parameterTypes);
+
+            methodBldr.DefineParameter(1, ParameterAttributes.None, null);
+            methodBldr.DefineParameter(2, ParameterAttributes.None, null);
+
+            var ilGen = methodBldr.GetILGenerator();
+
+            ilGen.Emit(OpCodes.Ldarg_0);
+            ilGen.Emit(OpCodes.Ldarg_1);
+            ilGen.Emit(OpCodes.Xor);
+            ilGen.Emit(OpCodes.Ret);
+
+            typeBldr.CreateType();
+
+            SerializeAssembly(assemblyBldr, "TestIsTiny.dll");
+
+            /* LOAD */
+            var assembly = LoadAssembly("TestIsTiny.dll");
+
+            var type = assembly.GetType("Ns.ClassIsTiny");
+
+            var methodInfo = type.GetMethod("SubIsTiny", BindingFlags.Static | BindingFlags.Public);
+            var constructorInfo = type.GetConstructor(Type.EmptyTypes); // Default constructor.
+
+            /* TESTS */
+            Assert.True(IsTinyMethod(methodInfo));
+            Assert.True(IsTinyMethod(constructorInfo));
         }
     }
 }

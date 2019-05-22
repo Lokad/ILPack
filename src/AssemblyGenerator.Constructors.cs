@@ -26,14 +26,7 @@ namespace Lokad.ILPack
                 localVariablesSignature = _metadata.Builder.AddStandaloneSignature(_metadata.GetOrAddBlob(
                     MetadataHelper.BuildSignature(x =>
                     {
-                        var sig = x.LocalVariableSignature(body.LocalVariables.Count);
-                        foreach (var vrb in body.LocalVariables)
-                        {
-                            sig.AddVariable().Type(
-                                    vrb.LocalType.IsByRef,
-                                    vrb.IsPinned)
-                                .FromSystemType(vrb.LocalType, _metadata);
-                        }
+                        x.LocalVariableSignature(body.LocalVariables.Count).AddRange(body.LocalVariables, _metadata);
                     })));
             }
 

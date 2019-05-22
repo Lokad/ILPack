@@ -22,24 +22,24 @@ namespace Lokad.ILPack.Metadata
                 nameof(ctor));
         }
 
-        private EntityHandle ResolveConstructorReference(ConstructorInfo method)
+        private EntityHandle ResolveConstructorReference(ConstructorInfo ctor)
         {
-            if (!IsReferencedType(method.DeclaringType))
+            if (!IsReferencedType(ctor.DeclaringType))
             {
                 throw new ArgumentException(
-                    $"Method of a reference type is expected: {MetadataHelper.GetFriendlyName(method)}",
-                    nameof(method));
+                    $"Method of a reference type is expected: {MetadataHelper.GetFriendlyName(ctor)}",
+                    nameof(ctor));
             }
 
             // Already created?
-            if (_ctorRefHandles.TryGetValue(method, out var handle))
+            if (_ctorRefHandles.TryGetValue(ctor, out var handle))
             {
                 return handle;
             }
 
-            var typeRef = ResolveTypeReference(method.DeclaringType);
-            var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(method.Name), GetMethodOrConstructorSignature(method));
-            _ctorRefHandles.Add(method, methodRef);
+            var typeRef = ResolveTypeReference(ctor.DeclaringType);
+            var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(ctor.Name), GetMethodOrConstructorSignature(ctor));
+            _ctorRefHandles.Add(ctor, methodRef);
             return methodRef;
         }
 

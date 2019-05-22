@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Lokad.ILPack.Metadata;
@@ -109,22 +112,55 @@ namespace Lokad.ILPack
             {
                 typeEncoder.Void();
             }
+            else if (type.IsByRef)
+            {
+                typeEncoder.Type(true).FromSystemType(type.GetElementType(), metadata);
+            }
             else
             {
-                typeEncoder.Type().FromSystemType(type, metadata);
+                typeEncoder.Type(false).FromSystemType(type, metadata);
             }
         }
+
+        // Add a range of local variables to a local signature encoder
+        internal static void AddRange(this LocalVariablesEncoder sig, IEnumerable<LocalVariableInfo> localVariables, IAssemblyMetadata metadata)
+        {
+            foreach (var v in localVariables)
+            {
+                Add(sig, v, metadata);
+            }
+        }
+
+        // Add a local variable to a local variable signature encoder
+        internal static void Add(this LocalVariablesEncoder sig, LocalVariableInfo localVariableInfo, IAssemblyMetadata metadata)
+        {
+            if (localVariableInfo.LocalType.IsByRef)
+            {
+                sig.AddVariable().Type(
+                        true,
+                        localVariableInfo.IsPinned)
+                    .FromSystemType(localVariableInfo.LocalType.GetElementType(), metadata);
+            }
+            else
+            {
+                sig.AddVariable().Type(
+                        false,
+                        localVariableInfo.IsPinned)
+                    .FromSystemType(localVariableInfo.LocalType, metadata);
+            }
+        }
+
 
         internal static void FromSystemType(this SignatureTypeEncoder typeEncoder, Type type,
             IAssemblyMetadata metadata)
         {
-            if (type.IsByRef && type.GetElementType().IsPrimitive)
+            if (type.IsByRef)
             {
-                typeEncoder.PrimitiveType(GetPrimitiveTypeCode(type.GetElementType()));
+                throw new ArgumentException("ByRef types should be handled by parameter encoder or return type encoder");
             }
-            else if (type.IsPointer && type.GetElementType().IsPrimitive)
+            else if (type.IsPointer)
             {
-                typeEncoder.Pointer().PrimitiveType(GetPrimitiveTypeCode(type.GetElementType()));
+                typeEncoder.Pointer().FromSystemType(type.GetElementType(), metadata);
             }
             else if (type.IsPrimitive)
             {
@@ -159,7 +195,8 @@ namespace Lokad.ILPack
                         x => x.Shape(
                             type.GetArrayRank(),
                             ImmutableArray.Create<int>(),
-                            ImmutableArray.Create<int>()));
+                            ImmutableArray.CreateRange<int>(Enumerable.Repeat(0, type.GetArrayRank())) // better matches metadata from C#
+                            ));
                 }
             }
             else if (type.IsGenericType)

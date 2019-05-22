@@ -33,6 +33,10 @@ namespace Lokad.ILPack.Metadata
 
         public bool IsReferencedType(Type type)
         {
+            // Arrays are always referenced types
+            if (type.IsArray)
+                return true;
+
             // todo, also maybe in Module, ModuleRef, AssemblyRef and TypeRef
             // ECMA-335 page 273-274
             return type.Assembly != SourceAssembly;

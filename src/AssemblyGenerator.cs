@@ -38,6 +38,11 @@ namespace Lokad.ILPack
         // Apply name changes to assembly and namespace names
         internal string ApplyNameChange(string str)
         {
+            // Types can have a null namespace. eg: some compiler generated classes like C#'s  
+            // "<PrivateImplementationDetails>" used for static array initializers
+            if (str == null)
+                return null;
+
             if (_oldName == null)
                 return str;
             else

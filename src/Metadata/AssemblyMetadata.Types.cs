@@ -13,6 +13,11 @@ namespace Lokad.ILPack.Metadata
                 return metadata.Handle;
             }
 
+            if (type.IsArray)
+            {
+                return ResolveArrayTypeSpec(type);
+            }
+
             if (IsGenericTypeSpec(type))
             {
                 return ResolveGenericTypeSpec(type);
@@ -35,6 +40,11 @@ namespace Lokad.ILPack.Metadata
 
         private EntityHandle ResolveTypeReference(Type type)
         {
+            if (type.IsArray)
+            {
+                return ResolveArrayTypeSpec(type);
+            }
+
             if (IsGenericTypeSpec(type))
             {
                 return ResolveGenericTypeSpec(type);
@@ -67,6 +77,30 @@ namespace Lokad.ILPack.Metadata
         {
             return type.IsGenericMethodParameter || type.IsGenericParameter || (type.IsGenericType && !type.IsGenericTypeDefinition);
         }
+
+        private EntityHandle ResolveArrayTypeSpec(Type type)
+        {
+            if (!type.IsArray)
+            {
+                throw new ArgumentException($"Array type is expected: {MetadataHelper.GetFriendlyName(type)}",
+                    nameof(type));
+            }
+
+            if (_typeSpecHandles.TryGetValue(type, out var typeSpec))
+            {
+                return typeSpec;
+            }
+
+            var typeSpecEncoder = new BlobEncoder(new BlobBuilder()).TypeSpecificationSignature();
+
+            typeSpecEncoder.FromSystemType(type, this);
+
+            var typeSpecHandle = Builder.AddTypeSpecification(GetOrAddBlob(typeSpecEncoder.Builder));
+            _typeSpecHandles.Add(type, typeSpecHandle);
+
+            return typeSpecHandle;
+        }
+
 
         private EntityHandle ResolveGenericTypeSpec(Type type)
         {

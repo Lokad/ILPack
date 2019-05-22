@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Scripting;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace Lokad.ILPack.Tests
 {

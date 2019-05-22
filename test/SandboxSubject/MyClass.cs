@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace SandboxSubject
+﻿namespace SandboxSubject
 {
     public class MyClass
     {

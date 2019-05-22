@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Xunit;
-
-
-namespace Lokad.ILPack.Tests
+﻿namespace Lokad.ILPack.Tests
 {
     partial class RewriteTest
     {

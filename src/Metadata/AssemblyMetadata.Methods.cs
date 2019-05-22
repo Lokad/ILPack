@@ -27,9 +27,7 @@ namespace Lokad.ILPack.Metadata
         public BlobHandle GetMethodOrConstructorSignature(MethodBase methodBase)
         {
             // Method or Constructor? (must be one or the other)
-            var mi = methodBase as MethodInfo;
-            var ci = methodBase as ConstructorInfo;
-            System.Diagnostics.Debug.Assert(mi != null || ci != null);
+            System.Diagnostics.Debug.Assert(methodBase is MethodInfo || methodBase is ConstructorInfo);
 
             if (methodBase.DeclaringType.IsConstructedGenericType)
             {
@@ -60,7 +58,7 @@ namespace Lokad.ILPack.Metadata
                 System.Diagnostics.Debug.Assert(!methodBase.IsGenericMethod);
 
                 var definition = methodBase.DeclaringType.GetGenericTypeDefinition();
-                if (mi != null)
+                if (methodBase is MethodInfo)
                     methodBase = definition.GetMethods().Single(x => x.MetadataToken == methodBase.MetadataToken);
                 else
                     methodBase = definition.GetConstructors().Single(x => x.MetadataToken == methodBase.MetadataToken);
@@ -73,7 +71,7 @@ namespace Lokad.ILPack.Metadata
             var enc = new BlobEncoder(new BlobBuilder())
                 .MethodSignature(
                     MetadataHelper.ConvertCallingConvention(methodBase.CallingConvention),
-                    genericParameterCount: mi == null ? 0 : mi.GetGenericArguments().Length,
+                    genericParameterCount: (methodBase is MethodInfo) ? ((MethodInfo)methodBase).GetGenericArguments().Length : 0,
                     isInstanceMethod: !methodBase.IsStatic);
 
             // Add return type and parameters
@@ -81,7 +79,7 @@ namespace Lokad.ILPack.Metadata
                     parameters.Length,
                     (retEnc) =>
                     {
-                        if (mi != null)
+                        if (methodBase is MethodInfo)
                         {
                             retEnc.FromSystemType(((MethodInfo)methodBase).ReturnType, this);
                         }

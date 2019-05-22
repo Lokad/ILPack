@@ -5,11 +5,9 @@ namespace SandboxSubject
 {
     public class MyClass
     {
-
-        public async Task<int> AsyncMethod(int x, int y)
+        public int Test()
         {
-            await Task.Delay(100);
-            return x + y;
+            return 1;
         }
     }
 }

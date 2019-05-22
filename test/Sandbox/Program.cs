@@ -62,11 +62,11 @@ namespace Sandbox
         }
 
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             try
             {
-                new Program().Run();
+                await new Program().Run();
             }
             catch (Exception x)
             {
@@ -76,7 +76,7 @@ namespace Sandbox
             }
         }
 
-        async void Run()
+        async Task Run()
         {
             // Get the original assembly
             _asmOriginal = typeof(SandboxSubject.MyClass).Assembly;
@@ -115,8 +115,9 @@ namespace Sandbox
             // Invoke the cloned assembly...
 
             var result = await Invoke(
-                $"int r = await x.AsyncMethod(30, 30);",
-                "r");
+                $"var r = x.Test();",
+                "r"
+                );
 
             Console.WriteLine(result);
         }

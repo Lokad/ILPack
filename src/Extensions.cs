@@ -118,7 +118,11 @@ namespace Lokad.ILPack
         internal static void FromSystemType(this SignatureTypeEncoder typeEncoder, Type type,
             IAssemblyMetadata metadata)
         {
-            if (type.IsPointer && type.GetElementType().IsPrimitive)
+            if (type.IsByRef && type.GetElementType().IsPrimitive)
+            {
+                typeEncoder.PrimitiveType(GetPrimitiveTypeCode(type.GetElementType()));
+            }
+            else if (type.IsPointer && type.GetElementType().IsPrimitive)
             {
                 typeEncoder.Pointer().PrimitiveType(GetPrimitiveTypeCode(type.GetElementType()));
             }
@@ -157,10 +161,6 @@ namespace Lokad.ILPack
                             ImmutableArray.Create<int>(),
                             ImmutableArray.Create<int>()));
                 }
-            }
-            else if (type.IsByRef)
-            {
-                throw new InvalidOperationException("ByRef types not allowed in SignatureType encoder (should be handled in calling ParameterEncoder)");
             }
             else if (type.IsGenericType)
             {

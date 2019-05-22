@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Lokad.ILPack.IL;
+using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
 {
@@ -15,17 +17,37 @@ namespace Lokad.ILPack
 
             EnsureMetadataWasNotEmitted(metadata, ctor);
 
-            var parameters = CreateParameters(ctor.GetParameters());
+            var body = ctor.GetMethodBody();
+
+            var localVariablesSignature = default(StandaloneSignatureHandle);
+
+            if (body != null && body.LocalVariables.Count > 0)
+            {
+                localVariablesSignature = _metadata.Builder.AddStandaloneSignature(_metadata.GetOrAddBlob(
+                    MetadataHelper.BuildSignature(x =>
+                    {
+                        var sig = x.LocalVariableSignature(body.LocalVariables.Count);
+                        foreach (var vrb in body.LocalVariables)
+                        {
+                            sig.AddVariable().Type(
+                                    vrb.LocalType.IsByRef,
+                                    vrb.IsPinned)
+                                .FromSystemType(vrb.LocalType, _metadata);
+                        }
+                    })));
+            }
+
             var bodyOffset = _metadata.ILBuilder.Count;
 
-            var body = ctor.GetMethodBody();
             if (body != null)
             {
                 var methodBodyWriter = new MethodBodyStreamWriter(_metadata);
 
                 // bodyOffset can be aligned during serialization. So, override the correct offset.
-                bodyOffset = methodBodyWriter.AddMethodBody(ctor);
+                bodyOffset = methodBodyWriter.AddMethodBody(ctor, localVariablesSignature);
             }
+
+            var parameters = CreateParameters(ctor.GetParameters());
 
             var handle = _metadata.Builder.AddMethodDefinition(
                 ctor.Attributes,

@@ -71,12 +71,6 @@ namespace Lokad.ILPack.Metadata
             return Builder.GetOrAddGuid(value);
         }
 
-        public StandaloneSignatureHandle AddStandAloneSignature(BlobBuilder blobBuilder)
-        {
-            return Builder.AddStandaloneSignature(GetOrAddBlob(blobBuilder));
-        }
-        
-
         public StringHandle GetOrAddString(string value)
         {
             return value != null ? Builder.GetOrAddString(value) : default;

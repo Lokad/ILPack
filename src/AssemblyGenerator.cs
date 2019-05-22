@@ -110,6 +110,7 @@ namespace Lokad.ILPack
                 header,
                 metadataRootBuilder,
                 _metadata.ILBuilder,
+                mappedFieldData: _metadata.MappedFieldDataBuilder,
                 debugDirectoryBuilder: _debugDirectoryBuilder,
                 entryPoint: entryPoint);
 

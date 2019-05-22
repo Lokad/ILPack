@@ -28,6 +28,7 @@ namespace Lokad.ILPack.Metadata
             SourceAssembly = sourceAssembly;
             Builder = new MetadataBuilder();
             ILBuilder = new BlobBuilder();
+            MappedFieldDataBuilder = new BlobBuilder();
 
             _assemblyRefHandles = new Dictionary<string, AssemblyReferenceHandle>();
             _ctorDefHandles = new Dictionary<ConstructorInfo, MethodBaseDefinitionMetadata>();
@@ -47,9 +48,11 @@ namespace Lokad.ILPack.Metadata
             CreateReferencedAssemblies(SourceAssembly.GetReferencedAssemblies());
         }
 
+
         public Assembly SourceAssembly { get; }
         public MetadataBuilder Builder { get; }
         public BlobBuilder ILBuilder { get; }
+        public BlobBuilder MappedFieldDataBuilder { get; }
 
         public UserStringHandle GetOrAddUserString(string value)
         {

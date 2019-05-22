@@ -143,6 +143,16 @@ namespace Lokad.ILPack
                 MetadataTokens.FieldDefinitionHandle(offset.FieldIndex + 1),
                 MetadataTokens.MethodDefinitionHandle(offset.MethodIndex + 1));
 
+            // Setup pack and size attributes (if explicit layout)
+            if (type.IsExplicitLayout)
+            {
+                _metadata.Builder.AddTypeLayout(
+                    typeHandle,
+                    (ushort)type.StructLayoutAttribute.Pack,
+                    (uint)type.StructLayoutAttribute.Size
+                    );
+            }
+
             // Add implemented interfaces (not for enums though - eg: IComparable etc...)
             if (!type.IsEnum)
             {

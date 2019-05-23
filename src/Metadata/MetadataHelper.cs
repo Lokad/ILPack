@@ -105,12 +105,6 @@ namespace Lokad.ILPack.Metadata
             return builder;
         }
 
-        public static BlobBuilder BuildSignature(BlobBuilder builder, Action<BlobEncoder> action)
-        {
-            action(new BlobEncoder(builder));
-            return builder;
-        }
-
         public static void AppendTypeFriendlyName(StringBuilder output, Type type)
         {
             var depth = 0;

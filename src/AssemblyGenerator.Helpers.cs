@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using System.Reflection.Metadata;
 using Lokad.ILPack.Metadata;
 using CfgAssemblyHashAlgorithm = System.Configuration.Assemblies.AssemblyHashAlgorithm;
 
@@ -24,20 +23,6 @@ namespace Lokad.ILPack
         private static AssemblyHashAlgorithm ConvertAssemblyHashAlgorithm(CfgAssemblyHashAlgorithm alg)
         {
             return (AssemblyHashAlgorithm) alg;
-        }
-
-        private BlobHandle GetCustomAttributeValueFromString(string str)
-        {
-            if (str == null)
-            {
-                return default;
-            }
-
-            var builder = new BlobBuilder();
-            builder.WriteBytes(new byte[] {0x01, 0x00}); // "prolog"
-            builder.WriteUTF8(str);
-
-            return _metadata.Builder.GetOrAddBlob(builder);
         }
 
         private static void EnsureMetadataWasNotEmitted<TEntity, THandle>(DefinitionMetadata<TEntity, THandle> metadata,

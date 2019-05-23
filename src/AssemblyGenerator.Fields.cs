@@ -29,6 +29,9 @@ namespace Lokad.ILPack
             if (field.Attributes.HasFlag(FieldAttributes.Literal))
                 _metadata.Builder.AddConstant(handle, field.GetRawConstantValue());
 
+            if (field.DeclaringType.IsExplicitLayout)
+                _metadata.Builder.AddFieldLayout(handle, (int)Marshal.OffsetOf(field.DeclaringType, field.Name));
+
             VerifyEmittedHandle(metadata, handle);
             metadata.MarkAsEmitted();
 

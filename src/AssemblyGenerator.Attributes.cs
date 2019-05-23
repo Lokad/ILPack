@@ -7,8 +7,6 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace Lokad.ILPack
 {
-    // TODO: [vermorel] missing dictionary for 'CustomAttributeHandle'
-
     public partial class AssemblyGenerator
     {
         public void CreateCustomAttributes(EntityHandle parent, IEnumerable<CustomAttributeData> attributes)

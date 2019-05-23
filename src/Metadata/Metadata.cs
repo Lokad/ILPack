@@ -55,6 +55,7 @@ namespace Lokad.ILPack.Metadata
 
     internal class TypeDefinitionMetadataOffset
     {
+        public int TypeIndex { get; set; }
         public int FieldIndex { get; set; }
         public int PropertyIndex { get; set; }
         public int MethodIndex { get; set; }

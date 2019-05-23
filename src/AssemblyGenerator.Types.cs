@@ -9,40 +9,6 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        /// <summary>
-        ///     Gets all interfaces and base types of a given type including all of its parents.
-        ///     Referenced types from external assemblies are excluded.
-        /// </summary>
-        /// <param name="type">Type to be examined.</param>
-        /// <returns>All interfaces and base types of given type and its parents recursively.</returns>
-        private IEnumerable<Type> GetBaseTypes(Type type)
-        {
-            foreach (var inf in type.GetInterfaces())
-            {
-                if (_metadata.IsReferencedType(inf))
-                {
-                    continue;
-                }
-
-                yield return inf;
-
-                foreach (var innerInf in GetBaseTypes(inf))
-                {
-                    yield return innerInf;
-                }
-            }
-
-            var baseType = type.BaseType;
-            if (baseType != null)
-            {
-                while (!_metadata.IsReferencedType(baseType))
-                {
-                    yield return baseType;
-                    baseType = baseType.BaseType;
-                }
-            }
-        }
-
         private void CreateTypes(IEnumerable<Type> types)
         {
             var offsets = new TypeDefinitionMetadataOffset()

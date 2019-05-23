@@ -29,5 +29,23 @@ namespace Lokad.ILPack.Tests
                 "r"));
         }
 
+        [Fact]
+        public async void ImplementImportedInterface()
+        {
+            Assert.Equal(1, await Invoke(
+                $"var a = new MyComparable(10); var b = new MyComparable(20);",
+                "a.CompareTo(b)"
+                ));
+        }
+
+        [Fact]
+        public async void ImplementImportedGenericInterface()
+        {
+            Assert.Equal(1, await Invoke(
+                $"var a = new MyComparableT(10); var b = new MyComparableT(20);",
+                "a.CompareTo(b)"
+                ));
+        }
+
     }
 }

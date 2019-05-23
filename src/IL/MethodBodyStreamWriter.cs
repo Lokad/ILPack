@@ -27,10 +27,7 @@ namespace Lokad.ILPack.IL
 
             var localVariables = body.LocalVariables.ToArray();
             var localEncoder = new BlobEncoder(new BlobBuilder()).LocalVariableSignature(localVariables.Length);
-            foreach (var l in localVariables)
-            {
-                localEncoder.AddVariable().Type().FromSystemType(l.LocalType, _metadata);
-            }
+            localEncoder.AddRange(localVariables, _metadata);
 
             var instructions = methodBase.GetInstructions();
             var maxStack = body.MaxStackSize;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -58,7 +57,7 @@ namespace Lokad.ILPack
             // Reserve types
             foreach (var type in types)
             {
-                ReserverType(type, ref offsets);
+                ReserveType(type, ref offsets);
             }
 
             // Create types
@@ -68,7 +67,7 @@ namespace Lokad.ILPack
             }
         }
 
-        private void ReserverType(Type type, ref TypeDefinitionMetadataOffset offset)
+        private void ReserveType(Type type, ref TypeDefinitionMetadataOffset offset)
         {
             var typeHandle = MetadataTokens.TypeDefinitionHandle(++offset.TypeIndex);
             _metadata.ReserveTypeDefinition(type, typeHandle);
@@ -124,9 +123,6 @@ namespace Lokad.ILPack
                 baseTypeHandle,
                 MetadataTokens.FieldDefinitionHandle(_metadata.Builder.GetRowCount(TableIndex.Field) + 1),
                 MetadataTokens.MethodDefinitionHandle(_metadata.Builder.GetRowCount(TableIndex.MethodDef) + 1));
-
-            var rowActual = MetadataTokens.GetRowNumber(typeHandle);
-            var rowExpected = MetadataTokens.GetRowNumber(metadata.Handle);
 
             // Verify and mark emitted
             VerifyEmittedHandle(metadata, typeHandle);

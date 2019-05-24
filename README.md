@@ -1,13 +1,20 @@
 ﻿# Lokad.ILPack
 
-Exports a .NET type to a serialized assembly. This feature existed in .NET Framework,
-but has been lost with .NET Core, hence, it is re-implemented here.
+Exports a .NET type to a serialized assembly, with support for dynamic
+assemblies (i.e. custom IL generation). This library is intended as a
+drop-in replacement for the `AssemblyBuilder.Save` method which existed 
+since .NET 1.1 but that as not been ported to .NET Core 3.0.
+
+To install with NuGet:
+
+    Install-Package Lokad.ILPack
 
 Usage:
 
 ```cs
+
 var assembly = Assembly.GetAssembly(t);
-var generator = new AssemblyGenerator();
+var generator = new Lokad.ILPack.AssemblyGenerator();
 
 // for ad-hoc serialization
 var bytes = generator.GenerateAssemblyBytes(assembly);
@@ -16,4 +23,4 @@ var bytes = generator.GenerateAssemblyBytes(assembly);
 generator.GenerateAssembly(assembly, "/path/to/file");
 ```
 
-Based on an open source initial implementation at: https://github.com/Dolfik1/AssemblyGenerator
+Released under the MIT license.

@@ -18,7 +18,7 @@ namespace Lokad.ILPack
             var retType = propertyInfo.PropertyType;
 
             // Work out if this is an instance property
-            var eitherAccessor = propertyInfo.GetGetMethod() ?? propertyInfo.GetSetMethod();
+            var eitherAccessor = propertyInfo.GetMethod ?? propertyInfo.SetMethod;
             System.Diagnostics.Debug.Assert(eitherAccessor != null);
             var isInstanceProperty = eitherAccessor.CallingConvention.HasFlag(CallingConventions.HasThis);
 

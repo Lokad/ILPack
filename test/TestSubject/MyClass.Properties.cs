@@ -26,5 +26,11 @@ namespace TestSubject
             get;
             set;
         }
+
+        private int PrivateProperty
+        {
+            get;
+            set;
+        }
     }
 }

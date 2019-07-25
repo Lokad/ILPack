@@ -93,7 +93,7 @@ namespace Lokad.ILPack.Metadata
             }
         }
 
-        private void CreateReferencedAssemblies(AssemblyName[] assemblies)
+        private void CreateReferencedAssemblies(IEnumerable<AssemblyName> assemblies)
         {
             foreach (var asm in assemblies)
             {

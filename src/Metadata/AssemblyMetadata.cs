@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 
 namespace Lokad.ILPack.Metadata
 {
@@ -45,7 +46,16 @@ namespace Lokad.ILPack.Metadata
             _typeRefHandles = new Dictionary<Type, TypeReferenceHandle>();
             _typeSpecHandles = new Dictionary<Type, TypeSpecificationHandle>();
 
-            CreateReferencedAssemblies(SourceAssembly.GetReferencedAssemblies());
+            var assemblies = new HashSet<AssemblyName>(SourceAssembly.GetReferencedAssemblies())
+            {
+                // HACK: [vermorel] 2019-07-25. 'GetReferencedAssemblies()' does not capture all assemblies,
+                // only those that are explicitly referenced. However, when using an optional argument in
+                // a method, the 'OptionalAttribute' from  'System.Core.Private' is used by not returned
+                // by the method. Thus, we end-up adding the assembly manual.
+                Assembly.GetAssembly(typeof(OptionalAttribute)).GetName() // System.Core.Private
+            };
+
+            CreateReferencedAssemblies(assemblies);
         }
 
 

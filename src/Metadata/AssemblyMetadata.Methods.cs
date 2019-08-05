@@ -118,7 +118,11 @@ namespace Lokad.ILPack.Metadata
             }
 
             // Constructed generic method?
+#if NETSTANDARD || NET46
+            if (method.IsConstructedGenericMethod())
+#else
             if (method.IsConstructedGenericMethod)
+#endif
             {
                 // Already created?
                 if (_methodSpecHandles.TryGetValue(method, out var handle))

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
@@ -218,7 +221,12 @@ namespace Lokad.ILPack
                     }
                 }
             }
+#if NETSTANDARD || NET46
+            else if(type.IsGenericMethodParameter())
+
+#else
             else if (type.IsGenericMethodParameter)
+#endif
             {
                 typeEncoder.GenericMethodTypeParameter(type.GenericParameterPosition);
             }
@@ -232,5 +240,57 @@ namespace Lokad.ILPack
                 typeEncoder.Type(typeHandler, type.IsValueType);
             }
         }
+
+#if NETSTANDARD || NET46
+        internal static bool IsGenericMethodParameter(this Type type) => type.IsGenericParameter && type.DeclaringMethod != null;
+
+        internal static bool IsConstructedGenericMethod(this MethodBase method) => method.IsGenericMethod && !method.IsGenericMethodDefinition;
+
+        private static readonly Dictionary<byte[], GCHandle> s_peImages = new Dictionary<byte[], GCHandle>();
+
+        internal static unsafe GCHandle GetPinnedPEImage(byte[] peImage)
+        {
+            lock(s_peImages)
+            {
+                if(!s_peImages.TryGetValue(peImage, out GCHandle pinned))
+                {
+                    s_peImages.Add(peImage, pinned = GCHandle.Alloc(peImage, GCHandleType.Pinned));
+                }
+
+                return pinned;
+            }
+        }
+
+        internal static unsafe bool TryGetRawMetadata(this Assembly assembly, out byte* blob, out int length)
+        {
+            length = 0;
+            blob = null;
+
+            try
+            {
+                var pi = assembly.GetType().GetMethod("GetRawBytes", BindingFlags.Instance | BindingFlags.NonPublic);
+                var peImage = (byte[])pi.Invoke(assembly, null);
+
+                //var peImage = File.ReadAllBytes(assembly.Location);
+                GCHandle pinned = GetPinnedPEImage(peImage);
+                var headers = new PEHeaders(new MemoryStream(peImage));
+                length = headers.MetadataSize;
+
+                var source = pinned.AddrOfPinnedObject();
+                var destination = new byte[length];
+
+                Marshal.Copy(source + headers.MetadataStartOffset , destination, 0, length);
+
+                var pinnedArray = GCHandle.Alloc(destination, GCHandleType.Pinned);
+                var pointer = pinnedArray.AddrOfPinnedObject();
+                blob = (byte*)pointer;
+
+                return true;
+            } catch (Exception ex)
+            {
+                return false;
+            }
+        }
+#endif
     }
 }

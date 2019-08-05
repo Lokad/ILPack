@@ -79,7 +79,11 @@ namespace Lokad.ILPack.Metadata
 
         public bool IsGenericTypeSpec(Type type)
         {
+#if NETSTANDARD || NET46
+            return type.IsGenericMethodParameter() || type.IsGenericParameter || (type.IsGenericType && !type.IsGenericTypeDefinition);
+#else
             return type.IsGenericMethodParameter || type.IsGenericParameter || (type.IsGenericType && !type.IsGenericTypeDefinition);
+#endif
         }
 
         private EntityHandle ResolveArrayTypeSpec(Type type)

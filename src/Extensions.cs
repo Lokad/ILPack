@@ -221,12 +221,7 @@ namespace Lokad.ILPack
                     }
                 }
             }
-#if NETSTANDARD || NET46
             else if(type.IsGenericMethodParameter())
-
-#else
-            else if (type.IsGenericMethodParameter)
-#endif
             {
                 typeEncoder.GenericMethodTypeParameter(type.GenericParameterPosition);
             }
@@ -291,6 +286,10 @@ namespace Lokad.ILPack
                 return false;
             }
         }
+#else
+        internal static bool IsGenericMethodParameter( this Type type ) => type.IsGenericMethodParameter;
+
+        internal static bool IsConstructedGenericMethod( this MethodBase method ) => method.IsConstructedGenericMethod;
 #endif
     }
 }

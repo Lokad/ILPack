@@ -57,9 +57,9 @@ namespace Lokad.ILPack.Tests
             // NB: putting it in the "cloned" sub directory prevents an
             //     issue with someone (VisStudio perhaps) having the file open
             //     and preventing rewrite on subsequent run. 
-            var outDir = Path.Join(Path.GetDirectoryName(originalAssembly), "cloned");
+            var outDir = Path.Combine(Path.GetDirectoryName(originalAssembly), "cloned");
             Directory.CreateDirectory(outDir);
-            var clonedAssembly = Path.Join(outDir, "ClonedTestSubject.dll");
+            var clonedAssembly = Path.Combine(outDir, "ClonedTestSubject.dll");
 
             // Rewrite it (renaming the assembly and namespaces in the process)
             var generator = new AssemblyGenerator();

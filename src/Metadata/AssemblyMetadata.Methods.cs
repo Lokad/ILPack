@@ -118,7 +118,7 @@ namespace Lokad.ILPack.Metadata
             }
 
             // Constructed generic method?
-            if (method.IsConstructedGenericMethod)
+            if (method.IsConstructedGenericMethod())
             {
                 // Already created?
                 if (_methodSpecHandles.TryGetValue(method, out var handle))

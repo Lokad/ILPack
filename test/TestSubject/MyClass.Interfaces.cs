@@ -20,6 +20,17 @@ namespace TestSubject
         {
             return 1002;
         }
+    }
 
+    interface Itf1
+    {
+    }
+    interface Itf2
+    {
+    }
+
+    /// <summary> Challenging the interface metadata ordering. </summary>
+    class MyImpl : Itf2, Itf1
+    {
     }
 }

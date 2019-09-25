@@ -45,6 +45,23 @@ namespace Lokad.ILPack.Metadata
 
         public bool TryGetConstructorDefinition(ConstructorInfo ctor, out MethodBaseDefinitionMetadata metadata)
         {
+            if (ctor.DeclaringType.IsConstructedGenericType)
+            {
+                // HACK: [vermorel] Unclear how to get the original constructor from the open type
+                // See https://stackoverflow.com/questions/43850948/with-constructorinfo-from-a-constructed-generic-type-how-to-i-get-the-matchin
+
+                var open = ctor.DeclaringType.GetGenericTypeDefinition().GetConstructors(AllMethods);
+
+                foreach (var ci in open)
+                {
+                    if (ci.MetadataToken == ctor.MetadataToken)
+                    {
+                        ctor = ci;
+                        break;
+                    }
+                }
+            }
+
             return _ctorDefHandles.TryGetValue(ctor, out metadata);
         }
 

@@ -9,6 +9,10 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata : IAssemblyMetadata
     {
+        private const BindingFlags AllMethods =
+            BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
+            BindingFlags.DeclaredOnly | BindingFlags.CreateInstance | BindingFlags.Instance;
+
         private readonly Dictionary<string, AssemblyReferenceHandle> _assemblyRefHandles;
         private readonly Dictionary<ConstructorInfo, MethodBaseDefinitionMetadata> _ctorDefHandles;
         private readonly Dictionary<ConstructorInfo, MemberReferenceHandle> _ctorRefHandles;

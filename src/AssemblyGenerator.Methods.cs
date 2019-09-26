@@ -14,7 +14,7 @@ namespace Lokad.ILPack
                                                 BindingFlags.DeclaredOnly | BindingFlags.CreateInstance |
                                                 BindingFlags.Instance;
 
-        private void CreateMethod(MethodInfo method)
+        private void CreateMethod(MethodInfo method, List<DelayedWrite> genericParams)
         {
             if (!_metadata.TryGetMethodDefinition(method, out var metadata))
             {
@@ -90,14 +90,17 @@ namespace Lokad.ILPack
                 int index = 0;
                 foreach (var arg in method.GetGenericArguments())
                 {
-                    // Add the argument
-                    var gaHandle = _metadata.Builder.AddGenericParameter(handle, arg.GenericParameterAttributes, _metadata.GetOrAddString(arg.Name), index++);
-
-                    // Add it's constraints
-                    foreach (var constraint in arg.GetGenericParameterConstraints())
+                    genericParams.Add(new DelayedWrite(CodedIndex.TypeOrMethodDef(handle), () =>
                     {
-                        _metadata.Builder.AddGenericParameterConstraint(gaHandle, _metadata.GetTypeHandle(constraint));
-                    }
+                        // Add the argument
+                        var gaHandle = _metadata.Builder.AddGenericParameter(handle, arg.GenericParameterAttributes, _metadata.GetOrAddString(arg.Name), index++);
+
+                        // Add it's constraints
+                        foreach (var constraint in arg.GetGenericParameterConstraints())
+                        {
+                            _metadata.Builder.AddGenericParameterConstraint(gaHandle, _metadata.GetTypeHandle(constraint));
+                        }
+                    }));
                 }
             }
 
@@ -107,11 +110,11 @@ namespace Lokad.ILPack
             CreateCustomAttributes(handle, method.GetCustomAttributesData());
         }
 
-        private void CreateMethods(IEnumerable<MethodInfo> methods)
+        private void CreateMethods(IEnumerable<MethodInfo> methods, List<DelayedWrite> genericParams)
         {
             foreach (var method in methods)
             {
-                CreateMethod(method);
+                CreateMethod(method, genericParams);
             }
         }
     }

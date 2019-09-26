@@ -10,6 +10,24 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
+        /// <summary>
+        /// Metadata writes pushed to the builder needs to be ordered.
+        /// This structure is used to accumulate all the write operations
+        /// and execute them in the right order afterward.
+        /// </summary>
+        private struct DelayedWrite
+        {
+            public int Index;
+
+            public Action Write;
+
+            public DelayedWrite(int index, Action write)
+            {
+                Index = index;
+                Write = write;
+            }
+        }
+
         private DebugDirectoryBuilder _debugDirectoryBuilder;
         private AssemblyMetadata _metadata;
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Lokad.ILPack
@@ -16,10 +17,16 @@ namespace Lokad.ILPack
                     default, // reserved in ECMA
                     default); // reserved in ECMA
 
+                var genericParams = new List<DelayedWrite>();
+
                 CreateCustomAttributes(moduleHandle, module.GetCustomAttributesData());
                 CreateFields(module.GetFields());
-                CreateTypes(module.GetTypes());
-                CreateMethods(module.GetMethods(AllMethods));
+                CreateTypes(module.GetTypes(), genericParams);
+                CreateMethods(module.GetMethods(AllMethods), genericParams);
+
+                // Delaying those writes, because generic parameters must be sorted first.
+                foreach (var dw in genericParams.OrderBy(tu => tu.Index))
+                    dw.Write();
             }
         }
     }

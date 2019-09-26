@@ -10,7 +10,7 @@ namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
-        private void CreateTypes(IEnumerable<Type> types)
+        private void CreateTypes(IEnumerable<Type> types, List<DelayedWrite> genericParams)
         {
             var offsets = new TypeDefinitionMetadataOffset()
             {
@@ -30,7 +30,7 @@ namespace Lokad.ILPack
             // Create types
             foreach (var type in types)
             {
-                CreateType(type);
+                CreateType(type, genericParams);
             }
         }
 
@@ -72,7 +72,7 @@ namespace Lokad.ILPack
             }
         }
 
-        private void CreateType(Type type)
+        private void CreateType(Type type, List<DelayedWrite> genericParams)
         {
             // Check reserved and not already emitted
             if (!_metadata.TryGetTypeDefinition(type, out var metadata))
@@ -136,13 +136,16 @@ namespace Lokad.ILPack
                     {
                         var attr = arg.GenericParameterAttributes;
 
-                        var gpHandle =  _metadata.Builder.AddGenericParameter(handle, attr, _metadata.GetOrAddString(arg.Name), index++);
-
-                        foreach (var constraint in arg.GetGenericParameterConstraints())
+                        genericParams.Add(new DelayedWrite(CodedIndex.TypeOrMethodDef(handle), () =>
                         {
-                            _metadata.Builder.AddGenericParameterConstraint(gpHandle,
-                                _metadata.GetTypeHandle(constraint));
-                        }
+                            var gpHandle = _metadata.Builder.AddGenericParameter(handle, attr, _metadata.GetOrAddString(arg.Name), index++);
+
+                            foreach (var constraint in arg.GetGenericParameterConstraints())
+                            {
+                                _metadata.Builder.AddGenericParameterConstraint(gpHandle,
+                                    _metadata.GetTypeHandle(constraint));
+                            }
+                        }));
                     }
                 }
             }
@@ -152,7 +155,7 @@ namespace Lokad.ILPack
             CreatePropertiesForType(type.GetProperties(AllProperties));
             CreateEventsForType(type.GetEvents(AllEvents));
             CreateConstructors(type.GetConstructors(AllMethods));
-            CreateMethods(type.GetMethods(AllMethods));
+            CreateMethods(type.GetMethods(AllMethods), genericParams);
         }
     }
 }

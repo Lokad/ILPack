@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Lokad.ILPack.IL;
 using Lokad.ILPack.Metadata;
 
@@ -86,13 +88,13 @@ namespace Lokad.ILPack
             if (method.IsGenericMethodDefinition)
             {
                 int index = 0;
-                foreach (var ga in method.GetGenericArguments())
+                foreach (var arg in method.GetGenericArguments())
                 {
                     // Add the argument
-                    var gaHandle = _metadata.Builder.AddGenericParameter(handle, ga.GenericParameterAttributes, _metadata.GetOrAddString(ga.Name), index++);
+                    var gaHandle = _metadata.Builder.AddGenericParameter(handle, arg.GenericParameterAttributes, _metadata.GetOrAddString(arg.Name), index++);
 
                     // Add it's constraints
-                    foreach (var constraint in ga.GetGenericParameterConstraints())
+                    foreach (var constraint in arg.GetGenericParameterConstraints())
                     {
                         _metadata.Builder.AddGenericParameterConstraint(gaHandle, _metadata.GetTypeHandle(constraint));
                     }
@@ -112,6 +114,5 @@ namespace Lokad.ILPack
                 CreateMethod(method);
             }
         }
-
     }
 }

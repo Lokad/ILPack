@@ -83,7 +83,7 @@ namespace Lokad.ILPack
 
             // Add the type definition
             var baseTypeHandle = type.BaseType != null ? _metadata.GetTypeHandle(type.BaseType) : default;
-            var typeHandle = _metadata.Builder.AddTypeDefinition(
+            var handle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
                 type.DeclaringType == null ? _metadata.GetOrAddString(ApplyNameChange(type.Namespace)) : default(StringHandle),
                 _metadata.GetOrAddString(type.Name),
@@ -92,14 +92,14 @@ namespace Lokad.ILPack
                 MetadataTokens.MethodDefinitionHandle(_metadata.Builder.GetRowCount(TableIndex.MethodDef) + 1));
 
             // Verify and mark emitted
-            VerifyEmittedHandle(metadata, typeHandle);
+            VerifyEmittedHandle(metadata, handle);
             metadata.MarkAsEmitted();
 
             // Setup pack and size attributes (if explicit layout)
             if (type.IsExplicitLayout)
             {
                 _metadata.Builder.AddTypeLayout(
-                    typeHandle,
+                    handle,
                     (ushort)type.StructLayoutAttribute.Pack,
                     (uint)type.StructLayoutAttribute.Size
                     );
@@ -110,18 +110,18 @@ namespace Lokad.ILPack
             {
                 foreach (var itf in type.GetInterfaces().OrderBy(t => CodedIndex.TypeDefOrRefOrSpec(_metadata.GetTypeHandle(t))))
                 {
-                    _metadata.Builder.AddInterfaceImplementation(typeHandle, _metadata.GetTypeHandle(itf));
+                    _metadata.Builder.AddInterfaceImplementation(handle, _metadata.GetTypeHandle(itf));
                 }
             }
 
             // Setup enclosing type
             if (type.DeclaringType != null)
             {
-                _metadata.Builder.AddNestedType(typeHandle, (TypeDefinitionHandle)_metadata.GetTypeHandle(type.DeclaringType));
+                _metadata.Builder.AddNestedType(handle, (TypeDefinitionHandle)_metadata.GetTypeHandle(type.DeclaringType));
             }
 
             // Create attributes
-            CreateCustomAttributes(typeHandle, type.GetCustomAttributesData());
+            CreateCustomAttributes(handle, type.GetCustomAttributesData());
 
             // Handle generics type
             if (type.IsGenericType)
@@ -131,18 +131,16 @@ namespace Lokad.ILPack
                     var genericType = type.GetGenericTypeDefinition();
                     var typeInfo = genericType.GetTypeInfo();
 
-                    for (var i = 0; i < typeInfo.GenericTypeParameters.Length; ++i)
+                    int index = 0;
+                    foreach(var arg in typeInfo.GenericTypeParameters)
                     {
-                        var parm = typeInfo.GenericTypeParameters[i];
-                        var attr = parm.GenericParameterAttributes;
+                        var attr = arg.GenericParameterAttributes;
 
-                        var genericParameterHandle =
-                            _metadata.Builder.AddGenericParameter(typeHandle, attr, _metadata.GetOrAddString(parm.Name),
-                                i);
+                        var gpHandle =  _metadata.Builder.AddGenericParameter(handle, attr, _metadata.GetOrAddString(arg.Name), index++);
 
-                        foreach (var constraint in parm.GetGenericParameterConstraints())
+                        foreach (var constraint in arg.GetGenericParameterConstraints())
                         {
-                            _metadata.Builder.AddGenericParameterConstraint(genericParameterHandle,
+                            _metadata.Builder.AddGenericParameterConstraint(gpHandle,
                                 _metadata.GetTypeHandle(constraint));
                         }
                     }

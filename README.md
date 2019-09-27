@@ -12,7 +12,6 @@ To install with NuGet:
 Usage:
 
 ```cs
-
 var assembly = Assembly.GetAssembly(t);
 var generator = new Lokad.ILPack.AssemblyGenerator();
 

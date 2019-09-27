@@ -59,9 +59,9 @@ namespace Lokad.ILPack.Metadata
 
                 var definition = methodBase.DeclaringType.GetGenericTypeDefinition();
                 if (methodBase is MethodInfo)
-                    methodBase = definition.GetMethods().Single(x => x.MetadataToken == methodBase.MetadataToken);
+                    methodBase = definition.GetMethods(AllMethods).Single(x => x.MetadataToken == methodBase.MetadataToken);
                 else
-                    methodBase = definition.GetConstructors().Single(x => x.MetadataToken == methodBase.MetadataToken);
+                    methodBase = definition.GetConstructors(AllMethods).Single(x => x.MetadataToken == methodBase.MetadataToken);
             }
 
             // Get parameters

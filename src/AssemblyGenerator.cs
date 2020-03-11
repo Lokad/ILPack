@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -31,9 +33,9 @@ namespace Lokad.ILPack
         private DebugDirectoryBuilder _debugDirectoryBuilder;
         private AssemblyMetadata _metadata;
 
-        private void Initialize(Assembly assembly)
+        private void Initialize(Assembly assembly, IEnumerable<Assembly> referencedDyncamicAsssemblies)
         {
-            _metadata = new AssemblyMetadata(assembly);
+            _metadata = new AssemblyMetadata(assembly, referencedDyncamicAsssemblies);
             _debugDirectoryBuilder = new DebugDirectoryBuilder();
         }
 
@@ -67,9 +69,22 @@ namespace Lokad.ILPack
                 return str.Replace(_oldName, _newName);
         }
 
-        public byte[] GenerateAssemblyBytes(Assembly assembly)
+        /// <summary> Serialize an assembly that don't depend on other dynamic assembly </summary>
+        /// <returns> Serialized bytes </returns>
+        public byte[] GenerateAssemblyBytes(Assembly assembly) =>
+            GenerateAssemblyBytes(assembly, Array.Empty<Assembly>());
+
+        /// <summary> Serialize an assembly to a byte array </summary>
+        /// <param name="assembly"> Assembly to be serialized </param>
+        /// <param name="referencedDynamicAssembly">
+        /// List of other assembly that have types referenced by <see cref="assembly"/>
+        /// and that are dynamic assembly. The .net assembly loader can't find those
+        /// otherwize
+        /// </param>
+        /// <returns> The serialized assembly. </returns>
+        public byte[] GenerateAssemblyBytes(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssembly)
         {
-            Initialize(assembly);
+            Initialize(assembly, referencedDynamicAssembly);
 
             if (_metadata.SourceAssembly.EntryPoint != null)
             {
@@ -121,13 +136,14 @@ namespace Lokad.ILPack
             // Without Characteristics.ExecutableImage flag, .NET runtime refuses
             // to load an assembly even it's a DLL. PEHeaderBuilder.CreateLibraryHeader
             // does not set this flag. So, we set it explicitly.
-            var header = new PEHeaderBuilder(imageCharacteristics: Characteristics.ExecutableImage |
-                                                                   (entryPoint.IsNil ? Characteristics.Dll : 0));
+            var header = new PEHeaderBuilder(
+                imageCharacteristics: Characteristics.ExecutableImage |
+                                           (entryPoint.IsNil ? Characteristics.Dll : 0));
 
             var peBuilder = new ManagedPEBuilder(
-                header,
-                metadataRootBuilder,
-                _metadata.ILBuilder,
+                header: header,
+                metadataRootBuilder: metadataRootBuilder,
+                ilStream: _metadata.ILBuilder,
                 mappedFieldData: _metadata.MappedFieldDataBuilder,
                 debugDirectoryBuilder: _debugDirectoryBuilder,
                 entryPoint: entryPoint);
@@ -138,9 +154,22 @@ namespace Lokad.ILPack
             return peImageBuilder.ToArray();
         }
 
-        public void GenerateAssembly(Assembly assembly, string path)
+
+        /// <summary> Write to a file an assembly that don't depend on other dynamic assembly </summary>
+        public void GenerateAssembly(Assembly assembly, string path) =>
+            GenerateAssembly(assembly, Array.Empty<Assembly>(), path);
+
+        /// <summary> Serialize an assembly to a file </summary>
+        /// <param name="assembly"> Assembly to be serialized </param>
+        /// <param name="referencedDynamicAssembly">
+        /// List of other assembly that have types referenced by <see cref="assembly"/>
+        /// and that are dynamic assembly. The .net assembly loader can't find those
+        /// otherwize
+        /// </param>
+        /// <param name="path"> Output file path </param>
+        public void GenerateAssembly(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssembly, string path)
         {
-            var bytes = GenerateAssemblyBytes(assembly);
+            var bytes = GenerateAssemblyBytes(assembly, referencedDynamicAssembly);
             File.WriteAllBytes(path, bytes);
         }
     }

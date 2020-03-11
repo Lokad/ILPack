@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -28,7 +29,19 @@ namespace Lokad.ILPack.Metadata
         private readonly Dictionary<Type, TypeReferenceHandle> _typeRefHandles;
         private readonly Dictionary<Type, TypeSpecificationHandle> _typeSpecHandles;
 
-        public AssemblyMetadata(Assembly sourceAssembly)
+        /// <summary>
+        /// Mapping of assembly fullname to assembly for other dynamic assembly
+        /// referenced by the serialized assembly.
+        /// </summary>
+        /// <remarks>
+        /// We are forced to use the <see cref="Assembly.FullName"/> instead of
+        /// an <see cref="AssemblyName"/>, because the <see cref="AssemblyName"/> of
+        /// the referenced dynamic assembly has much more information than the one
+        /// from the serialized one, and thus equality fail.
+        /// </remarks>
+        private readonly IReadOnlyDictionary<string, Assembly> _referencedDynamics;
+
+        public AssemblyMetadata(Assembly sourceAssembly, IEnumerable<Assembly> referencedDynamicAssemblies)
         {
             SourceAssembly = sourceAssembly;
             Builder = new MetadataBuilder();
@@ -49,6 +62,7 @@ namespace Lokad.ILPack.Metadata
             _typeDefHandles = new Dictionary<Type, TypeDefinitionMetadata>();
             _typeRefHandles = new Dictionary<Type, TypeReferenceHandle>();
             _typeSpecHandles = new Dictionary<Type, TypeSpecificationHandle>();
+            _referencedDynamics = referencedDynamicAssemblies.ToDictionary(a => a.FullName, a => a);
 
             var assemblies = new HashSet<AssemblyName>(SourceAssembly.GetReferencedAssemblies())
             {

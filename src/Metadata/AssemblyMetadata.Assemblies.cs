@@ -59,7 +59,10 @@ namespace Lokad.ILPack.Metadata
         void AddAssemblyToReverseForwardingMap(AssemblyName asmName)
         {
             // Load the assembly
-            var asm = Assembly.Load(asmName);
+            var asm = 
+                _referencedDynamics.TryGetValue(asmName.FullName, out var dynamic)
+                    ? dynamic
+                    : Assembly.Load(asmName);
 
             // Get it's metadata
             MetadataReader mdr = null;

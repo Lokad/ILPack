@@ -108,10 +108,7 @@ namespace Lokad.ILPack
             // Add implemented interfaces (not for enums though - eg: IComparable etc...)
             if (!type.IsEnum)
             {
-                foreach (var itf in type.GetInterfaces().OrderBy(t => CodedIndex.TypeDefOrRefOrSpec(_metadata.GetTypeHandle(t))))
-                {
-                    _metadata.Builder.AddInterfaceImplementation(handle, _metadata.GetTypeHandle(itf));
-                }
+                DeclareInterfacesAndCreateInterfaceMap(type, handle);
             }
 
             // Setup enclosing type
@@ -143,7 +140,7 @@ namespace Lokad.ILPack
                             foreach (var constraint in arg.GetGenericParameterConstraints())
                             {
                                 _metadata.Builder.AddGenericParameterConstraint(gpHandle,
-                                    _metadata.GetTypeHandle(constraint));
+                                          _metadata.GetTypeHandle(constraint));
                             }
                         }));
                     }
@@ -156,6 +153,53 @@ namespace Lokad.ILPack
             CreateEventsForType(type.GetEvents(AllEvents));
             CreateConstructors(type.GetConstructors(AllMethods));
             CreateMethods(type.GetMethods(AllMethods), genericParams);
+        }
+
+        private void DeclareInterfacesAndCreateInterfaceMap(Type type, TypeDefinitionHandle handle)
+        {
+            // Only add those interfaces that are not already implemented by the base type.
+            // This prevents the generation of assembly dependencies not covered by the
+            // GetReferencedAssemblies method.
+            HashSet<Type> interfaces
+               = new HashSet<Type>((type.BaseType is null
+                   ? type.GetInterfaces()
+                   : type.GetInterfaces().Except(type.BaseType.GetInterfaces()))
+                   .OrderBy(t => CodedIndex.TypeDefOrRefOrSpec(_metadata.GetTypeHandle(t))));
+
+            foreach (var ifc in interfaces)
+            {
+                _metadata.Builder.AddInterfaceImplementation(handle, _metadata.GetTypeHandle(ifc));
+            }
+
+            // Build the interface map.
+            // All interfaces need to be considered (not just the ones added by the type) because
+            // the type may override interface methods of interfaces implemented by the base type.
+            // It is also possible for a type to use a base type method to implement an interface
+            // method of an interface added by the type. For these reasons it is not sufficient
+            // to only use the interfaces declared by a type or look at the declaring type of a
+            // method implementing an interface method.
+            foreach (var ifcm in from ifc in type.GetInterfaces() select type.GetInterfaceMap(ifc))
+            {
+                bool implementedByType = interfaces.Contains(ifcm.InterfaceType);
+
+                for (int i = 0; i < ifcm.InterfaceMethods.Length; ++i)
+                {
+                    MethodInfo targetMethod = ifcm.TargetMethods[i];
+                    MethodInfo ifcMethod = ifcm.InterfaceMethods[i];
+
+                    // Declare a method override either when the interface implementation or
+                    // the interface method implementation is declared by the type.
+                    if (implementedByType || targetMethod.DeclaringType.Equals(type))
+                    {
+                        // Mark the target method as implementing the interface method.
+                        // (This is the equivalent of .Override in msil)
+                        _metadata.Builder.AddMethodImplementation(
+                           (TypeDefinitionHandle)_metadata.GetTypeHandle(targetMethod.DeclaringType),
+                           _metadata.GetMethodHandle(targetMethod),
+                           _metadata.GetMethodHandle(ifcMethod));
+                    }
+                }
+            }
         }
     }
 }

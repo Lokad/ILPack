@@ -26,10 +26,19 @@ namespace Lokad.ILPack.Tests
         }
 
         [Fact]
-        public async void AttributePlacedArrayValues()
+        public async void AttributePlacedOnMethod()
         {
             Assert.Equal(new int[] { 10, 20, 30 } , await Invoke(
                 $"var attr = typeof({_namespaceName}.MyClass).GetMethod(\"AttributeArrayTest\").GetCustomAttribute<MyAttribute>();",
+                "attr.Values"
+                ));
+        }
+
+        [Fact]
+        public async void AttributePlacedOnProperty()
+        {
+            Assert.Equal(new int[] { 1, 2, 3 }, await Invoke(
+                $"var attr = typeof({_namespaceName}.MyClass).GetProperty(\"AttributeOnProperty\").GetCustomAttribute<MyAttribute>();",
                 "attr.Values"
                 ));
         }

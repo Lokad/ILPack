@@ -19,5 +19,12 @@ namespace TestSubject
         public void AttributeArrayTest()
         {
         }
+
+        [MyAttribute(
+            1, 2, 3,
+            Named = "ILPack",
+            NamedArray = new int[] { 40, 50, 60 }
+            )]
+        public int AttributeOnProperty { get; set; }
     }
 }

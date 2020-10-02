@@ -64,7 +64,7 @@ namespace Lokad.ILPack
 
             VerifyEmittedHandle(metadata, propertyHandle);
             metadata.MarkAsEmitted();
-
+            this.CreateCustomAttributes(propertyHandle, property.GetCustomAttributesData());
             if (property.GetMethod != null)
             {
                 if (!_metadata.TryGetMethodDefinition(property.GetMethod, out var getMethodMetadata))

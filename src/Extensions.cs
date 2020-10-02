@@ -211,7 +211,11 @@ namespace Lokad.ILPack
                 var inst = typeEncoder.GenericInstantiation(typeHandler, genericArguments.Length, type.IsValueType);
                 foreach (var ga in genericArguments)
                 {
-                    if (ga.IsGenericParameter)
+                    if (ga.IsGenericMethodParameter())
+                    {
+                        inst.AddArgument().GenericMethodTypeParameter(ga.GenericParameterPosition);
+                    }
+                    else if (ga.IsGenericParameter)
                     {
                         inst.AddArgument().GenericTypeParameter(ga.GenericParameterPosition);
                     }
@@ -221,7 +225,7 @@ namespace Lokad.ILPack
                     }
                 }
             }
-            else if(type.IsGenericMethodParameter())
+            else if (type.IsGenericMethodParameter())
             {
                 typeEncoder.GenericMethodTypeParameter(type.GenericParameterPosition);
             }

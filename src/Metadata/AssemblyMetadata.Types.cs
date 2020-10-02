@@ -65,10 +65,10 @@ namespace Lokad.ILPack.Metadata
                 return typeRef;
             }
 
-            var scope = GetReferencedAssemblyForType(type);
+            // For nested types the scope is the declaring type, not the assembly.
             var typeHandle = Builder.AddTypeReference(
-                scope,
-                GetOrAddString(type.Namespace),
+                GetScopeForType(type),
+                GetNamespaceForType(type),
                 GetOrAddString(type.Name));
 
             _typeRefHandles.Add(type, typeHandle);
@@ -139,6 +139,21 @@ namespace Lokad.ILPack.Metadata
         public bool TryGetTypeDefinition(Type type, out TypeDefinitionMetadata metadata)
         {
             return _typeDefHandles.TryGetValue(type, out metadata);
+        }
+
+        private EntityHandle GetScopeForType(Type type)
+        {
+            // The scope for nested types is the declaring type, not the assembly.
+            return type.IsNested
+               ? ResolveTypeReference(type.DeclaringType)
+               : GetReferencedAssemblyForType(type);
+        }
+
+        private StringHandle GetNamespaceForType(Type type)
+        {
+            // For nested types the namespace is the same as the namespace of the
+            // declaring type. In this case the returned string handle is nil.
+            return type.IsNested ? default : GetOrAddString(type.Namespace);
         }
     }
 }

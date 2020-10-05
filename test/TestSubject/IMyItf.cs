@@ -5,11 +5,15 @@
 // SEE RewriteTest in Lokad.ILPack.Tests
 
 
+using System;
+
 namespace TestSubject
 {
     public interface IMyItf
     {
         int InterfaceMethod1();
         int InterfaceMethod2();
+
+        TResult InterfaceMethod3<TResult>(Func<TResult> f);
     }
 }

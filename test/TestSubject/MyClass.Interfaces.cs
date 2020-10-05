@@ -7,6 +7,8 @@
 // SEE RewriteTest in Lokad.ILPack.Tests
 
 
+using System;
+
 namespace TestSubject
 {
     public partial class MyClass : IMyItf
@@ -19,6 +21,11 @@ namespace TestSubject
         public int InterfaceMethod2()
         {
             return 1002;
+        }
+
+        TResult IMyItf.InterfaceMethod3<TResult>(Func<TResult> f)
+        {
+            return f();
         }
     }
 

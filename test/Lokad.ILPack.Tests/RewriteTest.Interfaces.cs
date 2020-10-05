@@ -30,6 +30,14 @@ namespace Lokad.ILPack.Tests
         }
 
         [Fact]
+        public async void CallExplicitlyImplementedGenericInterfaceMethod()
+        {
+            Assert.Equal(4711, await Invoke(
+                $"int r = (x as IMyItf).InterfaceMethod3<int>(() => 4711);",
+                "r"));
+        }
+
+        [Fact]
         public async void ImplementImportedInterface()
         {
             Assert.Equal(1, await Invoke(

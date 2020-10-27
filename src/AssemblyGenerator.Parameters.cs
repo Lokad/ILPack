@@ -37,6 +37,12 @@ namespace Lokad.ILPack
                                 // get applied to the wrong parameter.
                 );
 
+                // If the parameter has a default value add the value to the constants table.
+                // Use the parameter handle as the parent of the value in the constants table
+                // as specified in ECMA335 II.22.9.
+                if (parameter.HasDefaultValue)
+                    _metadata.Builder.AddConstant(parameterDef, parameter.RawDefaultValue);
+
                 System.Diagnostics.Debug.Assert(parameterDef == MetadataTokens.ParameterHandle(_nextParameterRowId));
 
                 _metadata.AddParameterHandle(parameter, parameterDef);

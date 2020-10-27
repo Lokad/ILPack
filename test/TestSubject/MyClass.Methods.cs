@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 // This project defines a set of types that will be rewritten by the test cases to a new
 // dll named "ClonedTestSubject".  The test cases then compare the final type information of both
@@ -46,6 +47,24 @@ namespace TestSubject
         public object AnotherMethodWithDifferentParameterTypes3(bool a, int c, CancellationToken e)
         {
             return a ? c : (object) e;
+        }
+
+        public object AnotherMethodWithDefaultParameterValues(int a, string b = "Hallo, world!", string c = null, int d = 4711)
+        {
+            switch (a)
+            {
+                case 0:
+                    return b;
+
+                case 1:
+                    return c;
+
+                case 2:
+                    return d;
+
+                default:
+                    throw new ArgumentException(nameof(a));
+            }
         }
     }
 

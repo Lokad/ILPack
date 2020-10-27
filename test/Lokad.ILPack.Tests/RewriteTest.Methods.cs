@@ -45,5 +45,48 @@ namespace Lokad.ILPack.Tests
                 "var r = x.AnotherMethodWithDifferentParameterTypes7(true, 1.0f, 2, 3, 4, new object(), System.Threading.CancellationToken.None);",
                 "r"));
         }
+
+        [Fact]
+        public async void AnotherMethodWithDefaultParameterValues()
+        {
+            Assert.Equal("Hallo, world!", await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(0);",
+                "r"));
+            Assert.Equal(string.Empty, await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(0, \"\");",
+                "r"));
+            Assert.Equal(string.Empty, await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(0, \"\", \"\");",
+                "r"));
+            Assert.Equal(string.Empty, await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(0, \"\", \"\", 27);",
+                "r"));
+
+            Assert.Null(await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(1);",
+                "r"));
+            Assert.Null(await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(1, \"\");",
+                "r"));
+            Assert.Equal("Hallo, world!", await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(1, \"\", \"Hallo, world!\");",
+                "r"));
+            Assert.Equal("Hallo, world!", await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(1, \"\", \"Hallo, world!\", 27);",
+                "r"));
+
+            Assert.Equal(4711, await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(2);",
+                "r"));
+            Assert.Equal(4711, await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(2, \"\");",
+                "r"));
+            Assert.Equal(4711, await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(2, \"\", \"\");",
+                "r"));
+            Assert.Equal(27, await Invoke(
+                "var r = x.AnotherMethodWithDefaultParameterValues(2, \"\", \"\", 27);",
+                "r"));
+        }
     }
 }

@@ -5,4 +5,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\ReferencedSubject\ReferencedSubject.csproj" />
+  </ItemGroup>
+
 </Project>

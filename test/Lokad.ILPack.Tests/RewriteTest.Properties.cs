@@ -27,5 +27,13 @@ namespace Lokad.ILPack.Tests
                 "x.ReadWriteProperty = 101;",
                 "x.ReadWriteProperty"));
         }
+
+        [Fact]
+        public async void StaticProperty()
+        {
+            Assert.Equal(default(string), await Invoke(
+                "",
+                "x.FieldAccessOfReferencedType"));
+        }
     }
 }

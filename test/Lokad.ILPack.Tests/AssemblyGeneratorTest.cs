@@ -498,6 +498,32 @@ namespace Lokad.ILPack.Tests
         }
 
         [Fact]
+        public void TestAssemblyAttribute()
+        {
+            // Define assembly and module
+            var assemblyName = new AssemblyName { Name = "MyAssembly" };
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MyModule");
+
+            // [assembly: CustomAttribute]
+            // [AttributeUsage(AttributeTargets.Assembly)]
+            // public class CustomAttribute : Attribute { }
+            var attributeTypeBuilder = newModule.DefineType("CustomAttribute", TypeAttributes.Public | TypeAttributes.Class, typeof(Attribute));
+            _ = attributeTypeBuilder.DefineDefaultConstructor(MethodAttributes.Public);
+
+            // Add [AttributeUsage(AttributeTargets.Assembly)]
+            var attributeUsageTypeInfo = typeof(AttributeUsageAttribute).GetTypeInfo();
+            var attributeUsageConstructorInfo = attributeUsageTypeInfo.GetConstructor(new[] { typeof(AttributeTargets) });
+            attributeTypeBuilder.SetCustomAttribute(new CustomAttributeBuilder(attributeUsageConstructorInfo, new object[] { AttributeTargets.Assembly }));
+
+            // apply to assembly
+            var attributeConstructor = attributeTypeBuilder.CreateTypeInfo().GetConstructor(Array.Empty<Type>());
+            newAssembly.SetCustomAttribute(new CustomAttributeBuilder(attributeConstructor, Array.Empty<Object>()));
+
+            SerializeAndVerifyAssembly(newAssembly, "AssemblyAttribute.dll");
+        }
+
+        [Fact]
         public void TestTypeSerialization()
         {
             // create assembly name

@@ -30,7 +30,7 @@ namespace Lokad.ILPack.Metadata
             // the signature of a field of a generic type. This solution was derived by
             // disassembling compiler generated code.
             var type = fieldInfo.DeclaringType.IsGenericType
-                ? fieldInfo.DeclaringType.GetGenericTypeDefinition().GetField(fieldInfo.Name).FieldType
+                ? fieldInfo.DeclaringType.GetGenericTypeDefinition().GetField(fieldInfo.Name, fieldInfo.GetBindingFlags()).FieldType
                 : fieldInfo.FieldType;
 
             return GetOrAddBlob(MetadataHelper.BuildSignature(x =>

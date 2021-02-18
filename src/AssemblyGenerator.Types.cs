@@ -171,6 +171,13 @@ namespace Lokad.ILPack
                 _metadata.Builder.AddInterfaceImplementation(handle, _metadata.GetTypeHandle(ifc));
             }
 
+            // If the type is an interface they may be no interface map.
+            // TODO: This isn't necessarily true for Default interface methods.
+            if (type.IsInterface)
+            {
+                return;
+            }
+
             // Build the interface map.
             // All interfaces need to be considered (not just the ones added by the type) because
             // the type may override interface methods of interfaces implemented by the base type.

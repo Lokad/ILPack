@@ -35,6 +35,9 @@ namespace TestSubject
     interface Itf2
     {
     }
+    interface Itf3 : Itf2
+    {
+    }
 
     /// <summary> Challenging the interface metadata ordering. </summary>
     class MyImpl : Itf2, Itf1

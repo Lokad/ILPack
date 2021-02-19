@@ -171,7 +171,7 @@ namespace Lokad.ILPack
                 _metadata.Builder.AddInterfaceImplementation(handle, _metadata.GetTypeHandle(ifc));
             }
 
-            // If the type is an interface they may be no interface map.
+            // If the type is an interface there may be no interface map.
             // TODO: This isn't necessarily true for Default interface methods.
             if (type.IsInterface)
             {

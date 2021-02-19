@@ -4,17 +4,34 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
+        // TODO: This list is not exhaustive
+        static readonly HashSet<Type> s_PseudoAttributes = new HashSet<Type>()
+        {
+            typeof(DllImportAttribute),
+            typeof(ComImportAttribute),
+            typeof(PreserveSigAttribute)
+        };
+
         public void CreateCustomAttributes(EntityHandle parent, IEnumerable<CustomAttributeData> attributes)
         {
             foreach (var attr in attributes)
             {
                 // Get the attribute type and make sure handle created
                 var attrType = attr.AttributeType;
+
+                // Check if the supplied attribute should be emitted or is encoded
+                // directly in metadata.
+                if (s_PseudoAttributes.Contains(attrType))
+                {
+                    continue;
+                }
+
                 var attrTypeHandle = _metadata.GetTypeHandle(attrType); // create type
 
                 // Get handle to the constructor

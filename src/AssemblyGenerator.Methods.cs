@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices;
 using Lokad.ILPack.IL;
 using Lokad.ILPack.Metadata;
 
@@ -79,6 +82,25 @@ namespace Lokad.ILPack
                     }));
                 }
             }
+            else if (method.Attributes.HasFlag(MethodAttributes.PinvokeImpl))
+            {
+                ProcessPInvokeMapData(
+                    method,
+                    out string libraryName,
+                    out string entryName,
+                    out MethodImportAttributes attrs);
+
+                var libraryNameHandle = _metadata.GetOrAddString(libraryName);
+                var moduleRefHandle = _metadata.Builder.AddModuleReference(libraryNameHandle);
+                var entryNameHandle = _metadata.GetOrAddString(entryName);
+
+                // Add the ImplMap entry for the P/Invoke
+                _metadata.Builder.AddMethodImport(
+                    handle,
+                    attrs,
+                    entryNameHandle,
+                    moduleRefHandle);
+            }
 
             VerifyEmittedHandle(metadata, handle);
             metadata.MarkAsEmitted();
@@ -91,6 +113,90 @@ namespace Lokad.ILPack
             foreach (var method in methods)
             {
                 CreateMethod(method, genericParams);
+            }
+        }
+
+        private void ProcessPInvokeMapData(
+            MethodInfo method,
+            out string libraryName,
+            out string entryName,
+            out MethodImportAttributes implAttr)
+        {
+            CustomAttributeData dllImportData = null;
+            foreach (var custAttr in method.GetCustomAttributesData())
+            {
+                if (custAttr.AttributeType == typeof(DllImportAttribute))
+                {
+                    dllImportData = custAttr;
+                    break;
+                }
+            }
+
+            if (dllImportData == null)
+            {
+                throw new InvalidProgramException($"Missing P/Invoke map data for: {method.Name}");
+            }
+
+            // Initialize the outputs
+            libraryName = (string)dllImportData.ConstructorArguments[0].Value;
+            entryName = method.Name;
+            implAttr = MethodImportAttributes.CallingConventionWinApi;
+
+            foreach (var nargs in dllImportData.NamedArguments)
+            {
+                object argValue = nargs.TypedValue.Value;
+                switch (nargs.MemberName)
+                {
+                    case nameof(DllImportAttribute.BestFitMapping):
+                        implAttr |= ((bool)argValue)
+                                ? MethodImportAttributes.BestFitMappingEnable
+                                : MethodImportAttributes.BestFitMappingDisable;
+                        break;
+                    case nameof(DllImportAttribute.CallingConvention):
+                        // Clear previous value.
+                        implAttr &= ~MethodImportAttributes.CallingConventionMask;
+
+                        implAttr |= (CallingConvention)argValue switch
+                        {
+                            CallingConvention.Winapi => MethodImportAttributes.CallingConventionWinApi,
+                            CallingConvention.Cdecl => MethodImportAttributes.CallingConventionCDecl,
+                            CallingConvention.StdCall => MethodImportAttributes.CallingConventionStdCall,
+                            CallingConvention.ThisCall => MethodImportAttributes.CallingConventionThisCall,
+                            CallingConvention.FastCall => MethodImportAttributes.CallingConventionFastCall,
+                            _ => MethodImportAttributes.CallingConventionWinApi,
+                        };
+                        break;
+                    case nameof(DllImportAttribute.CharSet):
+                        // Clear previous value.
+                        implAttr &= ~MethodImportAttributes.CharSetMask;
+
+                        implAttr |= (CharSet)argValue switch
+                        {
+                            CharSet.Ansi => MethodImportAttributes.CharSetAnsi,
+                            CharSet.Unicode => MethodImportAttributes.CharSetUnicode,
+                            CharSet.Auto => MethodImportAttributes.CharSetAuto,
+                            _ => MethodImportAttributes.None,
+                        };
+                        break;
+                    case nameof(DllImportAttribute.EntryPoint):
+                        entryName = (string)argValue;
+                        break;
+                    case nameof(DllImportAttribute.ExactSpelling):
+                        implAttr |= ((bool)argValue)
+                                ? MethodImportAttributes.ExactSpelling
+                                : MethodImportAttributes.None;
+                        break;
+                    case nameof(DllImportAttribute.SetLastError):
+                        implAttr |= ((bool)argValue)
+                                ? MethodImportAttributes.SetLastError
+                                : MethodImportAttributes.None;
+                        break;
+                    case nameof(DllImportAttribute.ThrowOnUnmappableChar):
+                        implAttr |= ((bool)argValue)
+                                ? MethodImportAttributes.ThrowOnUnmappableCharEnable
+                                : MethodImportAttributes.ThrowOnUnmappableCharDisable;
+                        break;
+                }
             }
         }
     }

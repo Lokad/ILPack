@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 // This project defines a set of types that will be rewritten by the test cases to a new
@@ -12,6 +13,9 @@ namespace TestSubject
 {
     public partial class MyClass : IMyItf
     {
+        [DllImport("DOES_NOT_EXIST")]
+        public extern static int DontCall(int a);
+
         public void VoidMethod()
         {
         }

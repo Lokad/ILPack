@@ -70,6 +70,20 @@ namespace TestSubject
                     throw new ArgumentException(nameof(a));
             }
         }
+
+        public int methA(object param) {
+            return 1;
+        }
+        public int methA(ref object param) {
+            return 2;
+        }
+        public unsafe int methA(byte *param, void *param1) {
+            return 3 + (int)param;
+        }
+        public unsafe object call_methA() {
+            byte* ptr = (byte*)0x123;
+            return methA((byte*)ptr, (void*)ptr);
+        }
     }
 
     public class ClassWithProtectedMethod<T>

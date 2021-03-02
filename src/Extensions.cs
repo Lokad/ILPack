@@ -163,7 +163,15 @@ namespace Lokad.ILPack
             }
             else if (type.IsPointer)
             {
-                typeEncoder.Pointer().FromSystemType(type.GetElementType(), metadata);
+                var elem_t = type.GetElementType();
+                if (elem_t == typeof(void))
+                {
+                    typeEncoder.VoidPointer();
+                }
+                else
+                {
+                    typeEncoder.Pointer().FromSystemType(elem_t, metadata);
+                }
             }
             else if (type.IsPrimitive)
             {

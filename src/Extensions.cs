@@ -275,8 +275,18 @@ namespace Lokad.ILPack
 
             try
             {
-                var pi = assembly.GetType().GetMethod("GetRawBytes", BindingFlags.Instance | BindingFlags.NonPublic);
-                var peImage = (byte[])pi.Invoke(assembly, null);
+                var ty = assembly.GetType();
+                var pi = ty.GetMethod("GetRawBytes", BindingFlags.Instance | BindingFlags.NonPublic);
+                byte[] peImage = null;
+                if (pi == null) {
+                    if (!String.IsNullOrEmpty(assembly.Location))
+                        peImage = File.ReadAllBytes(assembly.Location);
+                    else
+                        return false;
+                }
+                else {
+                    peImage = (byte[])pi.Invoke(assembly, null);
+                }
 
                 //var peImage = File.ReadAllBytes(assembly.Location);
                 GCHandle pinned = GetPinnedPEImage(peImage);

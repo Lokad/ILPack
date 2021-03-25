@@ -6,6 +6,7 @@
 
 // SEE RewriteTest in Lokad.ILPack.Tests
 
+using ReferencedSubject;
 
 namespace TestSubject
 {
@@ -31,6 +32,13 @@ namespace TestSubject
         {
             get;
             set;
+        }
+        public string FieldAccessOfReferencedType
+        {
+            get
+            {
+                return MyReferencedStaticClass<string>.Instance;
+            }
         }
     }
 }

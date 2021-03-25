@@ -106,6 +106,18 @@ namespace Lokad.ILPack
             throw new ArgumentException($"Type is unknown: {MetadataHelper.GetFriendlyName(type)}", nameof(type));
         }
 
+        internal static BindingFlags GetBindingFlags(this FieldInfo fieldInfo)
+        {
+            BindingFlags result = fieldInfo.IsStatic
+                ? BindingFlags.Static
+                : BindingFlags.Instance;
+
+            result |= FieldAttributes.Public == (fieldInfo.Attributes & FieldAttributes.FieldAccessMask)
+                ? BindingFlags.Public
+                : BindingFlags.NonPublic;
+            return result;
+        }
+
         internal static void FromSystemType(
             this ReturnTypeEncoder typeEncoder,
             Type type,

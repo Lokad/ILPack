@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\ReferencedSubject\ReferencedSubject.csproj" />
     <ProjectReference Include="..\..\src\Lokad.ILPack.csproj" />
     <ProjectReference Include="..\TestSubject\TestSubject.csproj" />
   </ItemGroup>

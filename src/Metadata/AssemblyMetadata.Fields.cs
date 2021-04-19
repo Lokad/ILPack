@@ -24,7 +24,15 @@ namespace Lokad.ILPack.Metadata
 
         public BlobHandle GetFieldSignature(FieldInfo fieldInfo)
         {
-            var type = fieldInfo.FieldType;
+            // In a field signature the field type of a field declared by a generic class
+            // is the field type of the generic type definition's field, not the field type
+            // of the declaring type's field. ECMA335 II.23.2.4 doesn't specify how to layout
+            // the signature of a field of a generic type. This solution was derived by
+            // disassembling compiler generated code.
+            var type = fieldInfo.DeclaringType.IsGenericType
+                ? fieldInfo.DeclaringType.GetGenericTypeDefinition().GetField(fieldInfo.Name).FieldType
+                : fieldInfo.FieldType;
+
             return GetOrAddBlob(MetadataHelper.BuildSignature(x =>
                 x.FieldSignature().FromSystemType(type, this)));
         }

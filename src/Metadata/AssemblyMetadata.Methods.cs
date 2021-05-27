@@ -8,6 +8,18 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
+        public EntityHandle GetMethodHandleConstructedType(MethodInfo method) {
+            if (TryGetMethodDefinitionConstructedType(method, out var metadata)) 
+                return metadata.Handle;
+
+            if (IsReferencedType(method.DeclaringType)) {
+                return ResolveMethodReference(method);
+            }
+
+            throw new ArgumentException($"Method cannot be found: {MetadataHelper.GetFriendlyName(method)}",
+                nameof(method));
+        }
+
         public EntityHandle GetMethodHandle(MethodInfo method)
         {
             if (TryGetMethodDefinition(method, out var metadata))
@@ -55,7 +67,7 @@ namespace Lokad.ILPack.Metadata
                 // method with the same token.
                 //
                 // TODO: What about generic method definitions in a generic type???
-                System.Diagnostics.Debug.Assert(!methodBase.IsGenericMethod);
+                // System.Diagnostics.Debug.Assert(!methodBase.IsGenericMethod);
 
                 var definition = methodBase.DeclaringType.GetGenericTypeDefinition();
                 if (methodBase is MethodInfo)
@@ -158,6 +170,20 @@ namespace Lokad.ILPack.Metadata
             }
         }
 
+        public bool TryGetMethodDefinitionConstructedType(MethodInfo methodInfo, out MethodBaseDefinitionMetadata metadata) {
+            if (methodInfo.DeclaringType.IsConstructedGenericType) {
+                var open_constr = methodInfo.DeclaringType.GetMethods(AllMethods);
+                foreach (var mi in open_constr) {
+                    if (mi.MetadataToken == methodInfo.MetadataToken) {
+                        methodInfo = mi;
+                        goto ret;
+                    }
+                }
+            }
+        ret:;
+            return _methodDefHandles.TryGetValue(methodInfo, out metadata);
+        }
+
         public bool TryGetMethodDefinition(MethodInfo methodInfo, out MethodBaseDefinitionMetadata metadata)
         {
             if (methodInfo.DeclaringType.IsConstructedGenericType)
@@ -166,7 +192,6 @@ namespace Lokad.ILPack.Metadata
                 // See https://stackoverflow.com/questions/43850948/with-constructorinfo-from-a-constructed-generic-type-how-to-i-get-the-matchin
 
                 var open = methodInfo.DeclaringType.GetGenericTypeDefinition().GetMethods(AllMethods);
-
                 foreach (var mi in open)
                 {
                     if (mi.MetadataToken == methodInfo.MetadataToken)

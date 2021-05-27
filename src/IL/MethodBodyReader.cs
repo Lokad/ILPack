@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 
 namespace Lokad.ILPack.IL
 {
-    internal class MethodBodyReader
+    public class MethodBodyReader
     {
         private readonly ByteBuffer _il;
         private readonly IList<LocalVariableInfo> _locals;
@@ -48,18 +48,14 @@ namespace Lokad.ILPack.IL
             _il = new ByteBuffer(bytes);
         }
 
-        private List<Instruction> ReadInstructions()
-        {
-            var instructions = new List<Instruction>();
-            var reader = (Func<byte>) (() => _il.ReadByte());
-
-            while (_il._position < _il._buffer.Length)
-            {
-                var instruction = new Instruction(_il._position, reader.ReadOpCode());
+        private List<Instruction> ReadInstructions() {
+            int ln = _il._buffer.Length;
+            List<Instruction> instructions = new List<Instruction>(ln);
+            while (_il._position < ln) {
+                Instruction instruction = new Instruction(_il._position, _il.ReadOpCode());
                 ReadOperand(instruction);
                 instructions.Add(instruction);
             }
-
             return instructions;
         }
 
@@ -190,7 +186,7 @@ namespace Lokad.ILPack.IL
             return reader.ReadInstructions();
         }
 
-        private class ByteBuffer
+        public class ByteBuffer
         {
             internal readonly byte[] _buffer;
             internal int _position;

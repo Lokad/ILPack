@@ -104,7 +104,7 @@ namespace Lokad.ILPack.IL
 
                             case ConstructorInfo constructorInfo:
                                 metadata.ILBuilder.WriteInt32(
-                                    MetadataTokens.GetToken(metadata.GetConstructorHandle(constructorInfo)));
+                                    MetadataTokens.GetToken(metadata.GetConstructorHandleConstructedType(constructorInfo)));
                                 break;
 
                             case FieldInfo fieldInfo:
@@ -114,7 +114,7 @@ namespace Lokad.ILPack.IL
 
                             case MethodInfo methodInfo:
                                 metadata.ILBuilder.WriteInt32(
-                                    MetadataTokens.GetToken(metadata.GetMethodHandle(methodInfo)));
+                                    MetadataTokens.GetToken(metadata.GetMethodHandleConstructedType(methodInfo)));
                                 break;
 
                             default:

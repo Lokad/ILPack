@@ -6,6 +6,18 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
+        public EntityHandle GetConstructorHandleConstructedType(ConstructorInfo ctor) {
+            if (TryGetConstructorDefinitionConstructedType(ctor, out var metadata)) 
+                return metadata.Handle;
+
+            if (IsReferencedType(ctor.DeclaringType)) {
+                return ResolveConstructorReference(ctor);
+            }
+
+            throw new ArgumentException($"Constructor cannot be found: {MetadataHelper.GetFriendlyName(ctor)}",
+                nameof(ctor));
+        }
+
         public EntityHandle GetConstructorHandle(ConstructorInfo ctor)
         {
             if (TryGetConstructorDefinition(ctor, out var metadata))
@@ -41,6 +53,20 @@ namespace Lokad.ILPack.Metadata
             var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(ctor.Name), GetMethodOrConstructorSignature(ctor));
             _ctorRefHandles.Add(ctor, methodRef);
             return methodRef;
+        }
+
+        public bool TryGetConstructorDefinitionConstructedType(ConstructorInfo ctor, out MethodBaseDefinitionMetadata metadata) {
+            if (ctor.DeclaringType.IsConstructedGenericType) {
+                var open_constr = ctor.DeclaringType.GetConstructors(AllMethods);
+                foreach (var ci in open_constr) {
+                    if (ci.MetadataToken == ctor.MetadataToken) {
+                        ctor = ci;
+                        goto ret;
+                    }
+                }
+            }
+        ret:;
+            return _ctorDefHandles.TryGetValue(ctor, out metadata);
         }
 
         public bool TryGetConstructorDefinition(ConstructorInfo ctor, out MethodBaseDefinitionMetadata metadata)

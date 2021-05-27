@@ -47,6 +47,11 @@ namespace Lokad.ILPack.IL
             return op != 0xfe ? OneByteOpCodes[op] : TwoBytesOpCodes[reader()];
         }
 
+        public static OpCode ReadOpCode(this MethodBodyReader.ByteBuffer buffer) {
+            var op = buffer.ReadByte();
+            return op != 0xfe ? OneByteOpCodes[op] : TwoBytesOpCodes[buffer.ReadByte()];
+        }
+
         public static void WriteOpCode(this OpCode op, Action<byte> writer)
         {
             if (op.Size == 1)

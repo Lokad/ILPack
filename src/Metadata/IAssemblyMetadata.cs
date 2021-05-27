@@ -12,6 +12,8 @@ namespace Lokad.ILPack.Metadata
         EntityHandle GetTypeHandle(Type type);
         EntityHandle GetFieldHandle(FieldInfo field);
         EntityHandle GetConstructorHandle(ConstructorInfo ctor);
+        EntityHandle GetConstructorHandleConstructedType(ConstructorInfo ctor);
         EntityHandle GetMethodHandle(MethodInfo method);
+        EntityHandle GetMethodHandleConstructedType(MethodInfo method);
     }
 }

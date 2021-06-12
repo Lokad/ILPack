@@ -36,5 +36,10 @@ namespace TestSubject
         public void AttributeNullArrayTest()
         {
         }
+
+        [MyArrayAttribute(new string[] { null })]
+        public void AttributeNullArrayValueTest()
+        {
+        }
     }
 }

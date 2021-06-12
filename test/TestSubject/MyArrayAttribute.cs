@@ -4,11 +4,11 @@ namespace TestSubject
 {
     public class MyArrayAttribute : Attribute
     {
-        public MyArrayAttribute(object[] value)
+        public MyArrayAttribute(string[] values)
         {
-            Value = value;
+            Values = values;
         }
 
-        public object[] Value { get; }
+        public string[] Values { get; }
     }
 }

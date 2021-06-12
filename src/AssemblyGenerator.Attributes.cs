@@ -80,7 +80,7 @@ namespace Lokad.ILPack
             else
             {
                 // Check argument type supported (ie: simple scalar values)
-                PrimitiveTypeCodeFromSystemTypeCode(arg.Value?.GetType());
+                PrimitiveTypeCodeFromSystemTypeCode(arg.Value.GetType());
                 litEnc.Scalar().Constant(arg.Value);
             }
         }

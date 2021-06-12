@@ -66,6 +66,17 @@ namespace Lokad.ILPack
                     EncodeLiteral(subLitEnc.AddLiteral(), el);
                 }
             }
+            else if (arg.Value is null)
+            {
+                if (arg.ArgumentType.IsArray)
+                {
+                    litEnc.Scalar().NullArray();
+                }
+                else
+                {
+                    litEnc.Scalar().Constant(null);
+                }
+            }
             else
             {
                 // Check argument type supported (ie: simple scalar values)

@@ -26,5 +26,20 @@ namespace TestSubject
             NamedArray = new int[] { 40, 50, 60 }
             )]
         public int AttributeOnProperty { get; set; }
+
+        [MyStringAttribute(null)]
+        public void AttributeNullStringTest()
+        {
+        }
+
+        [MyArrayAttribute(null)]
+        public void AttributeNullArrayTest()
+        {
+        }
+
+        [MyArrayAttribute(new string[] { null })]
+        public void AttributeNullArrayValueTest()
+        {
+        }
     }
 }

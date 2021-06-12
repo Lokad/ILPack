@@ -60,5 +60,33 @@ namespace Lokad.ILPack.Tests
                 "attr.NamedArray"
                 ));
         }
+
+        [Fact]
+        public async void AttributeNullString()
+        {
+            Assert.Null(
+                await Invoke(
+                    $"var attr = typeof({_namespaceName}.MyClass).GetMethod(\"AttributeNullStringTest\").GetCustomAttribute<MyStringAttribute>();",
+                    "attr.Value"));
+        }
+
+        [Fact]
+        public async void AttributeNullArray()
+        {
+            Assert.Null(
+                await Invoke(
+                    $"var attr = typeof({_namespaceName}.MyClass).GetMethod(\"AttributeNullArrayTest\").GetCustomAttribute<MyArrayAttribute>();",
+                    "attr.Values"));
+        }
+
+        [Fact]
+        public async void AttributeNullArrayValue()
+        {
+            Assert.Equal(
+                new object[] { null },
+                await Invoke(
+                    $"var attr = typeof({_namespaceName}.MyClass).GetMethod(\"AttributeNullArrayValueTest\").GetCustomAttribute<MyArrayAttribute>();",
+                    "attr.Values"));
+        }
     }
 }

@@ -19,11 +19,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Scripting" Version="3.11.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.11.0">
-    </PackageReference>
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
     <PackageReference Include="CS-Script" Version="3.29.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />

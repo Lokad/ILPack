@@ -63,24 +63,18 @@ namespace Lokad.ILPack.Metadata
             _typeSpecHandles = new Dictionary<Type, TypeSpecificationHandle>();
             _referencedDynamics = referencedDynamicAssemblies.ToDictionary(a => a.FullName, a => a);
 
-            var assemblies = new List<AssemblyName>(SourceAssembly.GetReferencedAssemblies());
 
-            // HACK: [vermorel] 2019-07-25. 'GetReferencedAssemblies()' does not capture all assemblies,
-            // only those that are explicitly referenced. Thus, we end-up  manually adding the assembly.
+            var netstandardName = Assembly.Load("netstandard").GetName();
 
-            var corlib_name = Assembly.GetAssembly(typeof(object)).GetName();
-            for (int x = 0; x < assemblies.Count; x++) {
-                if (assemblies[x].Name.Equals(corlib_name.Name)) /* string ref (coreclr ptr) not equal */
-                    assemblies.RemoveAt(x--);
-            }
-            assemblies.Add(corlib_name);
-
-            var ref_assm = Assembly.GetExecutingAssembly().GetReferencedAssemblies();
-            for (int x = 0; x < ref_assm.Length; x++) {
-                var ref_assm_x = ref_assm[x];
-                if (ref_assm_x.Name.Contains("netstandard")) /* may needs more assembly names for net4xx */
-                    assemblies.Add(ref_assm_x);
-            }
+            var assemblies = SourceAssembly.GetReferencedAssemblies()
+                // HACK: [vermorel] 2019-07-25. 'GetReferencedAssemblies()' does not capture all assemblies,
+                // only those that are explicitly referenced. Thus, we end-up  manually adding the assembly.
+                .Concat(new AssemblyName[] { Assembly.GetAssembly(typeof(object)).GetName() })
+                // Replace any reference to the private corelib implementation with netstandard
+                .Select(assembly => assembly.Name == "System.Private.CoreLib" ? netstandardName : assembly)
+                // Remove duplicate references by name
+                .GroupBy(assembly => assembly.Name)
+                .Select(group => group.First());
 
             CreateReferencedAssemblies(assemblies);
         }

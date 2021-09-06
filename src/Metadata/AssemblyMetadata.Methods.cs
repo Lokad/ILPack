@@ -94,7 +94,16 @@ namespace Lokad.ILPack.Metadata
                         {
                             if (par.ParameterType.IsByRef)
                             {
-                                parEnc.AddParameter().Type(true).FromSystemType(par.ParameterType.GetElementType(), this);
+                                var rts = par.GetRequiredCustomModifiers();
+                                if (rts.Length > 0)
+                                {
+                                    var pcm = p.CustomModifiers();
+                                    foreach (var rt in rts)
+                                    {
+                                        pcm = pcm.AddModifier(ResolveTypeReference(rt), false);
+                                    }
+                                }
+                                p.Type(true).FromSystemType(par.ParameterType.GetElementType(), this);
                             }
                             else
                             {

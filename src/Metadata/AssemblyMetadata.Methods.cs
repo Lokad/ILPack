@@ -92,6 +92,7 @@ namespace Lokad.ILPack.Metadata
                     {
                         foreach (var par in parameters)
                         {
+                            var p = parEnc.AddParameter();
                             if (par.ParameterType.IsByRef)
                             {
                                 var rts = par.GetRequiredCustomModifiers();

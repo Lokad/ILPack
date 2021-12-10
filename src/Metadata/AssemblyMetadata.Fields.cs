@@ -41,6 +41,7 @@ namespace Lokad.ILPack.Metadata
         {
             var metadata = new FieldDefinitionMetadata(field, handle);
             _fieldDefHandles.Add(field, metadata);
+            _unconstructedFieldDefs.Add(field.MetadataToken, field);
             return metadata;
         }
 
@@ -66,6 +67,12 @@ namespace Lokad.ILPack.Metadata
 
         public bool TryGetFieldDefinition(FieldInfo field, out FieldDefinitionMetadata metadata)
         {
+            if (field.Module.Assembly == SourceAssembly 
+                && field.DeclaringType?.IsConstructedGenericType == true
+                && _unconstructedFieldDefs.TryGetValue(field.MetadataToken, out var baseField))
+            {
+                field = baseField;
+            }
             return _fieldDefHandles.TryGetValue(field, out metadata);
         }
     }

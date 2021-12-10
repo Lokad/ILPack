@@ -20,7 +20,7 @@ namespace Lokad.ILPack.Tests
         public async void GenericConstructedMethod()
         {
             Assert.Equal("Hello Generic World!", await Invoke(
-                @"var r = x.GenericMethod(""Hello Generic World!"");",
+                @"var r = x.GenericConstructedMethod(""Hello Generic World!"");",
                 "r.Value"
                 ));
         }

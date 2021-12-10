@@ -11,13 +11,13 @@ namespace TestSubject
 
     public partial class MyClass
     {
-        private GenericClass<int> _genericInt = new() { Value = 5 };
+        private GenericClass<int> _genericInt = new GenericClass<int>() { Value = 5 };
 
         public GenericClass<int> GenericInt => _genericInt;
 
-        public GenericClass<T> GenericMethod<T>(T value)
+        public GenericClass<T> GenericConstructedMethod<T>(T value)
         {
-            return new() { Value = value };
+            return new GenericClass<T>() { Value = value };
         }
     }
 }

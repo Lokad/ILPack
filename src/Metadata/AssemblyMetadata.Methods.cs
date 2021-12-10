@@ -160,21 +160,11 @@ namespace Lokad.ILPack.Metadata
 
         public bool TryGetMethodDefinition(MethodInfo methodInfo, out MethodBaseDefinitionMetadata metadata)
         {
-            if (methodInfo.DeclaringType.IsConstructedGenericType)
+            if ((methodInfo.DeclaringType.IsConstructedGenericType || methodInfo.IsConstructedGenericMethod())
+                && _unconstructedMethodDefs.TryGetValue(methodInfo.MetadataToken, out var baseMethod)
+            )
             {
-                // HACK: [vermorel] Unclear how to get the original constructor from the open type
-                // See https://stackoverflow.com/questions/43850948/with-constructorinfo-from-a-constructed-generic-type-how-to-i-get-the-matchin
-
-                var open = methodInfo.DeclaringType.GetGenericTypeDefinition().GetMethods(AllMethods);
-
-                foreach (var mi in open)
-                {
-                    if (mi.MetadataToken == methodInfo.MetadataToken)
-                    {
-                        methodInfo = mi;
-                        break;
-                    }
-                }
+                methodInfo = baseMethod;
             }
 
             return _methodDefHandles.TryGetValue(methodInfo, out metadata);
@@ -184,6 +174,7 @@ namespace Lokad.ILPack.Metadata
         {
             var metadata = new MethodBaseDefinitionMetadata(method, handle);
             _methodDefHandles.Add(method, metadata);
+            _unconstructedMethodDefs.Add(method.MetadataToken, method);
             return metadata;
         }
     }

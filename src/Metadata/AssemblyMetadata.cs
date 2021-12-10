@@ -17,8 +17,10 @@ namespace Lokad.ILPack.Metadata
         private readonly Dictionary<ConstructorInfo, MethodBaseDefinitionMetadata> _ctorDefHandles;
         private readonly Dictionary<ConstructorInfo, MemberReferenceHandle> _ctorRefHandles;
         private readonly Dictionary<FieldInfo, FieldDefinitionMetadata> _fieldDefHandles;
+        private readonly Dictionary<int, FieldInfo> _unconstructedFieldDefs;
         private readonly Dictionary<FieldInfo, MemberReferenceHandle> _fieldRefHandles;
         private readonly Dictionary<MethodInfo, MethodBaseDefinitionMetadata> _methodDefHandles;
+        private readonly Dictionary<int, MethodInfo> _unconstructedMethodDefs;
         private readonly Dictionary<MethodInfo, MemberReferenceHandle> _methodRefHandles;
         private readonly Dictionary<MethodInfo, MethodSpecificationHandle> _methodSpecHandles;
         private readonly Dictionary<ParameterInfo, ParameterHandle> _parameterHandles;
@@ -51,8 +53,10 @@ namespace Lokad.ILPack.Metadata
             _ctorDefHandles = new Dictionary<ConstructorInfo, MethodBaseDefinitionMetadata>();
             _ctorRefHandles = new Dictionary<ConstructorInfo, MemberReferenceHandle>();
             _fieldDefHandles = new Dictionary<FieldInfo, FieldDefinitionMetadata>();
+            _unconstructedFieldDefs = new Dictionary<int, FieldInfo>();
             _fieldRefHandles = new Dictionary<FieldInfo, MemberReferenceHandle>();
             _methodDefHandles = new Dictionary<MethodInfo, MethodBaseDefinitionMetadata>();
+            _unconstructedMethodDefs = new Dictionary<int, MethodInfo>();
             _methodRefHandles = new Dictionary<MethodInfo, MemberReferenceHandle>();
             _methodSpecHandles = new Dictionary<MethodInfo, MethodSpecificationHandle>();
             _parameterHandles = new Dictionary<ParameterInfo, ParameterHandle>();

@@ -160,7 +160,8 @@ namespace Lokad.ILPack.Metadata
 
         public bool TryGetMethodDefinition(MethodInfo methodInfo, out MethodBaseDefinitionMetadata metadata)
         {
-            if ((methodInfo.DeclaringType.IsConstructedGenericType || methodInfo.IsConstructedGenericMethod())
+            if (methodInfo.Module.Assembly == SourceAssembly
+                // && (methodInfo.DeclaringType.IsConstructedGenericType || methodInfo.IsConstructedGenericMethod())
                 && _unconstructedMethodDefs.TryGetValue(methodInfo.MetadataToken, out var baseMethod)
             )
             {

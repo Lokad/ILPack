@@ -67,7 +67,8 @@ namespace Lokad.ILPack.Metadata
 
         public bool TryGetFieldDefinition(FieldInfo field, out FieldDefinitionMetadata metadata)
         {
-            if (field.DeclaringType.IsConstructedGenericType 
+            if (field.Module.Assembly == SourceAssembly 
+                && field.DeclaringType?.IsConstructedGenericType == true
                 && _unconstructedFieldDefs.TryGetValue(field.MetadataToken, out var baseField))
             {
                 field = baseField;

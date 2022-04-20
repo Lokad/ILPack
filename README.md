@@ -3,7 +3,7 @@
 Exports a .NET type to a serialized assembly, with support for dynamic
 assemblies (i.e. custom IL generation). This library is intended as a
 drop-in replacement for the `AssemblyBuilder.Save` method which existed 
-since .NET 1.1 but that as not been ported to .NET Core 3.0.
+since .NET 1.1 but that has not been ported to .NET Core 3.0.
 
 To install with NuGet:
 

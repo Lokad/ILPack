@@ -260,7 +260,6 @@ namespace Lokad.ILPack
             }
         }
 
-#if NETSTANDARD || NET46
         internal static bool IsGenericMethodParameter(this Type type) => type.IsGenericParameter && type.DeclaringMethod != null;
 
         internal static bool IsConstructedGenericMethod(this MethodBase method) => method.IsGenericMethod && !method.IsGenericMethodDefinition;
@@ -315,15 +314,10 @@ namespace Lokad.ILPack
                 blob = (byte*)pointer;
 
                 return true;
-            } catch (Exception ex)
+            } catch
             {
                 return false;
             }
         }
-#else
-        internal static bool IsGenericMethodParameter( this Type type ) => type.IsGenericMethodParameter;
-
-        internal static bool IsConstructedGenericMethod( this MethodBase method ) => method.IsConstructedGenericMethod;
-#endif
     }
 }

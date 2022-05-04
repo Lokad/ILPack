@@ -1,10 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;netstandard2.0;net46</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
     <LangVersion>8.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>5</WarningLevel>
 
     <Company>Lokad</Company>
     <Copyright>Copyright © Lokad 2020</Copyright>
@@ -17,27 +20,20 @@
     <Authors>Lokad</Authors>
     <Description>A library for serializing dynamic assemblies under .NET Core.</Description>
     <PackageProjectUrl>https://github.com/Lokad/ILPack</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/Lokad/ILPack/master/lokad.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
     <Version>0.1.6</Version>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.Metadata" Version="1.6.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net46'">
+  <ItemGroup>
     <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.6.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    <None Include="..\lokad.png" Pack="true" PackagePath="icon.png" />
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="\" />
   </ItemGroup>
+
 </Project>

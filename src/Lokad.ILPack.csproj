@@ -23,6 +23,8 @@
     <PackageIcon>icon.png</PackageIcon>
     <Version>0.1.6</Version>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Lokad.ILPack.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

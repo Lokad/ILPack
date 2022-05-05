@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
@@ -86,7 +87,7 @@ namespace Lokad.ILPack
             var handle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
                 type.DeclaringType == null ? _metadata.GetOrAddString(ApplyNameChange(type.Namespace)) : default(StringHandle),
-                _metadata.GetOrAddString(type.Name),
+                _metadata.GetOrAddString(Unescape(type.Name)),
                 baseTypeHandle,
                 MetadataTokens.FieldDefinitionHandle(_metadata.Builder.GetRowCount(TableIndex.Field) + 1),
                 MetadataTokens.MethodDefinitionHandle(_metadata.Builder.GetRowCount(TableIndex.MethodDef) + 1));
@@ -153,6 +154,23 @@ namespace Lokad.ILPack
             CreateEventsForType(type.GetEvents(AllEvents));
             CreateConstructors(type.GetConstructors(AllMethods));
             CreateMethods(type.GetMethods(AllMethods), genericParams);
+        }
+
+        private static string Unescape(string str)
+        {
+            int idx = str.IndexOf('\\');
+            if (idx < 0)
+                return str;
+            StringBuilder sb = new StringBuilder();
+            int prevIdx = 0;
+            while (idx >= 0 && idx < str.Length - 1)
+            {
+                sb.Append(str.Substring(prevIdx, idx - prevIdx));
+                prevIdx = idx + 1;
+                idx = str.IndexOf("\\", idx + 2);
+            }
+            sb.Append(str.Substring(prevIdx));
+            return sb.ToString();
         }
 
         private void DeclareInterfacesAndCreateInterfaceMap(Type type, TypeDefinitionHandle handle)

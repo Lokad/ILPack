@@ -700,5 +700,25 @@ namespace Lokad.ILPack.Tests
             Assert.True(IsTinyMethod(methodInfo));
             Assert.True(IsTinyMethod(constructorInfo));
         }
+
+        [Fact]
+        public void TestSpecialCharacters()
+        {
+            /* SAVE */
+            var assemblyName = new AssemblyName { Name = "Assembly+" };
+
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("Assembly+");
+
+            var myType = newModule.DefineType("Type+", TypeAttributes.Public);
+            myType.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "Assembly+.dll");
+
+            /* LOAD */
+            Assembly assembly = LoadAssembly("Assembly+.dll");
+            Type type = assembly.GetType("Type\\+");
+            Assert.NotNull(type);
+        }
     }
 }

@@ -731,5 +731,39 @@ namespace Lokad.ILPack.Tests
 
             SerializeAndVerifyAssembly(newAssembly, "InterpolatedStringsSerialization.dll");
         }
+
+        [Fact]
+        public void TestSpecialCharacters()
+        {
+            /* SAVE */
+            var assemblyName = new AssemblyName { Name = "Assembly+" };
+
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("Assembly+");
+
+            var myType = newModule.DefineType("Type+", TypeAttributes.Public);
+            myType.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "Assembly+.dll");
+
+            /* LOAD */
+            var assembly = LoadAssembly("Assembly+.dll");
+            var type = assembly.GetType("Type\\+");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void TestUnescape()
+        {
+            Assert.Equal(@"", AssemblyGenerator.Unescape(@""));
+            Assert.Equal(@"x", AssemblyGenerator.Unescape(@"x"));
+            Assert.Equal(@"\", AssemblyGenerator.Unescape(@"\"));
+            Assert.Equal(@"x", AssemblyGenerator.Unescape(@"\x"));
+            Assert.Equal(@"\", AssemblyGenerator.Unescape(@"\\"));
+            Assert.Equal(@"\\", AssemblyGenerator.Unescape(@"\\\"));
+            Assert.Equal(@"\\", AssemblyGenerator.Unescape(@"\\\\"));
+            Assert.Equal(@"x\", AssemblyGenerator.Unescape(@"x\"));
+            Assert.Equal(@"\xx\\x\", AssemblyGenerator.Unescape(@"\\\xx\\\\\x\\"));
+        }
     }
 }

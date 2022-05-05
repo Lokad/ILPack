@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
 using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
@@ -83,10 +84,12 @@ namespace Lokad.ILPack
 
             // Add the type definition
             var baseTypeHandle = type.BaseType != null ? _metadata.GetTypeHandle(type.BaseType) : default;
+            // Special characters in type.Name are escaped with a backslash \ according to https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/specifying-fully-qualified-type-names#specify-special-characters
+            // In order to serialized such types correctly, its name has to be "unescaped" before.
             var handle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
                 type.DeclaringType == null ? _metadata.GetOrAddString(ApplyNameChange(type.Namespace)) : default(StringHandle),
-                _metadata.GetOrAddString(type.Name),
+                _metadata.GetOrAddString(Unescape(type.Name)),
                 baseTypeHandle,
                 MetadataTokens.FieldDefinitionHandle(_metadata.Builder.GetRowCount(TableIndex.Field) + 1),
                 MetadataTokens.MethodDefinitionHandle(_metadata.Builder.GetRowCount(TableIndex.MethodDef) + 1));
@@ -153,6 +156,29 @@ namespace Lokad.ILPack
             CreateEventsForType(type.GetEvents(AllEvents));
             CreateConstructors(type.GetConstructors(AllMethods));
             CreateMethods(type.GetMethods(AllMethods), genericParams);
+        }
+
+        /// <summary>
+        /// Converts any escaped characters in the input string.
+        /// System.Text.RegularExpressions.Regex.Unescape(string) is a similar method but does some additional conversions that are not needed and wanted (?) here.
+        /// </summary>
+        /// <param name="str">The input string containing the text to convert.</param>
+        /// <returns>A string of characters with any escaped characters converted to their unescaped form.</returns>
+        internal static string Unescape(string str)
+        {
+            var idx = str.IndexOf('\\');
+            if (idx < 0)
+                return str;
+            var sb = new StringBuilder();
+            int prevIdx = 0;
+            while (idx >= 0 && idx < str.Length - 1)
+            {
+                sb.Append(str.Substring(prevIdx, idx - prevIdx));
+                prevIdx = idx + 1;
+                idx = str.IndexOf("\\", idx + 2);
+            }
+            sb.Append(str.Substring(prevIdx));
+            return sb.ToString();
         }
 
         private void DeclareInterfacesAndCreateInterfaceMap(Type type, TypeDefinitionHandle handle)

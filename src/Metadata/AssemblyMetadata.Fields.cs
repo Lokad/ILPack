@@ -34,7 +34,7 @@ namespace Lokad.ILPack.Metadata
                 : fieldInfo.FieldType;
 
             return GetOrAddBlob(MetadataHelper.BuildSignature(x =>
-                x.FieldSignature().FromSystemType(type, this)));
+                AddCustomModifiers(x.FieldSignature(), fieldInfo).FromSystemType(type, this)));
         }
 
         public FieldDefinitionMetadata ReserveFieldDefinition(FieldInfo field, FieldDefinitionHandle handle)

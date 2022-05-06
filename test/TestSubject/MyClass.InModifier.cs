@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TestSubject
+﻿namespace TestSubject
 {
     public readonly struct StringSpan
     {
@@ -16,16 +12,13 @@ namespace TestSubject
             this.Length = length;
             this.Offset = offset;
         }
-
     }
 
-    public class TextPrinter
+    public class MyClassWithInModifier
     {
-
         public virtual string Print(in StringSpan text)
         {
             return text.Source.Substring(text.Offset, text.Length);
         }        
-
     }
 }

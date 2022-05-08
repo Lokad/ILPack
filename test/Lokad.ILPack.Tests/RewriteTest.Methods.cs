@@ -95,7 +95,7 @@ namespace Lokad.ILPack.Tests
         {
             Assert.Equal("Hello", await Invoke(@"
     var s = new StringSpan("" Hello "",1,5);
-    var r = (new TextPrinter()).Print(in s);
+    var r = new MyClassWithInModifier().Print(in s);
 ", "r"));
         }
     }

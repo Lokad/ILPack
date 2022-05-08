@@ -88,5 +88,14 @@ namespace Lokad.ILPack.Tests
                 "var r = x.AnotherMethodWithDefaultParameterValues(2, \"\", \"\", 27);",
                 "r"));
         }
+
+        [Fact]
+        public async void VirtualMethodWithInModifier()
+        {
+            Assert.Equal("Hello", await Invoke(@"
+    var s = new StringSpan("" Hello "",1,5);
+    var r = new MyClassWithInModifier().Print(in s);
+", "r"));
+        }
     }
 }

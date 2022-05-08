@@ -92,9 +92,13 @@ namespace Lokad.ILPack.Metadata
                     {
                         foreach (var par in parameters)
                         {
+                            var p = parEnc.AddParameter();
+
+                            AddCustomModifiers(p, par);
+
                             if (par.ParameterType.IsByRef)
                             {
-                                parEnc.AddParameter().Type(true).FromSystemType(par.ParameterType.GetElementType(), this);
+                                p.Type(true).FromSystemType(par.ParameterType.GetElementType(), this);
                             }
                             else
                             {

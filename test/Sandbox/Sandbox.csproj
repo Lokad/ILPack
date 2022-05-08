@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyOriginatorKeyFile>..\..\Lokad.ILPack.snk</AssemblyOriginatorKeyFile>
     <LangVersion>latest</LangVersion>
     <SignAssembly>True</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\Lokad.ILPack.snk</AssemblyOriginatorKeyFile>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,8 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.1.0" />
   </ItemGroup>
 
-
-  </Project>
+</Project>

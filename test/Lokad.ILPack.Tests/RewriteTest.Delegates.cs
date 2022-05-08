@@ -18,6 +18,15 @@ namespace Lokad.ILPack.Tests
         }
 
         [Fact]
+        public async void DelegateMyAction()
+        {
+            Assert.Equal(100, await Invoke(
+                $"var r = 0; x.DelegateMyAction(() => r = 100);",
+                "r"
+            ));
+        }
+
+        [Fact]
         public async void DelegateActionWithParam()
         {
             Assert.Equal(101, await Invoke(

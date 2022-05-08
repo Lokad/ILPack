@@ -30,15 +30,10 @@ namespace Lokad.ILPack
                     })));
             }
 
-            var bodyOffset = _metadata.ILBuilder.Count;
-
-            if (body != null)
-            {
-                var methodBodyWriter = new MethodBodyStreamWriter(_metadata);
-
-                // bodyOffset can be aligned during serialization. So, override the correct offset.
-                bodyOffset = methodBodyWriter.AddMethodBody(ctor, localVariablesSignature);
-            }
+            var bodyOffset = body != null
+                // bodyOffset can be aligned during serialization. So, use the correct offset.
+                ? new MethodBodyStreamWriter(_metadata).AddMethodBody(ctor, localVariablesSignature)
+                : -1;
 
             var parameters = CreateParameters(ctor.GetParameters());
 

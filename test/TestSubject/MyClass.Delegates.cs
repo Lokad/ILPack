@@ -12,7 +12,14 @@ namespace TestSubject
 {
     public partial class MyClass
     {
+        public delegate void MyAction();
+
         public void DelegateAction(Action cb)
+        {
+            cb();
+        }
+
+        public void DelegateMyAction(MyAction cb)
         {
             cb();
         }

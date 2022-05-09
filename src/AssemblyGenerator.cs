@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -33,9 +32,9 @@ namespace Lokad.ILPack
         private DebugDirectoryBuilder _debugDirectoryBuilder;
         private AssemblyMetadata _metadata;
 
-        private void Initialize(Assembly assembly, IEnumerable<Assembly> referencedDyncamicAsssemblies)
+        private void Initialize(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssemblies)
         {
-            _metadata = new AssemblyMetadata(assembly, referencedDyncamicAsssemblies);
+            _metadata = new AssemblyMetadata(assembly, referencedDynamicAssemblies);
             _debugDirectoryBuilder = new DebugDirectoryBuilder();
         }
 

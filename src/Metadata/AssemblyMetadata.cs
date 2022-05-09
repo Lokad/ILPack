@@ -9,6 +9,15 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata : IAssemblyMetadata
     {
+        private sealed class AssemblyNameComparer : IEqualityComparer<AssemblyName>
+        {
+            public bool Equals(AssemblyName x, AssemblyName y) =>
+                string.Equals(x?.Name, y?.Name, StringComparison.Ordinal);
+
+            public int GetHashCode(AssemblyName obj) =>
+                obj.Name.GetHashCode();
+        }
+
         private const BindingFlags AllMethods =
             BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |
             BindingFlags.DeclaredOnly | BindingFlags.CreateInstance | BindingFlags.Instance;
@@ -67,22 +76,30 @@ namespace Lokad.ILPack.Metadata
             _typeSpecHandles = new Dictionary<Type, TypeSpecificationHandle>();
             _referencedDynamics = referencedDynamicAssemblies.ToDictionary(a => a.FullName, a => a);
 
+            var assemblies = new HashSet<AssemblyName>(
+                sourceAssembly.GetReferencedAssemblies(), new AssemblyNameComparer());
 
-            var netstandardName = Assembly.Load("netstandard").GetName();
-
-            var assemblies = SourceAssembly.GetReferencedAssemblies()
+            var netstandardAssemblyName = Assembly.Load("netstandard").GetName();
+            if (!assemblies.Contains(netstandardAssemblyName))
+            {
                 // HACK: [vermorel] 2019-07-25. 'GetReferencedAssemblies()' does not capture all assemblies,
                 // only those that are explicitly referenced. Thus, we end-up  manually adding the assembly.
-                .Concat(new AssemblyName[] { Assembly.GetAssembly(typeof(object)).GetName() })
-                // Replace any reference to the private corelib implementation with netstandard
-                .Select(assembly => assembly.Name == "System.Private.CoreLib" ? netstandardName : assembly)
-                // Remove duplicate references by name
-                .GroupBy(assembly => assembly.Name)
-                .Select(group => group.First());
+                assemblies.Add(Assembly.GetAssembly(typeof(object)).GetName());
+            }
+
+            AppContext.TryGetSwitch(
+                "Lokad.ILPack.AssemblyGenerator.ReplaceCoreLibWithNetStandard",
+                out var isReplaceCorLibWithNetStandardEnabled);
+
+            if (isReplaceCorLibWithNetStandardEnabled &&
+                assemblies.Remove(Assembly.Load("System.Private.CoreLib").GetName()))
+            {
+                // Replace any reference to the private core library implementation with netstandard
+                assemblies.Add(netstandardAssemblyName);
+            }
 
             CreateReferencedAssemblies(assemblies);
         }
-
 
         public Assembly SourceAssembly { get; }
         public MetadataBuilder Builder { get; }

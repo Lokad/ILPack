@@ -84,6 +84,8 @@ namespace Lokad.ILPack
 
             // Add the type definition
             var baseTypeHandle = type.BaseType != null ? _metadata.GetTypeHandle(type.BaseType) : default;
+            // Special characters in type.Name are escaped with a backslash \ according to https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/specifying-fully-qualified-type-names#specify-special-characters
+            // In order to serialized such types correctly, its name has to be "unescaped" before.
             var handle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
                 type.DeclaringType == null ? _metadata.GetOrAddString(ApplyNameChange(type.Namespace)) : default(StringHandle),
@@ -156,12 +158,18 @@ namespace Lokad.ILPack
             CreateMethods(type.GetMethods(AllMethods), genericParams);
         }
 
-        private static string Unescape(string str)
+        /// <summary>
+        /// Converts any escaped characters in the input string.
+        /// System.Text.RegularExpressions.Regex.Unescape(string) is a similar method but does some additional conversions that are not needed and wanted (?) here.
+        /// </summary>
+        /// <param name="str">The input string containing the text to convert.</param>
+        /// <returns>A string of characters with any escaped characters converted to their unescaped form.</returns>
+        internal static string Unescape(string str)
         {
-            int idx = str.IndexOf('\\');
+            var idx = str.IndexOf('\\');
             if (idx < 0)
                 return str;
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             int prevIdx = 0;
             while (idx >= 0 && idx < str.Length - 1)
             {

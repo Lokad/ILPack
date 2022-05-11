@@ -716,9 +716,23 @@ namespace Lokad.ILPack.Tests
             SerializeAndVerifyAssembly(newAssembly, "Assembly+.dll");
 
             /* LOAD */
-            Assembly assembly = LoadAssembly("Assembly+.dll");
-            Type type = assembly.GetType("Type\\+");
+            var assembly = LoadAssembly("Assembly+.dll");
+            var type = assembly.GetType("Type\\+");
             Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void TestUnescape()
+        {
+            Assert.Equal(@"", AssemblyGenerator.Unescape(@""));
+            Assert.Equal(@"x", AssemblyGenerator.Unescape(@"x"));
+            Assert.Equal(@"\", AssemblyGenerator.Unescape(@"\"));
+            Assert.Equal(@"x", AssemblyGenerator.Unescape(@"\x"));
+            Assert.Equal(@"\", AssemblyGenerator.Unescape(@"\\"));
+            Assert.Equal(@"\\", AssemblyGenerator.Unescape(@"\\\"));
+            Assert.Equal(@"\\", AssemblyGenerator.Unescape(@"\\\\"));
+            Assert.Equal(@"x\", AssemblyGenerator.Unescape(@"x\"));
+            Assert.Equal(@"\xx\\x\", AssemblyGenerator.Unescape(@"\\\xx\\\\\x\\"));
         }
     }
 }

@@ -751,6 +751,29 @@ namespace Lokad.ILPack.Tests
             var type = assembly.GetType("Type\\+");
             Assert.NotNull(type);
         }
+                
+        [Fact]
+        public void TestMoreSpecialCharacters()
+        {
+            /* SAVE */
+            var assemblyName = new AssemblyName { Name = "Assembly++" };
+
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("Assembly++");
+
+            var myType = newModule.DefineType("A.B*C.D&E", TypeAttributes.Public);
+            myType.CreateType();
+            
+            var nested = myType.DefineNestedType("F", TypeAttributes.NestedPublic);
+            nested.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "Assembly++.dll");
+
+            /* LOAD */
+            Assembly assembly = LoadAssembly("Assembly++.dll");
+            Type type = assembly.GetType(@"A.B\*C.D\&E+F");
+            Assert.NotNull(type);
+        }
 
         [Fact]
         public void TestUnescape()
@@ -758,12 +781,13 @@ namespace Lokad.ILPack.Tests
             Assert.Equal(@"", AssemblyGenerator.Unescape(@""));
             Assert.Equal(@"x", AssemblyGenerator.Unescape(@"x"));
             Assert.Equal(@"\", AssemblyGenerator.Unescape(@"\"));
-            Assert.Equal(@"x", AssemblyGenerator.Unescape(@"\x"));
             Assert.Equal(@"\", AssemblyGenerator.Unescape(@"\\"));
             Assert.Equal(@"\\", AssemblyGenerator.Unescape(@"\\\"));
             Assert.Equal(@"\\", AssemblyGenerator.Unescape(@"\\\\"));
+
+            Assert.Equal(@"\x", AssemblyGenerator.Unescape(@"\x"));
             Assert.Equal(@"x\", AssemblyGenerator.Unescape(@"x\"));
-            Assert.Equal(@"\xx\\x\", AssemblyGenerator.Unescape(@"\\\xx\\\\\x\\"));
+            Assert.Equal(@"A.B*C.D&E+F", AssemblyGenerator.Unescape(@"A.B\*C.D\&E+F"));
         }
     }
 }

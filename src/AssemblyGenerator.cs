@@ -85,12 +85,6 @@ namespace Lokad.ILPack
         {
             Initialize(assembly, referencedDynamicAssembly);
 
-            if (_metadata.SourceAssembly.EntryPoint != null)
-            {
-                // See "<Module>" type definition below.
-                throw new NotSupportedException("Entry point is not supported.");
-            }
-
             var name = _metadata.SourceAssembly.GetName();
 
             var assemblyPublicKey = name.GetPublicKey();
@@ -103,14 +97,6 @@ namespace Lokad.ILPack
                 ConvertAssemblyHashAlgorithm(name.HashAlgorithm));
 
             // Add "<Module>" type definition *before* any type definition.
-            //
-            // TODO: [osman] methodList argument should be as following:
-            //
-            //   methodList: entryPoint.IsNil ? MetadataTokens.MethodDefinitionHandle(1) : entryPoint
-            //
-            // But, in order to work above code, we need to serialize
-            // entry point *without* serializing any type definition.
-            // This is not needed for libraries since they don't have any entry point.
             _metadata.Builder.AddTypeDefinition(
                 default,
                 default,

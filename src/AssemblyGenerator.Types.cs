@@ -5,12 +5,16 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using System.Text.RegularExpressions;
 using Lokad.ILPack.Metadata;
 
 namespace Lokad.ILPack
 {
     public partial class AssemblyGenerator
     {
+        private static readonly Regex FixTypeNameRegex =
+            new Regex(@"(\\)([.,&+*\[\]\\])", RegexOptions.Compiled | RegexOptions.Singleline);
+
         private void CreateTypes(IEnumerable<Type> types, List<DelayedWrite> genericParams)
         {
             var offsets = new TypeDefinitionMetadataOffset()
@@ -84,8 +88,6 @@ namespace Lokad.ILPack
 
             // Add the type definition
             var baseTypeHandle = type.BaseType != null ? _metadata.GetTypeHandle(type.BaseType) : default;
-            // Special characters in type.Name are escaped with a backslash \ according to https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/specifying-fully-qualified-type-names#specify-special-characters
-            // In order to serialized such types correctly, its name has to be "unescaped" before.
             var handle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
                 type.DeclaringType == null ? _metadata.GetOrAddString(ApplyNameChange(type.Namespace)) : default(StringHandle),
@@ -159,27 +161,15 @@ namespace Lokad.ILPack
         }
 
         /// <summary>
-        /// Converts any escaped characters in the input string.
-        /// System.Text.RegularExpressions.Regex.Unescape(string) is a similar method but does some additional conversions that are not needed and wanted (?) here.
+        /// Converts any escaped characters in the input string. <see cref="Regex.Unescape(string)"/>
+        /// is a similar method but does some additional conversions that are not needed and wanted (?) here.
+        /// Special characters in type.Name are escaped with a backslash <c>\</c> according to
+        /// <a href="https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/specifying-fully-qualified-type-names#specify-special-characters">docs</a>.
+        /// In order to serialized such types correctly, its name has to be "unescaped" before.
         /// </summary>
         /// <param name="str">The input string containing the text to convert.</param>
         /// <returns>A string of characters with any escaped characters converted to their unescaped form.</returns>
-        internal static string Unescape(string str)
-        {
-            var idx = str.IndexOf('\\');
-            if (idx < 0)
-                return str;
-            var sb = new StringBuilder();
-            int prevIdx = 0;
-            while (idx >= 0 && idx < str.Length - 1)
-            {
-                sb.Append(str.Substring(prevIdx, idx - prevIdx));
-                prevIdx = idx + 1;
-                idx = str.IndexOf("\\", idx + 2);
-            }
-            sb.Append(str.Substring(prevIdx));
-            return sb.ToString();
-        }
+        internal static string Unescape(string str) => FixTypeNameRegex.Replace(str, "$2");
 
         private void DeclareInterfacesAndCreateInterfaceMap(Type type, TypeDefinitionHandle handle)
         {

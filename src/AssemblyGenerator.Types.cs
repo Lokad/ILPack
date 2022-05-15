@@ -218,8 +218,8 @@ namespace Lokad.ILPack
                         // (This is the equivalent of .Override in msil)
                         _metadata.Builder.AddMethodImplementation(
                            (TypeDefinitionHandle)_metadata.GetTypeHandle(targetMethod.DeclaringType),
-                           _metadata.GetMethodHandle(targetMethod),
-                           _metadata.GetMethodHandle(ifcMethod));
+                           _metadata.GetMethodHandle(targetMethod, false),
+                           _metadata.GetMethodHandle(ifcMethod, false));
                     }
                 }
             }

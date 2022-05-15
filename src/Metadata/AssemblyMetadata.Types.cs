@@ -54,16 +54,24 @@ namespace Lokad.ILPack.Metadata
                 return ResolveGenericTypeSpec(type);
             }
 
-            if (!IsReferencedType(type))
+            if (IsReferencedType(type))
             {
+                if (_typeRefHandles.TryGetValue(type, out var typeRef))
+                {
+                    return typeRef;
+                }
+            }
+            else
+            {
+                if (_typeDefHandles.TryGetValue(type, out var typeDef))
+                {
+                    return type.ContainsGenericParameters ? ResolveGenericTypeSpec(type) : typeDef.Handle;
+                }
+
                 throw new ArgumentException($"Reference type is expected: {MetadataHelper.GetFriendlyName(type)}",
                     nameof(type));
             }
 
-            if (_typeRefHandles.TryGetValue(type, out var typeRef))
-            {
-                return typeRef;
-            }
 
             // For nested types the scope is the declaring type, not the assembly.
             var typeHandle = Builder.AddTypeReference(
@@ -75,7 +83,6 @@ namespace Lokad.ILPack.Metadata
 
             return typeHandle;
         }
-
 
         public bool IsGenericTypeSpec(Type type)
         {
@@ -108,12 +115,6 @@ namespace Lokad.ILPack.Metadata
 
         private EntityHandle ResolveGenericTypeSpec(Type type)
         {
-            if (!IsGenericTypeSpec(type))
-            {
-                throw new ArgumentException($"Generic type spec is expected: {MetadataHelper.GetFriendlyName(type)}",
-                    nameof(type));
-            }
-
             if (_typeSpecHandles.TryGetValue(type, out var typeSpec))
             {
                 return typeSpec;

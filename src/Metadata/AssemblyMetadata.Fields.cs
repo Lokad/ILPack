@@ -6,14 +6,16 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
-        public EntityHandle GetFieldHandle(FieldInfo field)
+        public EntityHandle GetFieldHandle(FieldInfo field, Boolean inMethodBodyWritingContext)
         {
-            if (TryGetFieldDefinition(field, out var metadata))
+            if (field.DeclaringType?.IsConstructedGenericType == false &&
+                TryGetFieldDefinition(field, out var metadata))
             {
-                return metadata.Handle;
+                return inMethodBodyWritingContext ? ResolveFieldReference(field) :metadata.Handle;
             }
 
-            if (IsReferencedType(field.DeclaringType))
+            if (IsReferencedType(field.DeclaringType) ||
+                field.DeclaringType?.IsConstructedGenericType == true)
             {
                 return ResolveFieldReference(field);
             }
@@ -47,32 +49,20 @@ namespace Lokad.ILPack.Metadata
 
         private EntityHandle ResolveFieldReference(FieldInfo field)
         {
-            if (!IsReferencedType(field.DeclaringType))
-            {
-                throw new ArgumentException(
-                    $"Field of a reference type is expected: {MetadataHelper.GetFriendlyName(field)}", nameof(field));
-            }
-
-
             if (_fieldRefHandles.TryGetValue(field, out var handle))
             {
                 return handle;
             }
 
             var typeRef = ResolveTypeReference(field.DeclaringType);
-            var fieldRef = Builder.AddMemberReference(typeRef, GetOrAddString(field.Name), GetFieldSignature(field));
+            var fieldRef = Builder.AddMemberReference(typeRef, GetOrAddString(field.Name),
+                GetFieldSignature(field));
             _fieldRefHandles.Add(field, fieldRef);
             return fieldRef;
         }
 
         public bool TryGetFieldDefinition(FieldInfo field, out FieldDefinitionMetadata metadata)
         {
-            if (field.Module.Assembly == SourceAssembly 
-                && field.DeclaringType?.IsConstructedGenericType == true
-                && _unconstructedFieldDefs.TryGetValue(field.MetadataToken, out var baseField))
-            {
-                field = baseField;
-            }
             return _fieldDefHandles.TryGetValue(field, out metadata);
         }
     }

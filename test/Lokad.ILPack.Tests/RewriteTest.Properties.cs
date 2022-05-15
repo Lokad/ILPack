@@ -28,13 +28,12 @@ namespace Lokad.ILPack.Tests
                 "x.ReadWriteProperty"));
         }
 
-        // TODO: See https://github.com/Lokad/ILPack/issues/127
-        //[Fact]
-        //public async void WrappedSingleton()
-        //{
-        //    Assert.Equal(default(string), await Invoke(
-        //        "",
-        //        "x.WrappedSingleton"));
-        //}
+        [Fact]
+        public async void WrappedSingleton()
+        {
+            Assert.Equal(default(string), await Invoke(
+                "",
+                "x.WrappedSingleton"));
+        }
     }
 }

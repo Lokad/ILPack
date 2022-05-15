@@ -33,13 +33,12 @@ namespace TestSubject
             set;
         }
 
-        // TODO: See https://github.com/Lokad/ILPack/issues/127
-        //public string WrappedSingleton
-        //{
-        //    get
-        //    {
-        //        return MySingleton<string>.Instance;
-        //    }
-        //}
+        public string WrappedSingleton
+        {
+            get
+            {
+                return MySingleton<string>.Instance;
+            }
+        }
     }
 }

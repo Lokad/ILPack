@@ -6,14 +6,16 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
-        public EntityHandle GetConstructorHandle(ConstructorInfo ctor)
+        public EntityHandle GetConstructorHandle(ConstructorInfo ctor, Boolean inMethodBodyWritingContext)
         {
-            if (TryGetConstructorDefinition(ctor, out var metadata))
+            if (ctor.DeclaringType?.IsConstructedGenericType == false &&
+                TryGetConstructorDefinition(ctor, out var metadata))
             {
-                return metadata.Handle;
+                return inMethodBodyWritingContext ? ResolveConstructorReference(ctor) : metadata.Handle;
             }
 
-            if (IsReferencedType(ctor.DeclaringType))
+            if (IsReferencedType(ctor.DeclaringType) ||
+                ctor.DeclaringType?.IsConstructedGenericType == true)
             {
                 return ResolveConstructorReference(ctor);
             }
@@ -24,13 +26,6 @@ namespace Lokad.ILPack.Metadata
 
         private EntityHandle ResolveConstructorReference(ConstructorInfo ctor)
         {
-            if (!IsReferencedType(ctor.DeclaringType))
-            {
-                throw new ArgumentException(
-                    $"Method of a reference type is expected: {MetadataHelper.GetFriendlyName(ctor)}",
-                    nameof(ctor));
-            }
-
             // Already created?
             if (_ctorRefHandles.TryGetValue(ctor, out var handle))
             {
@@ -38,30 +33,14 @@ namespace Lokad.ILPack.Metadata
             }
 
             var typeRef = ResolveTypeReference(ctor.DeclaringType);
-            var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(ctor.Name), GetMethodOrConstructorSignature(ctor));
+            var methodRef = Builder.AddMemberReference(typeRef, GetOrAddString(ctor.Name),
+                GetMethodOrConstructorSignature(ctor));
             _ctorRefHandles.Add(ctor, methodRef);
             return methodRef;
         }
 
         public bool TryGetConstructorDefinition(ConstructorInfo ctor, out MethodBaseDefinitionMetadata metadata)
         {
-            if (ctor.DeclaringType.IsConstructedGenericType)
-            {
-                // HACK: [vermorel] Unclear how to get the original constructor from the open type
-                // See https://stackoverflow.com/questions/43850948/with-constructorinfo-from-a-constructed-generic-type-how-to-i-get-the-matchin
-
-                var open = ctor.DeclaringType.GetGenericTypeDefinition().GetConstructors(AllMethods);
-
-                foreach (var ci in open)
-                {
-                    if (ci.MetadataToken == ctor.MetadataToken)
-                    {
-                        ctor = ci;
-                        break;
-                    }
-                }
-            }
-
             return _ctorDefHandles.TryGetValue(ctor, out metadata);
         }
 
@@ -71,9 +50,5 @@ namespace Lokad.ILPack.Metadata
             _ctorDefHandles.Add(ctor, metadata);
             return metadata;
         }
-
      }
 }
-
-
-

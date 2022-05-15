@@ -10,8 +10,8 @@ namespace Lokad.ILPack.Metadata
 
         UserStringHandle GetOrAddUserString(string value);
         EntityHandle GetTypeHandle(Type type);
-        EntityHandle GetFieldHandle(FieldInfo field);
-        EntityHandle GetConstructorHandle(ConstructorInfo ctor);
-        EntityHandle GetMethodHandle(MethodInfo method);
+        EntityHandle GetFieldHandle(FieldInfo field, Boolean inMethodBodyWritingContext);
+        EntityHandle GetConstructorHandle(ConstructorInfo ctor, Boolean inMethodBodyWritingContext);
+        EntityHandle GetMethodHandle(MethodInfo method, Boolean inMethodBodyWritingContext);
     }
 }

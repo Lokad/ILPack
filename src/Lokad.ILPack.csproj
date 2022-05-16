@@ -10,19 +10,21 @@
     <WarningLevel>5</WarningLevel>
 
     <Company>Lokad</Company>
-    <Copyright>Copyright © Lokad 2020</Copyright>
+    <Copyright>Copyright © Lokad 2020 - 2022</Copyright>
 
-    <AssemblyVersion>0.1.7.0</AssemblyVersion>
-    <FileVersion>0.1.7.0</FileVersion>
     <PackageId>Lokad.ILPack</PackageId>
-    <PackageVersion>0.1.7.0</PackageVersion>
+	  
+    <AssemblyVersion>0.2.0.0</AssemblyVersion>
+    <FileVersion>0.2.0.0</FileVersion>
+    <PackageVersion>0.2.0.0</PackageVersion>
+    <Version>0.2.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Lokad</Authors>
-    <Description>A library for serializing dynamic assemblies under .NET Core.</Description>
+    <Description>A library for serializing dynamic assemblies under .NET Standard 2.0.</Description>
     <PackageProjectUrl>https://github.com/Lokad/ILPack</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
-    <Version>0.1.6</Version>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/Lokad/ILPack.git</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

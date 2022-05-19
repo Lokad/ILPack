@@ -733,6 +733,30 @@ namespace Lokad.ILPack.Tests
         }
 
         [Fact]
+        public void TestBuildNullTargetMethod()
+        { 
+            var assemblyName = new AssemblyName("MissingAbstractTestExample");
+
+            var newAssembly = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            var newModule = newAssembly.DefineDynamicModule("MissingAbstractTestExample");
+
+            var interfaceA = newModule.DefineType("IA", 
+                TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
+            interfaceA.DefineMethod("ma", 
+                MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Abstract,
+                typeof(int), Array.Empty<Type>());
+            interfaceA.CreateType();
+
+            var classA = newModule.DefineType("CA",
+                TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract,
+                null, new Type[] { interfaceA });
+            classA.CreateType();
+
+            SerializeAndVerifyAssembly(newAssembly, "MissingAbstractTestExample.dll");          
+
+        }
+
+        [Fact]
         public void TestSpecialCharacters()
         {
             /* SAVE */

@@ -212,7 +212,7 @@ namespace Lokad.ILPack
 
                     // Declare a method override either when the interface implementation or
                     // the interface method implementation is declared by the type.
-                    if (implementedByType || targetMethod?.DeclaringType == type)
+                    if (targetMethod != null && (implementedByType || targetMethod.DeclaringType == type))
                     {
                         // Mark the target method as implementing the interface method.
                         // (This is the equivalent of .Override in msil)

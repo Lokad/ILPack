@@ -201,18 +201,18 @@ namespace Lokad.ILPack
             // method of an interface added by the type. For these reasons it is not sufficient
             // to only use the interfaces declared by a type or look at the declaring type of a
             // method implementing an interface method.
-            foreach (var ifcm in from ifc in type.GetInterfaces() select type.GetInterfaceMap(ifc))
+            foreach (var interfaceMapping in type.GetInterfaces().Select(type.GetInterfaceMap))
             {
-                bool implementedByType = interfaces.Contains(ifcm.InterfaceType);
+                var implementedByType = interfaces.Contains(interfaceMapping.InterfaceType);
 
-                for (int i = 0; i < ifcm.InterfaceMethods.Length; ++i)
+                for (int i = 0; i < interfaceMapping.InterfaceMethods.Length; ++i)
                 {
-                    MethodInfo targetMethod = ifcm.TargetMethods[i];
-                    MethodInfo ifcMethod = ifcm.InterfaceMethods[i];
+                    var targetMethod = interfaceMapping.TargetMethods[i];
+                    var ifcMethod = interfaceMapping.InterfaceMethods[i];
 
                     // Declare a method override either when the interface implementation or
                     // the interface method implementation is declared by the type.
-                    if (implementedByType || targetMethod.DeclaringType.Equals(type))
+                    if (implementedByType || targetMethod?.DeclaringType == type)
                     {
                         // Mark the target method as implementing the interface method.
                         // (This is the equivalent of .Override in msil)

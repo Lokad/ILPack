@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Lokad.ILPack.IL;
 
 namespace Lokad.ILPack.Metadata
 {
@@ -13,5 +14,6 @@ namespace Lokad.ILPack.Metadata
         EntityHandle GetFieldHandle(FieldInfo field, Boolean inMethodBodyWritingContext);
         EntityHandle GetConstructorHandle(ConstructorInfo ctor, Boolean inMethodBodyWritingContext);
         EntityHandle GetMethodHandle(MethodInfo method, Boolean inMethodBodyWritingContext);
+        EntityHandle GetSignatureHandle(SignatureInfo signature);
     }
 }

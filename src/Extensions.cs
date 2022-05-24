@@ -319,5 +319,16 @@ namespace Lokad.ILPack
                 return false;
             }
         }
+
+        internal static void AddCustomModifiers(this IAssemblyMetadata metadata, CustomModifiersEncoder cme, 
+            IEnumerable<Type> requiredModifiers, IEnumerable<Type> optionalModifiers) => cme
+            .AddCustomModifiers(metadata, requiredModifiers, false)
+            .AddCustomModifiers(metadata, optionalModifiers, true);
+
+        private static CustomModifiersEncoder AddCustomModifiers(
+            this CustomModifiersEncoder cme, IAssemblyMetadata metadata, IEnumerable<Type> modifiers, bool isOptional) =>
+            modifiers.Aggregate(cme, (current, modifier) =>
+                current.AddModifier(metadata.GetTypeHandle(modifier), isOptional));
+
     }
 }

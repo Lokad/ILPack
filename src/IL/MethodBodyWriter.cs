@@ -84,7 +84,8 @@ namespace Lokad.ILPack.IL
                         break;
 
                     case OperandType.InlineSig:
-                        metadata.ILBuilder.WriteBytes((byte[]) il[i].Operand);
+                        metadata.ILBuilder.WriteInt32(
+                            MetadataTokens.GetToken(metadata.GetSignatureHandle((SignatureInfo)il[i].Operand)));
                         break;
 
                     case OperandType.InlineString:

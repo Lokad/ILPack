@@ -118,7 +118,7 @@ namespace Lokad.ILPack.IL
                     break;
 
                 case OperandType.InlineSig:
-                    instruction.Operand = _module.ResolveSignature(_il.ReadInt32());
+                    instruction.Operand = SignatureInfo.Create(_il.ReadInt32(), _typeArguments, _methodArguments, _module);
                     break;
 
                 case OperandType.InlineString:

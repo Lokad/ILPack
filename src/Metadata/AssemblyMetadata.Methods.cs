@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Lokad.ILPack.IL;
 
 namespace Lokad.ILPack.Metadata
 {
@@ -25,6 +27,9 @@ namespace Lokad.ILPack.Metadata
             throw new ArgumentException($"Method cannot be found: {MetadataHelper.GetFriendlyName(method)}",
                 nameof(method));
         }
+
+        public EntityHandle GetSignatureHandle(SignatureInfo signature) =>
+            Builder.AddStandaloneSignature(GetOrAddBlob(signature.GetBlobBuilder(this)));
 
         public BlobHandle GetMethodOrConstructorSignature(MethodBase methodBase)
         {
@@ -81,9 +86,9 @@ namespace Lokad.ILPack.Metadata
                     parameters.Length,
                     (retEnc) =>
                     {
-                        if (methodBase is MethodInfo)
+                        if (methodBase is MethodInfo methodInfo)
                         {
-                            retEnc.FromSystemType(((MethodInfo)methodBase).ReturnType, this);
+                            retEnc.FromSystemType(methodInfo.ReturnType, this);
                         }
                         else
                         {
@@ -104,7 +109,7 @@ namespace Lokad.ILPack.Metadata
                             }
                             else
                             {
-                                parEnc.AddParameter().Type(false).FromSystemType(par.ParameterType, this);
+                                p.Type(false).FromSystemType(par.ParameterType, this);
                             }
                         }
                     }

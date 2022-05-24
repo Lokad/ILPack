@@ -133,24 +133,13 @@ namespace Lokad.ILPack.Metadata
         
         private SignatureTypeEncoder AddCustomModifiers(SignatureTypeEncoder encoder, FieldInfo info)
         {
-            AddCustomModifiers(encoder.CustomModifiers(),
+            this.AddCustomModifiers(encoder.CustomModifiers(),
                 info.GetRequiredCustomModifiers(), info.GetOptionalCustomModifiers());
             return encoder;
         }
         
         private void AddCustomModifiers(ParameterTypeEncoder encoder, ParameterInfo info) =>
-            AddCustomModifiers(encoder.CustomModifiers(),
+            this.AddCustomModifiers(encoder.CustomModifiers(),
                 info.GetRequiredCustomModifiers(), info.GetOptionalCustomModifiers());
-
-        private void AddCustomModifiers(CustomModifiersEncoder cme,
-            IEnumerable<Type> requiredModifiers, IEnumerable<Type> optionalModifiers) =>
-            AddCustomModifiers(
-                AddCustomModifiers(cme, requiredModifiers, false),
-                optionalModifiers, true);
-
-        private CustomModifiersEncoder AddCustomModifiers(
-            CustomModifiersEncoder cme, IEnumerable<Type> modifiers, bool isOptional) =>
-            modifiers.Aggregate(cme, (current, modifier) =>
-                current.AddModifier(ResolveTypeReference(modifier), isOptional));
     }
 }

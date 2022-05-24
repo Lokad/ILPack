@@ -183,7 +183,7 @@ namespace Lokad.ILPack.IL
                     SignatureTypeCode.RequiredModifier => ReadTypeWithModifier(
                         ReadTypeFromToken(), false, ReadType()),
 
-                    //SignatureTypeCode.FunctionPointer => null, // TODO: olegra - read SignatureInfo recursively
+                    //SignatureTypeCode.FunctionPointer => null, // TODO: read SignatureInfo recursively
 
                     _ => throw new InvalidOperationException(
                         $"This type code is not supported yet.")

@@ -62,7 +62,7 @@ namespace Lokad.ILPack.Metadata
                 // method with the same token.
                 //
                 // TODO: What about generic method definitions in a generic type???
-                System.Diagnostics.Debug.Assert(!methodBase.IsGenericMethod);
+                //System.Diagnostics.Debug.Assert(!methodBase.IsGenericMethod);
 
                 var definition = methodBase.DeclaringType.GetGenericTypeDefinition();
                 if (methodBase is MethodInfo)

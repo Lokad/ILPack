@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -83,6 +84,26 @@ namespace TestSubject
         public unsafe object call_methA() {
             byte* ptr = (byte*)0x123;
             return methA((byte*)ptr, (void*)ptr);
+        }
+
+        public byte MethodWithSimpleCallback()
+        {
+            return new MyUnsafe<int>().MethodWithSimpleCallback();
+        }
+
+        public string MethodWithModifiersCallback()
+        {
+            return new MyUnsafe<object>().MethodWithModifiersCallback();
+        }
+
+        public unsafe int MethodWithGenericCallback()
+        {
+            return new MyUnsafe<string>().MethodWithGenericCallback<int>(&GenericCallback);
+        }
+
+        private static int GenericCallback(Dictionary<int, string> input)
+        {
+            return 42;
         }
     }
 

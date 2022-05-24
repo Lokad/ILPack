@@ -97,5 +97,23 @@ namespace Lokad.ILPack.Tests
     var r = new MyClassWithInModifier().Print(in s);
 ", "r"));
         }
+
+        [Fact]
+        public async void FunctionPointerWithGenericsCallback()
+        {
+            Assert.Equal(42, await Invoke(@"var r = x.MethodWithGenericCallback();", "r"));
+        }
+
+        [Fact]
+        public async void FunctionPointerWithCallback()
+        {
+            Assert.Equal((byte)42, await Invoke(@"var r = x.MethodWithSimpleCallback();", "r"));
+        }
+
+        [Fact]
+        public async void FunctionPointerWithModifiersCallback()
+        {
+            Assert.Equal("Hello", await Invoke(@"var r = x.MethodWithModifiersCallback();", "r"));
+        }
     }
 }

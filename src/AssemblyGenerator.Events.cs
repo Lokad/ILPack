@@ -22,7 +22,7 @@ namespace Lokad.ILPack
             var eventHandle = _metadata.Builder.AddEvent(
                 ev.Attributes, 
                 _metadata.GetOrAddString(ev.Name), 
-                _metadata.GetTypeHandle(ev.EventHandlerType)
+                _metadata.GetTypeHandle(ev.EventHandlerType, false)
                 );
 
             // If this is the first event for this type then add to the event map

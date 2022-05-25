@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Lokad.ILPack.IL;
@@ -18,7 +17,8 @@ namespace Lokad.ILPack.Metadata
                 return inMethodBodyWritingContext ? ResolveMethodReference(method) : metadata.Handle;
             }
 
-            if (IsReferencedType(method.DeclaringType) ||
+            if (method.IsConstructedGenericMethod() ||
+                IsReferencedType(method.DeclaringType) ||
                 method.DeclaringType?.IsConstructedGenericType == true)
             {
                 return ResolveMethodReference(method);
@@ -60,9 +60,6 @@ namespace Lokad.ILPack.Metadata
                 // Luckily both the original and the constructed type's method have the same meta
                 // data token so we just go to the original generic definition and find the 
                 // method with the same token.
-                //
-                // TODO: What about generic method definitions in a generic type???
-                //System.Diagnostics.Debug.Assert(!methodBase.IsGenericMethod);
 
                 var definition = methodBase.DeclaringType.GetGenericTypeDefinition();
                 if (methodBase is MethodInfo)

@@ -7,16 +7,34 @@
 // SEE RewriteTest in Lokad.ILPack.Tests
 
 
+using System;
+using System.Collections.Generic;
+
 namespace TestSubject
 {
     public partial class MyClass : IMyItf
     {
+        private struct MyNestedGenericStruct<T>
+        {
+            public int Test(T key, Dictionary<T, int> storage) => Test(key, storage, Callback);
+
+            private U Test<U>(T key, Dictionary<T, U> storage, Func<T, Dictionary<T, U>, U> getter) => getter(key, storage);
+
+            private U Callback<U>(T key, Dictionary<T, U> storage) => storage[key];
+        }
+
+        public static int PartiallyResolvedGenericMethod()
+        {
+            return new MyNestedGenericStruct<string>()
+                .Test("A", new Dictionary<string, int> { { "A", 42 }, { "B", 21 } });
+        }
+
         public static T StaticGenericMethod<T>(T x)
         {
             return x;
         }
 
-        public static void StaticGenericMethodWithByRef<T>(ref T x, ref T y)
+        public static void StaticGenericMethodWithByRef<T>(ref T x, ref T y) //-V3013
         {
             T temp = x;
             x = y;
@@ -34,6 +52,5 @@ namespace TestSubject
             x = y;
             y = temp;
         }
-
     }
 }

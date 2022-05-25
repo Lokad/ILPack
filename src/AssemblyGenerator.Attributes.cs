@@ -32,7 +32,7 @@ namespace Lokad.ILPack
                     continue;
                 }
 
-                var attrTypeHandle = _metadata.GetTypeHandle(attrType); // create type
+                var attrTypeHandle = _metadata.GetTypeHandle(attrType, false); // create type
 
                 // Get handle to the constructor
                 var ctorHandle = _metadata.GetConstructorHandle(attr.Constructor, false);

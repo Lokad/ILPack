@@ -77,7 +77,7 @@ namespace Lokad.ILPack
                         // Add it's constraints
                         foreach (var constraint in arg.GetGenericParameterConstraints())
                         {
-                            _metadata.Builder.AddGenericParameterConstraint(gaHandle, _metadata.GetTypeHandle(constraint));
+                            _metadata.Builder.AddGenericParameterConstraint(gaHandle, _metadata.GetTypeHandle(constraint, false));
                         }
                     }));
                 }

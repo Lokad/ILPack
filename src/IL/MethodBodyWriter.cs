@@ -100,7 +100,7 @@ namespace Lokad.ILPack.IL
                         switch (il[i].Operand)
                         {
                             case Type type:
-                                metadata.ILBuilder.WriteInt32(MetadataTokens.GetToken(metadata.GetTypeHandle(type)));
+                                metadata.ILBuilder.WriteInt32(MetadataTokens.GetToken(metadata.GetTypeHandle(type, true)));
                                 break;
 
                             case ConstructorInfo constructorInfo:

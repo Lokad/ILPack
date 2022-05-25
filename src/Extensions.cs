@@ -225,7 +225,7 @@ namespace Lokad.ILPack
             else if (type.IsGenericType)
             {
                 var genericTypeDef = type.GetGenericTypeDefinition();
-                var typeHandler = metadata.GetTypeHandle(genericTypeDef);
+                var typeHandler = metadata.GetTypeHandle(genericTypeDef, false);
                 var genericArguments = type.GetGenericArguments();
 
                 var inst = typeEncoder.GenericInstantiation(typeHandler, genericArguments.Length, type.IsValueType);
@@ -255,7 +255,7 @@ namespace Lokad.ILPack
             }
             else
             {
-                var typeHandler = metadata.GetTypeHandle(type);
+                var typeHandler = metadata.GetTypeHandle(type, false);
                 typeEncoder.Type(typeHandler, type.IsValueType);
             }
         }
@@ -328,7 +328,7 @@ namespace Lokad.ILPack
         private static CustomModifiersEncoder AddCustomModifiers(
             this CustomModifiersEncoder cme, IAssemblyMetadata metadata, IEnumerable<Type> modifiers, bool isOptional) =>
             modifiers.Aggregate(cme, (current, modifier) =>
-                current.AddModifier(metadata.GetTypeHandle(modifier), isOptional));
+                current.AddModifier(metadata.GetTypeHandle(modifier, false), isOptional));
 
     }
 }

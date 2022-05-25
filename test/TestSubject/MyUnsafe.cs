@@ -15,9 +15,15 @@ namespace TestSubject
             return MethodWithModifiersCallback(&ModifiersCallback);
         }
 
-        public U MethodWithGenericCallback<U>(delegate*<Dictionary<U, T>, U> f)
+        public int MethodWithGenericCallback(T key, Dictionary<T, int> storage)
         {
-            return f(default);
+            return MethodWithGenericCallback<int>(storage, key, &GenericCallback);
+        }
+
+        private U MethodWithGenericCallback<U>(
+            Dictionary<T, U> storage, T key, delegate*<T, Dictionary<T, U>, U> getter)
+        {
+            return getter(key, storage);
         }
 
         private string MethodWithModifiersCallback(delegate*<in short[], ref byte[,], string> f)
@@ -39,6 +45,11 @@ namespace TestSubject
         private static byte SimpleCallback(int* a, bool b, object c, IntPtr d)
         {
             return 42;
+        }
+
+        private static U GenericCallback<U>(T key, Dictionary<T, U> storage)
+        {
+            return storage[key];
         }
     }
 }

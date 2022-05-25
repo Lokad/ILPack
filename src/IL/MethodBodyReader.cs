@@ -86,7 +86,7 @@ namespace Lokad.ILPack.IL
                     break;
 
                 case OperandType.InlineBrTarget:
-                    instruction.Operand = _il.ReadInt32();
+                    instruction.Operand = _il.ReadInt32(); //-V3139
                     break;
 
                 case OperandType.ShortInlineI:

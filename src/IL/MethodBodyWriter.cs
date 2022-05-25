@@ -100,22 +100,22 @@ namespace Lokad.ILPack.IL
                         switch (il[i].Operand)
                         {
                             case Type type:
-                                metadata.ILBuilder.WriteInt32(MetadataTokens.GetToken(metadata.GetTypeHandle(type)));
+                                metadata.ILBuilder.WriteInt32(MetadataTokens.GetToken(metadata.GetTypeHandle(type, inMethodBodyWritingContext: true)));
                                 break;
 
                             case ConstructorInfo constructorInfo:
                                 metadata.ILBuilder.WriteInt32(
-                                    MetadataTokens.GetToken(metadata.GetConstructorHandle(constructorInfo, true)));
+                                    MetadataTokens.GetToken(metadata.GetConstructorHandle(constructorInfo, inMethodBodyWritingContext: true)));
                                 break;
 
                             case FieldInfo fieldInfo:
                                 metadata.ILBuilder.WriteInt32(
-                                    MetadataTokens.GetToken(metadata.GetFieldHandle(fieldInfo, true)));
+                                    MetadataTokens.GetToken(metadata.GetFieldHandle(fieldInfo, inMethodBodyWritingContext: true)));
                                 break;
 
                             case MethodInfo methodInfo:
                                 metadata.ILBuilder.WriteInt32(
-                                    MetadataTokens.GetToken(metadata.GetMethodHandle(methodInfo, true)));
+                                    MetadataTokens.GetToken(metadata.GetMethodHandle(methodInfo, inMethodBodyWritingContext: true)));
                                 break;
 
                             default:

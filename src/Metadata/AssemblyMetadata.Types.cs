@@ -6,29 +6,14 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
-        public EntityHandle GetTypeHandle(Type type)
+        public EntityHandle GetTypeHandle(Type type, Boolean inMethodBodyWritingContext = false)
         {
             if (TryGetTypeDefinition(type, out var metadata))
             {
-                return metadata.Handle;
+                return inMethodBodyWritingContext ? ResolveTypeReference(type) : metadata.Handle;
             }
 
-            if (type.IsArray)
-            {
-                return ResolveArrayTypeSpec(type);
-            }
-
-            if (IsGenericTypeSpec(type))
-            {
-                return ResolveGenericTypeSpec(type);
-            }
-
-            if (IsReferencedType(type))
-            {
-                return ResolveTypeReference(type);
-            }
-
-            throw new ArgumentException($"Type cannot be found: {MetadataHelper.GetFriendlyName(type)}", nameof(type));
+            return ResolveTypeReference(type);
         }
 
         public bool IsReferencedType(Type type)
@@ -71,7 +56,6 @@ namespace Lokad.ILPack.Metadata
                 throw new ArgumentException($"Reference type is expected: {MetadataHelper.GetFriendlyName(type)}",
                     nameof(type));
             }
-
 
             // For nested types the scope is the declaring type, not the assembly.
             var typeHandle = Builder.AddTypeReference(

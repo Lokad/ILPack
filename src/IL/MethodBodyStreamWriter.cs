@@ -63,7 +63,7 @@ namespace Lokad.ILPack.IL
             foreach (var ex in body.ExceptionHandlingClauses)
             {
                 exre.Add((ExceptionRegionKind)ex.Flags, ex.TryOffset, ex.TryLength, ex.HandlerOffset, ex.HandlerLength,
-                    ex.Flags == ExceptionHandlingClauseOptions.Clause ? _metadata.GetTypeHandle(ex.CatchType) : default(EntityHandle),
+                    ex.Flags == ExceptionHandlingClauseOptions.Clause ? _metadata.GetTypeHandle(ex.CatchType) : default,
                     ex.Flags == ExceptionHandlingClauseOptions.Filter ? ex.FilterOffset : 0);
             }
         }

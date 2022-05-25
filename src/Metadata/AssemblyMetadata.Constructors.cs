@@ -6,7 +6,7 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
-        public EntityHandle GetConstructorHandle(ConstructorInfo ctor, Boolean inMethodBodyWritingContext)
+        public EntityHandle GetConstructorHandle(ConstructorInfo ctor, Boolean inMethodBodyWritingContext = false)
         {
             if (ctor.DeclaringType?.IsConstructedGenericType == false &&
                 TryGetConstructorDefinition(ctor, out var metadata))

@@ -10,10 +10,10 @@ namespace Lokad.ILPack.Metadata
         BlobBuilder ILBuilder { get; }
 
         UserStringHandle GetOrAddUserString(string value);
-        EntityHandle GetTypeHandle(Type type);
-        EntityHandle GetFieldHandle(FieldInfo field, Boolean inMethodBodyWritingContext);
-        EntityHandle GetConstructorHandle(ConstructorInfo ctor, Boolean inMethodBodyWritingContext);
-        EntityHandle GetMethodHandle(MethodInfo method, Boolean inMethodBodyWritingContext);
+        EntityHandle GetTypeHandle(Type type, Boolean inMethodBodyWritingContext = false);
+        EntityHandle GetFieldHandle(FieldInfo field, Boolean inMethodBodyWritingContext = false);
+        EntityHandle GetConstructorHandle(ConstructorInfo ctor, Boolean inMethodBodyWritingContext = false);
+        EntityHandle GetMethodHandle(MethodInfo method, Boolean inMethodBodyWritingContext = false);
         EntityHandle GetSignatureHandle(SignatureInfo signature);
     }
 }

@@ -71,7 +71,7 @@ namespace Lokad.ILPack.Metadata
 
             if (callingConvention.HasFlag(CallingConventions.VarArgs))
             {
-                result |= SignatureCallingConvention.VarArgs;
+                result |= SignatureCallingConvention.VarArgs; //-V3059
             }
 
             return result;
@@ -128,7 +128,7 @@ namespace Lokad.ILPack.Metadata
 
         public static string GetFriendlyName<TEntity>(TEntity entity)
         {
-            if (entity == null)
+            if (entity == null) //-V3111
             {
                 return "\"null\"";
             }

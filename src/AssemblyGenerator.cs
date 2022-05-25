@@ -155,7 +155,7 @@ namespace Lokad.ILPack
         public void GenerateAssembly(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssembly, string path)
         {
             var bytes = GenerateAssemblyBytes(assembly, referencedDynamicAssembly);
-            File.WriteAllBytes(path, bytes);
+            File.WriteAllBytes(path, bytes); //-V5609
         }
     }
 }

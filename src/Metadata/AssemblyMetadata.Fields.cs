@@ -6,7 +6,7 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
-        public EntityHandle GetFieldHandle(FieldInfo field, Boolean inMethodBodyWritingContext)
+        public EntityHandle GetFieldHandle(FieldInfo field, Boolean inMethodBodyWritingContext = false)
         {
             if (field.DeclaringType?.IsConstructedGenericType == false &&
                 TryGetFieldDefinition(field, out var metadata))

@@ -70,8 +70,8 @@ namespace Sandbox
             }
             catch (Exception x)
             {
-                Console.WriteLine(x.Message);
-                Console.WriteLine(x.StackTrace);
+                Console.WriteLine(x.Message); //-V5621
+                Console.WriteLine(x.StackTrace); //-V5621
                 throw;
             }
         }

@@ -96,14 +96,10 @@ namespace TestSubject
             return new MyUnsafe<object>().MethodWithModifiersCallback();
         }
 
-        public unsafe int MethodWithGenericCallback()
+        public int MethodWithGenericCallback()
         {
-            return new MyUnsafe<string>().MethodWithGenericCallback<int>(&GenericCallback);
-        }
-
-        private static int GenericCallback(Dictionary<int, string> input)
-        {
-            return 42;
+            return new MyUnsafe<string>().MethodWithGenericCallback(
+                "A", new Dictionary<string, int> {{ "A", 42}, { "B", 21}});
         }
     }
 

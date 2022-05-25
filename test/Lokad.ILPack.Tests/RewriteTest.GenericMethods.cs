@@ -6,6 +6,14 @@ namespace Lokad.ILPack.Tests
     partial class RewriteTest
     {
         [Fact]
+        public async void PartiallyResolvedGenericMethod()
+        {
+            Assert.Equal(42, await Invoke(
+                $"int r = MyClass.PartiallyResolvedGenericMethod();",
+                "r"));
+        }
+
+        [Fact]
         public async void StaticGenericMethod()
         {
             Assert.Equal(36, await Invoke(

@@ -35,7 +35,7 @@ namespace Lokad.ILPack
                 var attrTypeHandle = _metadata.GetTypeHandle(attrType); // create type
 
                 // Get handle to the constructor
-                var ctorHandle = _metadata.GetConstructorHandle(attr.Constructor, false);
+                var ctorHandle = _metadata.GetConstructorHandle(attr.Constructor);
                 System.Diagnostics.Debug.Assert(!ctorHandle.IsNil);
 
                 // Encode the attribute values

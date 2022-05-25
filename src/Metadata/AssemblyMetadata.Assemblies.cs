@@ -76,7 +76,7 @@ namespace Lokad.ILPack.Metadata
                     }
                 }
             }
-            catch { /* Don't care */ }
+            catch { /* Don't care */ } //-V5606 //-V3163
 
             // Look up all its exported types and add them to the map
             if (mdr != null)

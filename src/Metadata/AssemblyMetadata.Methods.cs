@@ -9,7 +9,7 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
-        public EntityHandle GetMethodHandle(MethodInfo method, Boolean inMethodBodyWritingContext)
+        public EntityHandle GetMethodHandle(MethodInfo method, Boolean inMethodBodyWritingContext = false)
         {
             if (method.DeclaringType?.IsConstructedGenericType == false &&
                 TryGetMethodDefinition(method, out var metadata))

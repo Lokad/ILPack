@@ -87,7 +87,7 @@ namespace Lokad.ILPack
             EnsureMetadataWasNotEmitted(metadata, type);
 
             // Add the type definition
-            var baseTypeHandle = type.BaseType != null ? _metadata.GetTypeHandle(type.BaseType, false) : default;
+            var baseTypeHandle = type.BaseType != null ? _metadata.GetTypeHandle(type.BaseType) : default;
             var handle = _metadata.Builder.AddTypeDefinition(
                 type.Attributes,
                 type.DeclaringType == null ? _metadata.GetOrAddString(ApplyNameChange(type.Namespace)) : default(StringHandle),
@@ -119,8 +119,7 @@ namespace Lokad.ILPack
             // Setup enclosing type
             if (type.DeclaringType != null)
             {
-                _metadata.Builder.AddNestedType(handle, (TypeDefinitionHandle)_metadata
-                    .GetTypeHandle(type.DeclaringType, false));
+                _metadata.Builder.AddNestedType(handle, (TypeDefinitionHandle)_metadata.GetTypeHandle(type.DeclaringType));
             }
 
             // Create attributes
@@ -145,8 +144,7 @@ namespace Lokad.ILPack
 
                             foreach (var constraint in arg.GetGenericParameterConstraints())
                             {
-                                _metadata.Builder.AddGenericParameterConstraint(gpHandle,
-                                          _metadata.GetTypeHandle(constraint, false));
+                                _metadata.Builder.AddGenericParameterConstraint(gpHandle, _metadata.GetTypeHandle(constraint));
                             }
                         }));
                     }
@@ -181,11 +179,11 @@ namespace Lokad.ILPack
                = new HashSet<Type>((type.BaseType is null
                    ? type.GetInterfaces()
                    : type.GetInterfaces().Except(type.BaseType.GetInterfaces()))
-                   .OrderBy(t => CodedIndex.TypeDefOrRefOrSpec(_metadata.GetTypeHandle(t, false))));
+                   .OrderBy(t => CodedIndex.TypeDefOrRefOrSpec(_metadata.GetTypeHandle(t))));
 
             foreach (var ifc in interfaces)
             {
-                _metadata.Builder.AddInterfaceImplementation(handle, _metadata.GetTypeHandle(ifc, false));
+                _metadata.Builder.AddInterfaceImplementation(handle, _metadata.GetTypeHandle(ifc));
             }
 
             // If the type is an interface there may be no interface map.
@@ -218,9 +216,9 @@ namespace Lokad.ILPack
                         // Mark the target method as implementing the interface method.
                         // (This is the equivalent of .Override in msil)
                         _metadata.Builder.AddMethodImplementation(
-                           (TypeDefinitionHandle)_metadata.GetTypeHandle(targetMethod.DeclaringType, false),
-                           _metadata.GetMethodHandle(targetMethod, false),
-                           _metadata.GetMethodHandle(ifcMethod, false));
+                           (TypeDefinitionHandle)_metadata.GetTypeHandle(targetMethod.DeclaringType),
+                           _metadata.GetMethodHandle(targetMethod),
+                           _metadata.GetMethodHandle(ifcMethod));
                     }
                 }
             }

@@ -6,7 +6,7 @@ namespace Lokad.ILPack.Metadata
 {
     internal partial class AssemblyMetadata
     {
-        public EntityHandle GetTypeHandle(Type type, Boolean inMethodBodyWritingContext)
+        public EntityHandle GetTypeHandle(Type type, Boolean inMethodBodyWritingContext = false)
         {
             if (TryGetTypeDefinition(type, out var metadata))
             {

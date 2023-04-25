@@ -19,10 +19,10 @@ namespace Lokad.ILPack
 
                 var genericParams = new List<DelayedWrite>();
 
-                CreateCustomAttributes(moduleHandle, module.GetCustomAttributesData());
                 CreateFields(module.GetFields());
                 CreateTypes(module.GetTypes(), genericParams);
                 CreateMethods(module.GetMethods(AllMethods), genericParams);
+                CreateCustomAttributes(moduleHandle, module.GetCustomAttributesData());
 
                 // Delaying those writes, because generic parameters must be sorted first.
                 foreach (var dw in genericParams.OrderBy(tu => tu.Index))

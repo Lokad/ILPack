@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <OutputType>Library</OutputType>
     <LangVersion>8.0</LangVersion>
 
@@ -13,7 +13,7 @@
     <Copyright>Copyright © Lokad 2020 - 2022</Copyright>
 
     <PackageId>Lokad.ILPack</PackageId>
-	  
+
     <AssemblyVersion>0.2.0.0</AssemblyVersion>
     <FileVersion>0.2.0.0</FileVersion>
     <PackageVersion>0.2.0.0</PackageVersion>

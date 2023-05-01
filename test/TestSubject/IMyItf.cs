@@ -15,5 +15,9 @@ namespace TestSubject
         int InterfaceMethod2();
 
         TResult InterfaceMethod3<TResult>(Func<TResult> f);
+
+#if NETCOREAPP3_0_OR_GREATER
+        void DefaultInterfaceMethod() { }
+#endif
     }
 }

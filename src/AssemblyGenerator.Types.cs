@@ -209,16 +209,28 @@ namespace Lokad.ILPack
                     var targetMethod = interfaceMapping.TargetMethods[i];
                     var ifcMethod = interfaceMapping.InterfaceMethods[i];
 
+                    if (targetMethod == null || ifcMethod == null)
+                    {
+                        continue;
+                    }
+
+                    var bodyHandle =_metadata.GetMethodHandle(targetMethod);
+                    var declarationHandle = _metadata.GetMethodHandle(ifcMethod);
+
+                    if (bodyHandle == declarationHandle)
+                    {
+                        continue;
+                    }
+
                     // Declare a method override either when the interface implementation or
                     // the interface method implementation is declared by the type.
-                    if (targetMethod != null && (implementedByType || targetMethod.DeclaringType == type))
+                    if (implementedByType || targetMethod.DeclaringType == type)
                     {
                         // Mark the target method as implementing the interface method.
                         // (This is the equivalent of .Override in msil)
                         _metadata.Builder.AddMethodImplementation(
                            (TypeDefinitionHandle)_metadata.GetTypeHandle(targetMethod.DeclaringType),
-                           _metadata.GetMethodHandle(targetMethod),
-                           _metadata.GetMethodHandle(ifcMethod));
+                           bodyHandle, declarationHandle);
                     }
                 }
             }

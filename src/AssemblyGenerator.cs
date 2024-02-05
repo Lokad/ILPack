@@ -121,7 +121,7 @@ namespace Lokad.ILPack
             {
                 if (!_metadata.TryGetMethodDefinition(entryPoint, out var entryPointMetadata))
                 {
-                    throw new InvalidOperationException("Couldn't find provided entry point.");
+                    throw new ArgumentException("Couldn't find provided entry point.", nameof(entryPoint));
                 }
                 entryPointHandle = entryPointMetadata.Handle;
             }

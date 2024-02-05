@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -39,7 +39,7 @@ namespace Lokad.ILPack
         }
 
         /// <summary>
-        /// Called by the unit tests to rename the assembly and the namespaces 
+        /// Called by the unit tests to rename the assembly and the namespaces
         /// in the rewritten assembly.  This allows the unit tests to load
         /// both RewrittenOriginal.dll and RewrittenClone.dll.
         /// </summary>
@@ -57,7 +57,7 @@ namespace Lokad.ILPack
         // Apply name changes to assembly and namespace names
         internal string ApplyNameChange(string str)
         {
-            // Types can have a null namespace. eg: some compiler generated classes like C#'s  
+            // Types can have a null namespace. eg: some compiler generated classes like C#'s
             // "<PrivateImplementationDetails>" used for static array initializers
             if (str == null)
                 return null;
@@ -73,6 +73,10 @@ namespace Lokad.ILPack
         public byte[] GenerateAssemblyBytes(Assembly assembly) =>
             GenerateAssemblyBytes(assembly, Array.Empty<Assembly>());
 
+        /// <inheritdoc cref="GenerateAssembly(Assembly, IEnumerable{Assembly}, string)"/>
+        public byte[] GenerateAssemblyBytes(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssembly) =>
+            GenerateAssemblyBytes(assembly, referencedDynamicAssembly, null);
+
         /// <summary> Serialize an assembly to a byte array </summary>
         /// <param name="assembly"> Assembly to be serialized </param>
         /// <param name="referencedDynamicAssembly">
@@ -80,8 +84,11 @@ namespace Lokad.ILPack
         /// and that are dynamic assembly. The .net assembly loader can't find those
         /// otherwize
         /// </param>
+        /// <param name="entryPoint">
+        /// The entry point to use in the generated assembly. If null will use the one from the original assembly.
+        /// </param>
         /// <returns> The serialized assembly. </returns>
-        public byte[] GenerateAssemblyBytes(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssembly)
+        public byte[] GenerateAssemblyBytes(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssembly, MethodInfo entryPoint)
         {
             Initialize(assembly, referencedDynamicAssembly);
 
@@ -109,11 +116,19 @@ namespace Lokad.ILPack
 
             CreateCustomAttributes(assemblyHandle, assembly.GetCustomAttributesData());
 
-            MethodDefinitionHandle entryPoint = default;
-            if (_metadata.SourceAssembly.EntryPoint != null &&
+            MethodDefinitionHandle entryPointHandle = default;
+            if (entryPoint != null)
+            {
+                if (!_metadata.TryGetMethodDefinition(entryPoint, out var entryPointMetadata))
+                {
+                    throw new InvalidOperationException("Couldn't find provided entry point.");
+                }
+                entryPointHandle = entryPointMetadata.Handle;
+            }
+            else if (_metadata.SourceAssembly.EntryPoint != null &&
                 _metadata.TryGetMethodDefinition(_metadata.SourceAssembly.EntryPoint, out var entryPointMetadata))
             {
-                entryPoint = entryPointMetadata.Handle;
+                entryPointHandle = entryPointMetadata.Handle;
             }
 
             var metadataRootBuilder = new MetadataRootBuilder(_metadata.Builder);
@@ -123,7 +138,7 @@ namespace Lokad.ILPack
             // does not set this flag. So, we set it explicitly.
             var header = new PEHeaderBuilder(
                 imageCharacteristics: Characteristics.ExecutableImage |
-                                           (entryPoint.IsNil ? Characteristics.Dll : 0));
+                                           (entryPointHandle.IsNil ? Characteristics.Dll : 0));
 
             var peBuilder = new ManagedPEBuilder(
                 header: header,
@@ -131,7 +146,7 @@ namespace Lokad.ILPack
                 ilStream: _metadata.ILBuilder,
                 mappedFieldData: _metadata.MappedFieldDataBuilder,
                 debugDirectoryBuilder: _debugDirectoryBuilder,
-                entryPoint: entryPoint);
+                entryPoint: entryPointHandle);
 
             var peImageBuilder = new BlobBuilder();
             peBuilder.Serialize(peImageBuilder);

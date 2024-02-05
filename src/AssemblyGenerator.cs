@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -159,6 +159,13 @@ namespace Lokad.ILPack
         public void GenerateAssembly(Assembly assembly, string path) =>
             GenerateAssembly(assembly, Array.Empty<Assembly>(), path);
 
+        /// <inheritdoc cref="GenerateAssembly(Assembly, IEnumerable{Assembly}, MethodInfo, string)"/>
+        public void GenerateAssembly(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssembly, string path)
+        {
+            var bytes = GenerateAssemblyBytes(assembly, referencedDynamicAssembly);
+            File.WriteAllBytes(path, bytes); //-V5609
+        }
+
         /// <summary> Serialize an assembly to a file </summary>
         /// <param name="assembly"> Assembly to be serialized </param>
         /// <param name="referencedDynamicAssembly">
@@ -166,10 +173,13 @@ namespace Lokad.ILPack
         /// and that are dynamic assembly. The .net assembly loader can't find those
         /// otherwize
         /// </param>
+        /// <param name="entryPoint">
+        /// The entry point to use in the generated assembly. If null will use the one from the original assembly.
+        /// </param>
         /// <param name="path"> Output file path </param>
-        public void GenerateAssembly(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssembly, string path)
+        public void GenerateAssembly(Assembly assembly, IEnumerable<Assembly> referencedDynamicAssembly, MethodInfo entryPoint, string path)
         {
-            var bytes = GenerateAssemblyBytes(assembly, referencedDynamicAssembly);
+            var bytes = GenerateAssemblyBytes(assembly, referencedDynamicAssembly, entryPoint);
             File.WriteAllBytes(path, bytes); //-V5609
         }
     }

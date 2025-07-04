@@ -55,7 +55,7 @@ namespace Lokad.ILPack
             if (arg.Value is Type type)
             {
                 // Type reference
-                litEnc.Scalar().SystemType(type.FullName);
+                litEnc.Scalar().SystemType(type.AssemblyQualifiedName);
             }
             else if (arg.Value is ReadOnlyCollection<CustomAttributeTypedArgument> array)
             {

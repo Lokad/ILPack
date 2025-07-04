@@ -24,7 +24,7 @@ namespace Lokad.ILPack.Metadata
 
             // todo, also maybe in Module, ModuleRef, AssemblyRef and TypeRef
             // ECMA-335 page 273-274
-            return type.Assembly != SourceAssembly;
+            return !SourceAssembly.FullName.Equals(type.Assembly.FullName);
         }
 
         private EntityHandle ResolveTypeReference(Type type)
